@@ -3,9 +3,10 @@
 import { useState, useRef, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { motion } from "framer-motion"
-import { ArrowLeft, BookOpen, Sparkles, Lightbulb, ExternalLink, FileText, GraduationCap } from "lucide-react"
+import { ArrowLeft, BookOpen, Sparkles, Lightbulb } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { DynamicFrame } from "@/components/dynamic-frame"
+import { DocumentCard } from "@/components/document-card"
 import Image from "next/image"
 import { AccessibilityControls } from "@/components/accessibility-controls"
 import { useAccessibility } from "@/contexts/accessibility-context"
@@ -232,30 +233,33 @@ export default function ProfessionalWorld() {
                         I'm a technology leader with nearly two decades of experience developing disruptive products and
                         technologies that drive sustainability and innovation in the energy sector.
                       </p>
-                      <div className="flex flex-wrap gap-3 mt-4">
-                        <motion.a
-                          href="#"
-                          className="inline-flex items-center gap-2 px-4 py-2 bg-green-100 dark:bg-green-900/50 text-green-800 dark:text-green-300 rounded-full text-sm font-medium hover:bg-green-200 dark:hover:bg-green-900/70 transition-colors"
-                          whileHover={{ scale: 1.05 }}
-                          whileTap={{ scale: 0.95 }}
-                        >
-                          <FileText className="h-4 w-4" />
-                          Resume
-                          <ExternalLink className="h-3 w-3" />
-                        </motion.a>
-                        <motion.a
-                          href="#"
-                          className="inline-flex items-center gap-2 px-4 py-2 bg-blue-100 dark:bg-blue-900/50 text-blue-800 dark:text-blue-300 rounded-full text-sm font-medium hover:bg-blue-200 dark:hover:bg-blue-900/70 transition-colors"
-                          whileHover={{ scale: 1.05 }}
-                          whileTap={{ scale: 0.95 }}
-                        >
-                          <GraduationCap className="h-4 w-4" />
-                          PhD Thesis
-                          <ExternalLink className="h-3 w-3" />
-                        </motion.a>
-                      </div>
                     </div>
                   </motion.div>
+
+                  {/* Documents Section */}
+                  <div className="mt-8">
+                    <h3 className="text-xl font-serif font-semibold mb-6 text-green-700 dark:text-green-300">
+                      Key Documents
+                    </h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <DocumentCard
+                        title="Professional Resume"
+                        description="Comprehensive overview of my professional experience, skills, and accomplishments in energy technology leadership."
+                        src="/documents/professional/resume.pdf"
+                        type="pdf"
+                        thumbnail="/documents/professional/thumbnails/resume-thumb.png"
+                        tags={["Resume", "Experience", "Leadership"]}
+                      />
+                      <DocumentCard
+                        title="PhD Thesis"
+                        description="Dynamic Control and Optimization of Distributed Energy Resources - my doctoral research on smart grid technologies."
+                        src="/documents/professional/thesis.pdf"
+                        type="pdf"
+                        thumbnail="/documents/professional/thumbnails/thesis-thumb.png"
+                        tags={["PhD", "Research", "Smart Grid", "Optimization"]}
+                      />
+                    </div>
+                  </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-8">
                     <DynamicFrame className="h-full border border-green-200 dark:border-green-800 bg-white/95 dark:bg-gray-950/95">
@@ -363,6 +367,31 @@ export default function ProfessionalWorld() {
                     Tiny Endeavors
                   </h2>
 
+                  {/* Research Papers */}
+                  <div className="mb-12">
+                    <h3 className="text-xl font-serif font-semibold mb-6 text-green-700 dark:text-green-300">
+                      Research Publications
+                    </h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <DocumentCard
+                        title="Dynamic Control and Optimization of Distributed Energy Resources in a Microgrid"
+                        description="Published in IEEE Transactions on Smart Grid - A comprehensive approach to decentralized power grid management with real-time optimization of EVs, PV generation, and battery storage."
+                        src="/documents/professional/papers/ieee-smart-grid-paper.pdf"
+                        type="pdf"
+                        thumbnail="/documents/professional/thumbnails/ieee-paper-thumb.png"
+                        tags={["IEEE", "Smart Grid", "Distributed Control", "Optimization"]}
+                      />
+                      <DocumentCard
+                        title="Control and Optimization of Grid-Tied Photovoltaic Storage Systems Using Model Predictive Control"
+                        description="Published in Journal of Applied Physics - Advanced MPC techniques for optimizing PV storage systems with dynamic adaptation to changing conditions and price signals."
+                        src="/documents/professional/papers/jap-mpc-paper.pdf"
+                        type="pdf"
+                        thumbnail="/documents/professional/thumbnails/jap-paper-thumb.png"
+                        tags={["Journal of Applied Physics", "MPC", "Photovoltaic", "Energy Storage"]}
+                      />
+                    </div>
+                  </div>
+
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                     <motion.div
                       initial={{ opacity: 0, y: 20 }}
@@ -398,14 +427,6 @@ export default function ProfessionalWorld() {
                               Electric Vehicles
                             </span>
                           </div>
-                          <motion.a
-                            href="#"
-                            className="inline-flex items-center gap-2 text-green-600 dark:text-green-400 hover:text-green-700 dark:hover:text-green-300 text-sm font-medium"
-                            whileHover={{ x: 5 }}
-                          >
-                            Read Paper
-                            <ExternalLink className="h-3 w-3" />
-                          </motion.a>
                         </div>
                       </DynamicFrame>
                     </motion.div>
@@ -445,62 +466,9 @@ export default function ProfessionalWorld() {
                               Model Predictive Control
                             </span>
                           </div>
-                          <motion.a
-                            href="#"
-                            className="inline-flex items-center gap-2 text-green-600 dark:text-green-400 hover:text-green-700 dark:hover:text-green-300 text-sm font-medium"
-                            whileHover={{ x: 5 }}
-                          >
-                            Read Paper
-                            <ExternalLink className="h-3 w-3" />
-                          </motion.a>
                         </div>
                       </DynamicFrame>
                     </motion.div>
-                  </div>
-
-                  <h3 className="text-xl font-serif font-semibold mt-12 mb-4 text-green-700 dark:text-green-300">
-                    Publications & Research
-                  </h3>
-
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <DynamicFrame className="border border-green-200 dark:border-green-800 bg-white/95 dark:bg-gray-950/95">
-                      <div className="p-6">
-                        <h4 className="text-md font-serif font-semibold mb-2 text-green-700 dark:text-green-300">
-                          IEEE Transactions on Smart Grid
-                        </h4>
-                        <p className="text-gray-700 dark:text-gray-300 text-sm mb-3">
-                          "Dynamic Control and Optimization of Distributed Energy Resources in a Microgrid"
-                        </p>
-                        <motion.a
-                          href="#"
-                          className="inline-flex items-center gap-2 text-green-600 dark:text-green-400 hover:text-green-700 dark:hover:text-green-300 text-sm font-medium"
-                          whileHover={{ x: 5 }}
-                        >
-                          View Publication
-                          <ExternalLink className="h-3 w-3" />
-                        </motion.a>
-                      </div>
-                    </DynamicFrame>
-
-                    <DynamicFrame className="border border-green-200 dark:border-green-800 bg-white/95 dark:bg-gray-950/95">
-                      <div className="p-6">
-                        <h4 className="text-md font-serif font-semibold mb-2 text-green-700 dark:text-green-300">
-                          Journal of Applied Physics
-                        </h4>
-                        <p className="text-gray-700 dark:text-gray-300 text-sm mb-3">
-                          "Control and Optimization of Grid-Tied Photovoltaic Storage Systems Using Model Predictive
-                          Control"
-                        </p>
-                        <motion.a
-                          href="#"
-                          className="inline-flex items-center gap-2 text-green-600 dark:text-green-400 hover:text-green-700 dark:hover:text-green-300 text-sm font-medium"
-                          whileHover={{ x: 5 }}
-                        >
-                          View Publication
-                          <ExternalLink className="h-3 w-3" />
-                        </motion.a>
-                      </div>
-                    </DynamicFrame>
                   </div>
 
                   <DynamicFrame className="mt-6 border border-green-200 dark:border-green-800 bg-white/95 dark:bg-gray-950/95">
