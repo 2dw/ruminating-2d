@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { motion } from "framer-motion"
-import { Moon, Sun, ArrowLeft, Palette, Camera, PenTool } from "lucide-react"
+import { Moon, Sun, Palette, Camera, PenTool } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { DynamicFrame } from "@/components/dynamic-frame"
 import { DocumentCard } from "@/components/document-card"
@@ -87,7 +87,7 @@ export default function PersonalWorld() {
 
         {/* Main content with better contrast */}
         <div className="relative z-10">
-          {/* Header with Tabs */}
+          {/* Header */}
           <header className="sticky top-0 z-10 backdrop-blur-md bg-white/80 dark:bg-[#0a1015]/80 border-b border-gray-200 dark:border-gray-800">
             <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
               <div className="flex justify-between items-center h-16">
@@ -98,8 +98,15 @@ export default function PersonalWorld() {
                       size="icon"
                       onClick={() => router.push("/")}
                       className="text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300"
+                      aria-label="Return to main portal"
                     >
-                      <ArrowLeft className="h-5 w-5" />
+                      <svg className="h-5 w-5" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z" />
+                        <path
+                          d="M12 1L3 10v11h6v-6h6v6h6V10L12 1zm0 2.69L19 11v8h-2v-6H7v6H5v-8l7-7.31z"
+                          opacity="0.3"
+                        />
+                      </svg>
                     </Button>
                   </motion.div>
                   <motion.h1
@@ -117,10 +124,7 @@ export default function PersonalWorld() {
                   {/* Hover Highlight */}
                   <div
                     className="absolute h-[30px] transition-all duration-300 ease-out bg-blue-100/50 dark:bg-blue-900/30 rounded-[6px] flex items-center"
-                    style={{
-                      ...hoverStyle,
-                      opacity: hoveredIndex !== null ? 1 : 0,
-                    }}
+                    style={hoverStyle}
                   />
 
                   {/* Active Indicator */}

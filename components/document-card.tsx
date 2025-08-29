@@ -1,75 +1,102 @@
 "use client"
 
+import type React from "react"
+
 import { useState } from "react"
 import { motion } from "framer-motion"
-import { FileText, ImageIcon, ExternalLink } from "lucide-react"
+import { ExternalLink, Eye, Download } from "lucide-react"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { DocumentViewer } from "./document-viewer"
-import Image from "next/image"
 
 interface DocumentCardProps {
   title: string
-  description?: string
-  src: string
+  description: string
   type: "pdf" | "image"
-  thumbnail?: string
-  tags?: string[]
+  url: string
+  icon: React.ReactNode
+  color: "green" | "blue" | "purple"
 }
 
-export function DocumentCard({ title, description, src, type, thumbnail, tags }: DocumentCardProps) {
+export function DocumentCard({ title, description, type, url, icon, color }: DocumentCardProps) {
   const [isViewerOpen, setIsViewerOpen] = useState(false)
 
-  const Icon = type === "pdf" ? FileText : ImageIcon
+  const colorClasses = {
+    green: {
+      border: "border-green-200 dark:border-green-800",
+      title: "text-green-700 dark:text-green-400",
+      icon: "text-green-600 dark:text-green-400",
+      button: "bg-green-600 hover:bg-green-700",
+      hover: "hover:border-green-300 dark:hover:border-green-700",
+    },
+    blue: {
+      border: "border-blue-200 dark:border-blue-800",
+      title: "text-blue-700 dark:text-blue-400",
+      icon: "text-blue-600 dark:text-blue-400",
+      button: "bg-blue-600 hover:bg-blue-700",
+      hover: "hover:border-blue-300 dark:hover:border-blue-700",
+    },
+    purple: {
+      border: "border-purple-200 dark:border-purple-800",
+      title: "text-purple-700 dark:text-purple-400",
+      icon: "text-purple-600 dark:text-purple-400",
+      button: "bg-purple-600 hover:bg-purple-700",
+      hover: "hover:border-purple-300 dark:hover:border-purple-700",
+    },
+  }
+
+  const colors = colorClasses[color]
+
+  const handleView = () => {
+    setIsViewerOpen(true)
+  }
+
+  const handleDownload = () => {
+    window.open(url, "_blank")
+  }
 
   return (
     <>
-      <motion.div
-        className="border border-green-200 dark:border-green-800 rounded-lg overflow-hidden bg-white/95 dark:bg-gray-950/95 hover:shadow-lg transition-shadow cursor-pointer"
-        whileHover={{ y: -5 }}
-        onClick={() => setIsViewerOpen(true)}
-      >
-        {/* Thumbnail */}
-        <div className="h-48 bg-green-100 dark:bg-green-900/30 relative overflow-hidden">
-          {thumbnail ? (
-            <Image src={thumbnail || "/placeholder.svg"} alt={`${title} thumbnail`} fill className="object-cover" />
-          ) : (
-            <div className="flex items-center justify-center h-full">
-              <Icon className="h-16 w-16 text-green-600 dark:text-green-400" />
+      <motion.div whileHover={{ y: -2 }} transition={{ duration: 0.2 }}>
+        <Card className={`${colors.border} ${colors.hover} transition-all duration-200 cursor-pointer`}>
+          <CardHeader className="pb-3">
+            <div className="flex items-start justify-between">
+              <div className="flex items-center space-x-3">
+                <div className={`${colors.icon}`}>{icon}</div>
+                <div>
+                  <CardTitle className={`text-lg ${colors.title}`}>{title}</CardTitle>
+                  <CardDescription className="text-sm mt-1">{description}</CardDescription>
+                </div>
+              </div>
+              <ExternalLink className={`h-4 w-4 ${colors.icon} opacity-60`} />
             </div>
-          )}
-          <div className="absolute inset-0 bg-black/0 hover:bg-black/10 transition-colors flex items-center justify-center opacity-0 hover:opacity-100">
-            <Button variant="secondary" size="sm">
-              <ExternalLink className="h-4 w-4 mr-2" />
-              View {type === "pdf" ? "Document" : "Image"}
-            </Button>
-          </div>
-        </div>
-
-        {/* Content */}
-        <div className="p-4">
-          <h3 className="text-lg font-serif font-semibold mb-2 text-green-700 dark:text-green-300">{title}</h3>
-          {description && <p className="text-gray-700 dark:text-gray-300 text-sm mb-3">{description}</p>}
-          {tags && tags.length > 0 && (
-            <div className="flex flex-wrap gap-2">
-              {tags.map((tag, index) => (
-                <span
-                  key={index}
-                  className="px-2 py-1 bg-green-100 dark:bg-green-900/50 text-green-800 dark:text-green-300 text-xs rounded-full"
-                >
-                  {tag}
-                </span>
-              ))}
+          </CardHeader>
+          <CardContent className="pt-0">
+            <div className="flex space-x-2">
+              <Button size="sm" onClick={handleView} className={`${colors.button} text-white flex-1`}>
+                <Eye className="h-4 w-4 mr-2" />
+                View
+              </Button>
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={handleDownload}
+                className={`${colors.border} ${colors.title} hover:bg-gray-50 dark:hover:bg-gray-800`}
+              >
+                <Download className="h-4 w-4 mr-2" />
+                Download
+              </Button>
             </div>
-          )}
-        </div>
+          </CardContent>
+        </Card>
       </motion.div>
 
       <DocumentViewer
-        src={src}
-        title={title}
-        type={type}
         isOpen={isViewerOpen}
         onClose={() => setIsViewerOpen(false)}
+        title={title}
+        url={url}
+        type={type}
       />
     </>
   )
