@@ -245,7 +245,7 @@ export default function ProfessionalWorld() {
                       <DocumentCard
                         title="Professional Resume"
                         description="Comprehensive overview of my professional experience, skills, and accomplishments in energy technology leadership."
-                        src="/documents/professional/resume.pdf"
+                        src="/documents/professional/wang resume 12-2024.pdf"
                         type="pdf"
                         thumbnail="/documents/professional/thumbnails/resume-thumb.png"
                         tags={["Resume", "Experience", "Leadership"]}
@@ -376,7 +376,7 @@ export default function ProfessionalWorld() {
                       <DocumentCard
                         title="Dynamic Control and Optimization of Distributed Energy Resources in a Microgrid"
                         description="Published in IEEE Transactions on Smart Grid - A comprehensive approach to decentralized power grid management with real-time optimization of EVs, PV generation, and battery storage."
-                        src="/documents/professional/papers/ieee-smart-grid-paper.pdf"
+                        src="/documents/professional/papers/2015_wang_admm.pdf"
                         type="pdf"
                         thumbnail="/documents/professional/thumbnails/ieee-paper-thumb.png"
                         tags={["IEEE", "Smart Grid", "Distributed Control", "Optimization"]}
@@ -384,7 +384,7 @@ export default function ProfessionalWorld() {
                       <DocumentCard
                         title="Control and Optimization of Grid-Tied Photovoltaic Storage Systems Using Model Predictive Control"
                         description="Published in Journal of Applied Physics - Advanced MPC techniques for optimizing PV storage systems with dynamic adaptation to changing conditions and price signals."
-                        src="/documents/professional/papers/jap-mpc-paper.pdf"
+                        src="/documents/professional/papers/2014_wang_mpc.pdf"
                         type="pdf"
                         thumbnail="/documents/professional/thumbnails/jap-paper-thumb.png"
                         tags={["Journal of Applied Physics", "MPC", "Photovoltaic", "Energy Storage"]}
