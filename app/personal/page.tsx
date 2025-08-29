@@ -202,23 +202,26 @@ export default function PersonalWorld() {
                     <DocumentCard
                       title="Mycelium Networks"
                       description="Digital illustration exploring the interconnected patterns of fungal networks and their parallels to human connection."
-                      src="/documents/personal/art/mycelium-networks.jpg"
+                      url="/placeholder.svg?height=300&width=400&text=Mycelium+Networks"
                       type="image"
-                      tags={["Digital Art", "Nature", "Connection"]}
+                      icon={<Palette className="h-6 w-6" />}
+                      color="blue"
                     />
                     <DocumentCard
                       title="Energy Flow"
                       description="Abstract representation of energy distribution systems inspired by natural patterns."
-                      src="/documents/personal/art/energy-flow.jpg"
+                      url="/placeholder.svg?height=300&width=400&text=Energy+Flow"
                       type="image"
-                      tags={["Digital Art", "Energy", "Abstract"]}
+                      icon={<Palette className="h-6 w-6" />}
+                      color="blue"
                     />
                     <DocumentCard
                       title="Roots and Circuits"
                       description="A piece that bridges the organic and technological, showing how nature and engineering can coexist."
-                      src="/documents/personal/art/roots-circuits.jpg"
+                      url="/placeholder.svg?height=300&width=400&text=Roots+Circuits"
                       type="image"
-                      tags={["Digital Art", "Technology", "Nature"]}
+                      icon={<Palette className="h-6 w-6" />}
+                      color="blue"
                     />
                   </div>
                 </div>
@@ -350,44 +353,50 @@ export default function PersonalWorld() {
                     <DocumentCard
                       title="Forest Connections"
                       description="Capturing the intricate root systems and fungal networks in old-growth forests."
-                      src="/documents/personal/photography/forest-connections.jpg"
+                      url="/placeholder.svg?height=300&width=400&text=Forest+Connections"
                       type="image"
-                      tags={["Photography", "Nature", "Forest"]}
+                      icon={<Camera className="h-6 w-6" />}
+                      color="blue"
                     />
                     <DocumentCard
                       title="Urban Energy"
                       description="The flow of energy through city infrastructure, from power lines to solar panels."
-                      src="/documents/personal/photography/urban-energy.jpg"
+                      url="/placeholder.svg?height=300&width=400&text=Urban+Energy"
                       type="image"
-                      tags={["Photography", "Urban", "Energy"]}
+                      icon={<Camera className="h-6 w-6" />}
+                      color="blue"
                     />
                     <DocumentCard
                       title="Water Networks"
                       description="Rivers, streams, and waterways as nature's distribution networks."
-                      src="/documents/personal/photography/water-networks.jpg"
+                      url="/placeholder.svg?height=300&width=400&text=Water+Networks"
                       type="image"
-                      tags={["Photography", "Water", "Networks"]}
+                      icon={<Camera className="h-6 w-6" />}
+                      color="blue"
                     />
                     <DocumentCard
                       title="Coral Patterns"
                       description="The branching patterns of coral reefs and their ecosystem connections."
-                      src="/documents/personal/photography/coral-patterns.jpg"
+                      url="/placeholder.svg?height=300&width=400&text=Coral+Patterns"
                       type="image"
-                      tags={["Photography", "Marine", "Patterns"]}
+                      icon={<Camera className="h-6 w-6" />}
+                      color="blue"
                     />
                     <DocumentCard
                       title="Mountain Paths"
                       description="Hiking trails that mirror the natural flow of water and wildlife."
-                      src="/documents/personal/photography/mountain-paths.jpg"
+                      url="/placeholder.svg?height=300&width=400&text=Mountain+Paths"
                       type="image"
-                      tags={["Photography", "Mountains", "Trails"]}
+                      icon={<Camera className="h-6 w-6" />}
+                      color="blue"
                     />
                     <DocumentCard
                       title="Desert Networks"
                       description="The surprising interconnections found in seemingly barren landscapes."
-                      src="/documents/personal/photography/desert-networks.jpg"
+                      url="/placeholder.svg?height=300&width=400&text=Desert+Networks"
                       type="image"
-                      tags={["Photography", "Desert", "Connections"]}
+                      icon={<Camera className="h-6 w-6" />}
+                      color="blue"
                     />
                   </div>
                 </div>
@@ -448,18 +457,18 @@ export default function PersonalWorld() {
                     <DocumentCard
                       title="The Mycelium Chronicles - Chapter 1"
                       description="The opening chapter of my speculative fiction novel exploring human-mycelium communication."
-                      src="/documents/personal/writing/mycelium-chronicles-ch1.pdf"
+                      url="/placeholder.svg?height=400&width=300&text=Chapter+1"
                       type="pdf"
-                      thumbnail="/documents/personal/thumbnails/chapter1-thumb.png"
-                      tags={["Fiction", "Speculative", "Nature"]}
+                      icon={<PenTool className="h-6 w-6" />}
+                      color="blue"
                     />
                     <DocumentCard
                       title="Poetry Collection: Interconnected"
                       description="A collection of poems exploring themes of connection, identity, and our relationship with nature."
-                      src="/documents/personal/writing/poetry-collection.pdf"
+                      url="/placeholder.svg?height=400&width=300&text=Poetry+Collection"
                       type="pdf"
-                      thumbnail="/documents/personal/thumbnails/poetry-thumb.png"
-                      tags={["Poetry", "Nature", "Identity"]}
+                      icon={<PenTool className="h-6 w-6" />}
+                      color="blue"
                     />
                   </div>
                 </div>

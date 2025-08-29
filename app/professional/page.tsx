@@ -40,6 +40,12 @@ export default function ProfessionalPage() {
   }
 
   useEffect(() => {
+    // Check if dark mode is enabled in localStorage or system preference
+    const isDark = document.documentElement.classList.contains("dark")
+    setIsDarkMode(isDark)
+  }, [])
+
+  useEffect(() => {
     if (hoveredIndex !== null) {
       const hoveredElement = tabRefs.current[hoveredIndex]
       if (hoveredElement) {

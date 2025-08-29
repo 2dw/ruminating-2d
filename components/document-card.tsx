@@ -13,13 +13,19 @@ interface DocumentCardProps {
   title: string
   description: string
   type: "pdf" | "image"
-  url: string
+  url?: string
+  src?: string
   icon: React.ReactNode
   color: "green" | "blue" | "purple"
+  thumbnail?: string
+  tags?: string[]
 }
 
-export function DocumentCard({ title, description, type, url, icon, color }: DocumentCardProps) {
+export function DocumentCard({ title, description, type, url, src, icon, color, thumbnail, tags }: DocumentCardProps) {
   const [isViewerOpen, setIsViewerOpen] = useState(false)
+
+  // Use url if provided, otherwise use src
+  const documentUrl = url || src || ""
 
   const colorClasses = {
     green: {
@@ -52,7 +58,7 @@ export function DocumentCard({ title, description, type, url, icon, color }: Doc
   }
 
   const handleDownload = () => {
-    window.open(url, "_blank")
+    window.open(documentUrl, "_blank")
   }
 
   return (
@@ -95,7 +101,7 @@ export function DocumentCard({ title, description, type, url, icon, color }: Doc
         isOpen={isViewerOpen}
         onClose={() => setIsViewerOpen(false)}
         title={title}
-        url={url}
+        url={documentUrl}
         type={type}
       />
     </>
