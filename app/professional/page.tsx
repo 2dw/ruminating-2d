@@ -245,17 +245,15 @@ export default function ProfessionalWorld() {
                       <DocumentCard
                         title="Professional Resume"
                         description="Comprehensive overview of my professional experience, skills, and accomplishments in energy technology leadership."
-                        src="/documents/professional/wang resume 12-2024.pdf"
+                        src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/git-blob/prj_bJvsLY6mweQTzYafHqxWBK1koIJ9/DwhIK8rL2TLUCR2C1ue2qm/app/documents/professional/wang%20resume%2012-2024.pdf"
                         type="pdf"
-                        thumbnail="/documents/professional/thumbnails/resume-thumb.png"
                         tags={["Resume", "Experience", "Leadership"]}
                       />
                       <DocumentCard
                         title="PhD Thesis"
                         description="Dynamic Control and Optimization of Distributed Energy Resources - my doctoral research on smart grid technologies."
-                        src="/documents/professional/thesis.pdf"
+                        src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/git-blob/prj_bJvsLY6mweQTzYafHqxWBK1koIJ9/BDhG59ESWeANJdLH-iNrwL/app/documents/professional/papers/2015_wang_admm.pdf"
                         type="pdf"
-                        thumbnail="/documents/professional/thumbnails/thesis-thumb.png"
                         tags={["PhD", "Research", "Smart Grid", "Optimization"]}
                       />
                     </div>
@@ -376,17 +374,15 @@ export default function ProfessionalWorld() {
                       <DocumentCard
                         title="Dynamic Control and Optimization of Distributed Energy Resources in a Microgrid"
                         description="Published in IEEE Transactions on Smart Grid - A comprehensive approach to decentralized power grid management with real-time optimization of EVs, PV generation, and battery storage."
-                        src="/documents/professional/papers/2015_wang_admm.pdf"
+                        src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/git-blob/prj_bJvsLY6mweQTzYafHqxWBK1koIJ9/BDhG59ESWeANJdLH-iNrwL/app/documents/professional/papers/2015_wang_admm.pdf"
                         type="pdf"
-                        thumbnail="/documents/professional/thumbnails/ieee-paper-thumb.png"
                         tags={["IEEE", "Smart Grid", "Distributed Control", "Optimization"]}
                       />
                       <DocumentCard
                         title="Control and Optimization of Grid-Tied Photovoltaic Storage Systems Using Model Predictive Control"
                         description="Published in Journal of Applied Physics - Advanced MPC techniques for optimizing PV storage systems with dynamic adaptation to changing conditions and price signals."
-                        src="/documents/professional/papers/2014_wang_mpc.pdf"
+                        src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/git-blob/prj_bJvsLY6mweQTzYafHqxWBK1koIJ9/5LJzoTcNhCDLjbqr3HRZNT/app/documents/professional/papers/2014_wang_mpc.pdf"
                         type="pdf"
-                        thumbnail="/documents/professional/thumbnails/jap-paper-thumb.png"
                         tags={["Journal of Applied Physics", "MPC", "Photovoltaic", "Energy Storage"]}
                       />
                     </div>
