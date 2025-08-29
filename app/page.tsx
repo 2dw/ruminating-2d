@@ -3,16 +3,16 @@
 import { useState, useEffect, useRef } from "react"
 import { useRouter } from "next/navigation"
 import { motion } from "framer-motion"
-import { ArrowRight, BookOpen, Sparkles, Lightbulb, Camera, Palette, PenTool } from "lucide-react"
-import { Button } from "@/components/ui/button"
 import { AccessibilityControls } from "@/components/accessibility-controls"
 import { useAccessibility } from "@/contexts/accessibility-context"
 import { StarryBackground } from "@/components/starry-background"
 import { InteractiveConstellationPoint } from "@/components/interactive-constellation-point"
 import { AnimatedConstellationPath } from "@/components/animated-constellation-path"
-import { ConstellationInteractionHint } from "@/components/constellation-interaction-hint"
 import { ConstellationParticles } from "@/components/constellation-particles"
+import { ConstellationAnimationController } from "@/components/constellation-animation-controller"
 import { constellationPaths } from "@/config/constellation-paths"
+import { ArrowRight, BookOpen, Sparkles, Lightbulb, Camera, Palette, PenTool } from "lucide-react"
+import { Button } from "@/components/ui/button"
 
 export default function PortalPage() {
   const router = useRouter()
@@ -179,508 +179,536 @@ export default function PortalPage() {
         </div>
 
         {/* Mycelium-inspired connector - constellation-like forking trail */}
-        <div className="relative my-8" ref={constellationRef} aria-hidden="true">
-          {/* Constellation interaction hint */}
-          <ConstellationInteractionHint show={true} />
+        <div className="relative my-8">
+          {/* Retrace button positioned above the constellation */}
+          <ConstellationAnimationController />
 
-          {/* Constellation Particles */}
-          <ConstellationParticles paths={constellationPaths} />
+          <div ref={constellationRef} aria-hidden="true">
+            {/* Constellation Particles */}
+            <ConstellationParticles paths={constellationPaths} />
 
-          {/* SVG container for the constellation paths */}
-          <svg
-            className="absolute w-full h-40"
-            viewBox="0 0 1000 160"
-            preserveAspectRatio="none"
-            style={{ overflow: "visible" }}
-          >
-            {/* Main vertical stem from title - extended to connect directly with title */}
-            <AnimatedConstellationPath
-              d="M500,-20 C500,0 500,20 500,40"
-              stroke="rgb(20, 184, 166)"
-              strokeWidth={1.5}
-              strokeDasharray="3,3"
-              fill="none"
-              filter="drop-shadow(0 0 4px rgba(20, 184, 166, 0.7))"
-              initialDelay={0}
-              animationDuration={1.5}
-              pathVariants={{
-                d: ["M500,-20 C500,0 500,20 500,40", "M502,-20 C502,0 501,20 500,40", "M498,-20 C498,0 499,20 500,40"],
-                duration: 8,
-              }}
-              filterVariants={{
-                filter: [
-                  "drop-shadow(0 0 3px rgba(20, 184, 166, 0.7))",
-                  "drop-shadow(0 0 6px rgba(20, 184, 166, 0.9))",
-                  "drop-shadow(0 0 3px rgba(20, 184, 166, 0.7))",
-                ],
-                duration: 8,
-              }}
-              id="path-origin-nexus"
-            />
-
-            {/* Horizontal connecting line */}
-            <AnimatedConstellationPath
-              d="M250,40 L750,40"
-              stroke="rgb(20, 184, 166)"
-              strokeWidth={1.5}
-              strokeDasharray="3,3"
-              fill="none"
-              filter="drop-shadow(0 0 4px rgba(20, 184, 166, 0.7))"
-              initialDelay={1}
-              animationDuration={2}
-              pathVariants={{
-                d: ["M250,40 L750,40", "M250,42 L750,38", "M250,38 L750,42"],
-                duration: 10,
-              }}
-              filterVariants={{
-                filter: [
-                  "drop-shadow(0 0 3px rgba(20, 184, 166, 0.7))",
-                  "drop-shadow(0 0 6px rgba(20, 184, 166, 0.9))",
-                  "drop-shadow(0 0 3px rgba(20, 184, 166, 0.7))",
-                ],
-                duration: 10,
-              }}
-              id="path-nexus-horizontal"
-            />
-
-            {/* Left branch - to Professional World */}
-            <AnimatedConstellationPath
-              d="M250,40 C250,60 230,100 200,160"
-              stroke="rgb(74, 222, 128)"
-              strokeWidth={1.5}
-              strokeDasharray="3,3"
-              fill="none"
-              filter="drop-shadow(0 0 4px rgba(74, 222, 128, 0.7))"
-              initialDelay={3}
-              animationDuration={1.5}
-              pathVariants={{
-                d: [
-                  "M250,40 C250,60 230,100 200,160",
-                  "M250,40 C250,65 225,105 200,160",
-                  "M250,40 C250,55 235,95 200,160",
-                ],
-                duration: 12,
-              }}
-              filterVariants={{
-                filter: [
-                  "drop-shadow(0 0 3px rgba(74, 222, 128, 0.7))",
-                  "drop-shadow(0 0 6px rgba(74, 222, 128, 0.9))",
-                  "drop-shadow(0 0 3px rgba(74, 222, 128, 0.7))",
-                ],
-                duration: 12,
-              }}
-              id="path-nexus-professional"
-            />
-
-            {/* Right branch - to Personal World */}
-            <AnimatedConstellationPath
-              d="M750,40 C750,60 770,100 800,160"
-              stroke="rgb(56, 189, 248)"
-              strokeWidth={1.5}
-              strokeDasharray="3,3"
-              fill="none"
-              filter="drop-shadow(0 0 4px rgba(56, 189, 248, 0.7))"
-              initialDelay={3}
-              animationDuration={1.5}
-              pathVariants={{
-                d: [
-                  "M750,40 C750,60 770,100 800,160",
-                  "M750,40 C750,65 775,105 800,160",
-                  "M750,40 C750,55 765,95 800,160",
-                ],
-                duration: 12,
-              }}
-              filterVariants={{
-                filter: [
-                  "drop-shadow(0 0 3px rgba(56, 189, 248, 0.7))",
-                  "drop-shadow(0 0 6px rgba(56, 189, 248, 0.9))",
-                  "drop-shadow(0 0 3px rgba(56, 189, 248, 0.7))",
-                ],
-                duration: 12,
-              }}
-              id="path-nexus-personal"
-            />
-
-            {/* Connection between Growth and Purpose */}
-            <AnimatedConstellationPath
-              d="M350,40 C330,30 290,30 250,40"
-              stroke="rgb(74, 222, 128)"
-              strokeWidth={1.5}
-              strokeDasharray="3,3"
-              fill="none"
-              filter="drop-shadow(0 0 4px rgba(74, 222, 128, 0.7))"
-              initialDelay={4.5}
-              animationDuration={1.2}
-              pathVariants={{
-                d: ["M350,40 C330,30 290,30 250,40", "M350,40 C330,32 290,32 250,40", "M350,40 C330,28 290,28 250,40"],
-                duration: 8,
-              }}
-              filterVariants={{
-                filter: [
-                  "drop-shadow(0 0 3px rgba(74, 222, 128, 0.6))",
-                  "drop-shadow(0 0 5px rgba(74, 222, 128, 0.8))",
-                  "drop-shadow(0 0 3px rgba(74, 222, 128, 0.6))",
-                ],
-                duration: 8,
-              }}
-              id="path-growth-purpose"
-            />
-
-            {/* Connection between Creativity and Passion */}
-            <AnimatedConstellationPath
-              d="M650,40 C670,30 710,30 750,40"
-              stroke="rgb(56, 189, 248)"
-              strokeWidth={1.5}
-              strokeDasharray="3,3"
-              fill="none"
-              filter="drop-shadow(0 0 4px rgba(56, 189, 248, 0.7))"
-              initialDelay={4.5}
-              animationDuration={1.2}
-              pathVariants={{
-                d: ["M650,40 C670,30 710,30 750,40", "M650,40 C670,32 710,32 750,40", "M650,40 C670,28 710,28 750,40"],
-                duration: 8,
-              }}
-              filterVariants={{
-                filter: [
-                  "drop-shadow(0 0 3px rgba(56, 189, 248, 0.6))",
-                  "drop-shadow(0 0 5px rgba(56, 189, 248, 0.8))",
-                  "drop-shadow(0 0 3px rgba(56, 189, 248, 0.6))",
-                ],
-                duration: 8,
-              }}
-              id="path-creativity-passion"
-            />
-
-            {/* Diagonal connection from Nexus to Purpose */}
-            <AnimatedConstellationPath
-              d="M500,40 C450,30 350,30 250,40"
-              stroke="rgb(20, 184, 166)"
-              strokeWidth={1}
-              strokeDasharray="2,4"
-              fill="none"
-              filter="drop-shadow(0 0 3px rgba(20, 184, 166, 0.6))"
-              initialDelay={6}
-              animationDuration={1.8}
-              pathVariants={{
-                d: ["M500,40 C450,30 350,30 250,40", "M500,40 C450,32 350,32 250,40", "M500,40 C450,28 350,28 250,40"],
-                duration: 10,
-              }}
-              filterVariants={{
-                filter: [
-                  "drop-shadow(0 0 2px rgba(20, 184, 166, 0.5))",
-                  "drop-shadow(0 0 4px rgba(20, 184, 166, 0.7))",
-                  "drop-shadow(0 0 2px rgba(20, 184, 166, 0.5))",
-                ],
-                duration: 10,
-              }}
-              id="path-nexus-purpose"
-            />
-
-            {/* Diagonal connection from Nexus to Passion */}
-            <AnimatedConstellationPath
-              d="M500,40 C550,30 650,30 750,40"
-              stroke="rgb(20, 184, 166)"
-              strokeWidth={1}
-              strokeDasharray="2,4"
-              fill="none"
-              filter="drop-shadow(0 0 3px rgba(20, 184, 166, 0.6))"
-              initialDelay={6}
-              animationDuration={1.8}
-              pathVariants={{
-                d: ["M500,40 C550,30 650,30 750,40", "M500,40 C550,32 650,32 750,40", "M500,40 C550,28 650,28 750,40"],
-                duration: 10,
-              }}
-              filterVariants={{
-                filter: [
-                  "drop-shadow(0 0 2px rgba(20, 184, 166, 0.5))",
-                  "drop-shadow(0 0 4px rgba(20, 184, 166, 0.7))",
-                  "drop-shadow(0 0 2px rgba(20, 184, 166, 0.5))",
-                ],
-                duration: 10,
-              }}
-              id="path-nexus-passion"
-            />
-
-            {/* Connection from Purpose to Professional */}
-            <AnimatedConstellationPath
-              d="M250,40 C240,80 220,120 200,160"
-              stroke="rgb(74, 222, 128)"
-              strokeWidth={1.5}
-              strokeDasharray="3,3"
-              fill="none"
-              filter="drop-shadow(0 0 4px rgba(74, 222, 128, 0.7))"
-              initialDelay={7.5}
-              animationDuration={1.5}
-              pathVariants={{
-                d: [
-                  "M250,40 C240,80 220,120 200,160",
-                  "M250,40 C245,80 225,120 200,160",
-                  "M250,40 C235,80 215,120 200,160",
-                ],
-                duration: 12,
-              }}
-              filterVariants={{
-                filter: [
-                  "drop-shadow(0 0 3px rgba(74, 222, 128, 0.6))",
-                  "drop-shadow(0 0 5px rgba(74, 222, 128, 0.8))",
-                  "drop-shadow(0 0 3px rgba(74, 222, 128, 0.6))",
-                ],
-                duration: 12,
-              }}
-              id="path-purpose-professional"
-            />
-
-            {/* Connection from Passion to Personal */}
-            <AnimatedConstellationPath
-              d="M750,40 C760,80 780,120 800,160"
-              stroke="rgb(56, 189, 248)"
-              strokeWidth={1.5}
-              strokeDasharray="3,3"
-              fill="none"
-              filter="drop-shadow(0 0 4px rgba(56, 189, 248, 0.7))"
-              initialDelay={7.5}
-              animationDuration={1.5}
-              pathVariants={{
-                d: [
-                  "M750,40 C760,80 780,120 800,160",
-                  "M750,40 C755,80 775,120 800,160",
-                  "M750,40 C765,80 785,120 800,160",
-                ],
-                duration: 12,
-              }}
-              filterVariants={{
-                filter: [
-                  "drop-shadow(0 0 3px rgba(56, 189, 248, 0.6))",
-                  "drop-shadow(0 0 5px rgba(56, 189, 248, 0.8))",
-                  "drop-shadow(0 0 3px rgba(56, 189, 248, 0.6))",
-                ],
-                duration: 12,
-              }}
-              id="path-passion-personal"
-            />
-
-            {/* Cross-connection from Growth to Personal (showing unexpected connections) */}
-            <AnimatedConstellationPath
-              d="M350,40 C450,100 650,120 800,160"
-              stroke="rgb(125, 211, 252)"
-              strokeWidth={1}
-              strokeDasharray="2,5"
-              fill="none"
-              filter="drop-shadow(0 0 3px rgba(125, 211, 252, 0.5))"
-              initialDelay={9}
-              animationDuration={2}
-              pathVariants={{
-                d: [
-                  "M350,40 C450,100 650,120 800,160",
-                  "M350,40 C450,105 650,125 800,160",
-                  "M350,40 C450,95 650,115 800,160",
-                ],
-                duration: 15,
-              }}
-              filterVariants={{
-                filter: [
-                  "drop-shadow(0 0 2px rgba(125, 211, 252, 0.4))",
-                  "drop-shadow(0 0 4px rgba(125, 211, 252, 0.6))",
-                  "drop-shadow(0 0 2px rgba(125, 211, 252, 0.4))",
-                ],
-                duration: 15,
-              }}
-              id="path-growth-personal"
-            />
-
-            {/* Cross-connection from Creativity to Professional (showing unexpected connections) */}
-            <AnimatedConstellationPath
-              d="M650,40 C550,100 350,120 200,160"
-              stroke="rgb(134, 239, 172)"
-              strokeWidth={1}
-              strokeDasharray="2,5"
-              fill="none"
-              filter="drop-shadow(0 0 3px rgba(134, 239, 172, 0.5))"
-              initialDelay={9}
-              animationDuration={2}
-              pathVariants={{
-                d: [
-                  "M650,40 C550,100 350,120 200,160",
-                  "M650,40 C550,105 350,125 200,160",
-                  "M650,40 C550,95 350,115 200,160",
-                ],
-                duration: 15,
-              }}
-              filterVariants={{
-                filter: [
-                  "drop-shadow(0 0 2px rgba(134, 239, 172, 0.4))",
-                  "drop-shadow(0 0 4px rgba(134, 239, 172, 0.6))",
-                  "drop-shadow(0 0 2px rgba(134, 239, 172, 0.4))",
-                ],
-                duration: 15,
-              }}
-              id="path-creativity-professional"
-            />
-
-            {/* Connection from Origin to Nexus */}
-            <AnimatedConstellationPath
-              d="M500,-20 C500,0 500,20 500,40"
-              stroke="rgb(20, 184, 166)"
-              strokeWidth={1.5}
-              strokeDasharray="3,3"
-              fill="none"
-              filter="drop-shadow(0 0 4px rgba(20, 184, 166, 0.7))"
-              initialDelay={0}
-              animationDuration={1.5}
-              pathVariants={{
-                d: ["M500,-20 C500,0 500,20 500,40", "M502,-20 C502,0 501,20 500,40", "M498,-20 C498,0 499,20 500,40"],
-                duration: 8,
-              }}
-              filterVariants={{
-                filter: [
-                  "drop-shadow(0 0 3px rgba(20, 184, 166, 0.7))",
-                  "drop-shadow(0 0 6px rgba(20, 184, 166, 0.9))",
-                  "drop-shadow(0 0 3px rgba(20, 184, 166, 0.7))",
-                ],
-                duration: 8,
-              }}
-              id="path-origin-nexus-2"
-            />
-
-            {/* Subtle connection between Professional and Personal worlds */}
-            <AnimatedConstellationPath
-              d="M200,160 C350,200 650,200 800,160"
-              stroke="rgb(139, 92, 246)"
-              strokeWidth={1}
-              strokeDasharray="1,6"
-              fill="none"
-              filter="drop-shadow(0 0 3px rgba(139, 92, 246, 0.5))"
-              initialDelay={10.5}
-              animationDuration={2.5}
-              pathVariants={{
-                d: [
-                  "M200,160 C350,200 650,200 800,160",
-                  "M200,160 C350,205 650,205 800,160",
-                  "M200,160 C350,195 650,195 800,160",
-                ],
-                duration: 20,
-              }}
-              filterVariants={{
-                filter: [
-                  "drop-shadow(0 0 2px rgba(139, 92, 246, 0.4))",
-                  "drop-shadow(0 0 4px rgba(139, 92, 246, 0.6))",
-                  "drop-shadow(0 0 2px rgba(139, 92, 246, 0.4))",
-                ],
-                duration: 20,
-              }}
-              id="path-professional-personal"
-            />
-          </svg>
-
-          {/* Interactive Constellation Points */}
-          {constellationDimensions.width > 0 && (
-            <>
-              {/* Nexus Point */}
-              <InteractiveConstellationPoint
-                x={constellationDimensions.width / 2}
-                y={40}
-                size={3}
-                color="rgb(20, 184, 166)"
-                glowColor="rgba(20, 184, 166, 0.9)"
-                label="Nexus"
-                tooltipTitle="Nexus"
-                tooltipDescription="The central connection point where professional and personal worlds meet, creating a unified vision."
-                tooltipPosition="top"
-                delay={1.5}
-                initialAnimation={true}
+            {/* SVG container for the constellation paths */}
+            <svg
+              className="absolute w-full h-40"
+              viewBox="0 0 1000 160"
+              preserveAspectRatio="none"
+              style={{ overflow: "visible" }}
+            >
+              {/* Main vertical stem from title - extended to connect directly with title */}
+              <AnimatedConstellationPath
+                d="M500,-20 C500,0 500,20 500,40"
+                stroke="rgb(20, 184, 166)"
+                strokeWidth={1.5}
+                strokeDasharray="3,3"
+                fill="none"
+                filter="drop-shadow(0 0 4px rgba(20, 184, 166, 0.7))"
+                initialDelay={0}
+                animationDuration={1.5}
+                pathVariants={{
+                  d: [
+                    "M500,-20 C500,0 500,20 500,40",
+                    "M502,-20 C502,0 501,20 500,40",
+                    "M498,-20 C498,0 499,20 500,40",
+                  ],
+                  duration: 8,
+                }}
+                filterVariants={{
+                  filter: [
+                    "drop-shadow(0 0 3px rgba(20, 184, 166, 0.7))",
+                    "drop-shadow(0 0 6px rgba(20, 184, 166, 0.9))",
+                    "drop-shadow(0 0 3px rgba(20, 184, 166, 0.7))",
+                  ],
+                  duration: 8,
+                }}
+                id="path-origin-nexus"
               />
 
-              {/* Growth Point */}
-              <InteractiveConstellationPoint
-                x={constellationDimensions.width * 0.35}
-                y={40}
-                size={2}
-                color="rgb(74, 222, 128)"
-                glowColor="rgba(74, 222, 128, 0.8)"
-                label="Growth"
-                tooltipTitle="Growth"
-                tooltipDescription="The continuous development of skills and knowledge that shapes my professional identity."
-                tooltipPosition="top"
-                delay={4}
-                initialAnimation={true}
+              {/* Horizontal connecting line */}
+              <AnimatedConstellationPath
+                d="M250,40 L750,40"
+                stroke="rgb(20, 184, 166)"
+                strokeWidth={1.5}
+                strokeDasharray="3,3"
+                fill="none"
+                filter="drop-shadow(0 0 4px rgba(20, 184, 166, 0.7))"
+                initialDelay={1}
+                animationDuration={2}
+                pathVariants={{
+                  d: ["M250,40 L750,40", "M250,42 L750,38", "M250,38 L750,42"],
+                  duration: 10,
+                }}
+                filterVariants={{
+                  filter: [
+                    "drop-shadow(0 0 3px rgba(20, 184, 166, 0.7))",
+                    "drop-shadow(0 0 6px rgba(20, 184, 166, 0.9))",
+                    "drop-shadow(0 0 3px rgba(20, 184, 166, 0.7))",
+                  ],
+                  duration: 10,
+                }}
+                id="path-nexus-horizontal"
               />
 
-              {/* Creativity Point */}
-              <InteractiveConstellationPoint
-                x={constellationDimensions.width * 0.65}
-                y={40}
-                size={2}
-                color="rgb(56, 189, 248)"
-                glowColor="rgba(56, 189, 248, 0.8)"
-                label="Creativity"
-                tooltipTitle="Creativity"
-                tooltipDescription="The wellspring of imagination and innovation that fuels my personal projects and artistic expression."
-                tooltipPosition="top"
-                delay={4}
-                initialAnimation={true}
+              {/* Left branch - to Professional World */}
+              <AnimatedConstellationPath
+                d="M250,40 C250,60 230,100 200,160"
+                stroke="rgb(74, 222, 128)"
+                strokeWidth={1.5}
+                strokeDasharray="3,3"
+                fill="none"
+                filter="drop-shadow(0 0 4px rgba(74, 222, 128, 0.7))"
+                initialDelay={3}
+                animationDuration={1.5}
+                pathVariants={{
+                  d: [
+                    "M250,40 C250,60 230,100 200,160",
+                    "M250,40 C250,65 225,105 200,160",
+                    "M250,40 C250,55 235,95 200,160",
+                  ],
+                  duration: 12,
+                }}
+                filterVariants={{
+                  filter: [
+                    "drop-shadow(0 0 3px rgba(74, 222, 128, 0.7))",
+                    "drop-shadow(0 0 6px rgba(74, 222, 128, 0.9))",
+                    "drop-shadow(0 0 3px rgba(74, 222, 128, 0.7))",
+                  ],
+                  duration: 12,
+                }}
+                id="path-nexus-professional"
               />
 
-              {/* Purpose Point */}
-              <InteractiveConstellationPoint
-                x={constellationDimensions.width * 0.25}
-                y={40}
-                size={3}
-                color="rgb(74, 222, 128)"
-                glowColor="rgba(74, 222, 128, 0.8)"
-                label="Purpose"
-                tooltipTitle="Purpose"
-                tooltipDescription="My mission to create energy systems that heal our planet while ensuring equitable access for all communities."
-                tooltipPosition="bottom"
-                delay={5}
-                initialAnimation={true}
+              {/* Right branch - to Personal World */}
+              <AnimatedConstellationPath
+                d="M750,40 C750,60 770,100 800,160"
+                stroke="rgb(56, 189, 248)"
+                strokeWidth={1.5}
+                strokeDasharray="3,3"
+                fill="none"
+                filter="drop-shadow(0 0 4px rgba(56, 189, 248, 0.7))"
+                initialDelay={3}
+                animationDuration={1.5}
+                pathVariants={{
+                  d: [
+                    "M750,40 C750,60 770,100 800,160",
+                    "M750,40 C750,65 775,105 800,160",
+                    "M750,40 C750,55 765,95 800,160",
+                  ],
+                  duration: 12,
+                }}
+                filterVariants={{
+                  filter: [
+                    "drop-shadow(0 0 3px rgba(56, 189, 248, 0.7))",
+                    "drop-shadow(0 0 6px rgba(56, 189, 248, 0.9))",
+                    "drop-shadow(0 0 3px rgba(56, 189, 248, 0.7))",
+                  ],
+                  duration: 12,
+                }}
+                id="path-nexus-personal"
               />
 
-              {/* Passion Point */}
-              <InteractiveConstellationPoint
-                x={constellationDimensions.width * 0.75}
-                y={40}
-                size={3}
-                color="rgb(56, 189, 248)"
-                glowColor="rgba(56, 189, 248, 0.8)"
-                label="Passion"
-                tooltipTitle="Passion"
-                tooltipDescription="The creative drive that inspires my artistic endeavors, writing, and exploration of interconnected natural systems."
-                tooltipPosition="bottom"
-                delay={5}
-                initialAnimation={true}
+              {/* Connection between Growth and Purpose */}
+              <AnimatedConstellationPath
+                d="M350,40 C330,30 290,30 250,40"
+                stroke="rgb(74, 222, 128)"
+                strokeWidth={1.5}
+                strokeDasharray="3,3"
+                fill="none"
+                filter="drop-shadow(0 0 4px rgba(74, 222, 128, 0.7))"
+                initialDelay={4.5}
+                animationDuration={1.2}
+                pathVariants={{
+                  d: [
+                    "M350,40 C330,30 290,30 250,40",
+                    "M350,40 C330,32 290,32 250,40",
+                    "M350,40 C330,28 290,28 250,40",
+                  ],
+                  duration: 8,
+                }}
+                filterVariants={{
+                  filter: [
+                    "drop-shadow(0 0 3px rgba(74, 222, 128, 0.6))",
+                    "drop-shadow(0 0 5px rgba(74, 222, 128, 0.8))",
+                    "drop-shadow(0 0 3px rgba(74, 222, 128, 0.6))",
+                  ],
+                  duration: 8,
+                }}
+                id="path-growth-purpose"
               />
 
-              {/* Professional Destination */}
-              <InteractiveConstellationPoint
-                x={constellationDimensions.width * 0.2}
-                y={160}
-                size={3}
-                color="rgb(74, 222, 128)"
-                glowColor="rgba(74, 222, 128, 0.9)"
-                label="Professional"
-                tooltipTitle="Professional Repertoire"
-                tooltipDescription="My engineering work, research, and advocacy for equitable energy solutions and sustainable systems."
-                tooltipPosition="left"
-                delay={7}
-                initialAnimation={true}
+              {/* Connection between Creativity and Passion */}
+              <AnimatedConstellationPath
+                d="M650,40 C670,30 710,30 750,40"
+                stroke="rgb(56, 189, 248)"
+                strokeWidth={1.5}
+                strokeDasharray="3,3"
+                fill="none"
+                filter="drop-shadow(0 0 4px rgba(56, 189, 248, 0.7))"
+                initialDelay={4.5}
+                animationDuration={1.2}
+                pathVariants={{
+                  d: [
+                    "M650,40 C670,30 710,30 750,40",
+                    "M650,40 C670,32 710,32 750,40",
+                    "M650,40 C670,28 710,28 750,40",
+                  ],
+                  duration: 8,
+                }}
+                filterVariants={{
+                  filter: [
+                    "drop-shadow(0 0 3px rgba(56, 189, 248, 0.6))",
+                    "drop-shadow(0 0 5px rgba(56, 189, 248, 0.8))",
+                    "drop-shadow(0 0 3px rgba(56, 189, 248, 0.6))",
+                  ],
+                  duration: 8,
+                }}
+                id="path-creativity-passion"
               />
 
-              {/* Personal Destination */}
-              <InteractiveConstellationPoint
-                x={constellationDimensions.width * 0.8}
-                y={160}
-                size={3}
-                color="rgb(56, 189, 248)"
-                glowColor="rgba(56, 189, 248, 0.9)"
-                label="Personal"
-                tooltipTitle="Mind Wandering"
-                tooltipDescription="My creative pursuits, artistic expression, and ongoing narrative explorations of interconnectedness."
-                tooltipPosition="right"
-                delay={7}
-                initialAnimation={true}
+              {/* Diagonal connection from Nexus to Purpose */}
+              <AnimatedConstellationPath
+                d="M500,40 C450,30 350,30 250,40"
+                stroke="rgb(20, 184, 166)"
+                strokeWidth={1}
+                strokeDasharray="2,4"
+                fill="none"
+                filter="drop-shadow(0 0 3px rgba(20, 184, 166, 0.6))"
+                initialDelay={6}
+                animationDuration={1.8}
+                pathVariants={{
+                  d: [
+                    "M500,40 C450,30 350,30 250,40",
+                    "M500,40 C450,32 350,32 250,40",
+                    "M500,40 C450,28 350,28 250,40",
+                  ],
+                  duration: 10,
+                }}
+                filterVariants={{
+                  filter: [
+                    "drop-shadow(0 0 2px rgba(20, 184, 166, 0.5))",
+                    "drop-shadow(0 0 4px rgba(20, 184, 166, 0.7))",
+                    "drop-shadow(0 0 2px rgba(20, 184, 166, 0.5))",
+                  ],
+                  duration: 10,
+                }}
+                id="path-nexus-purpose"
               />
-            </>
-          )}
+
+              {/* Diagonal connection from Nexus to Passion */}
+              <AnimatedConstellationPath
+                d="M500,40 C550,30 650,30 750,40"
+                stroke="rgb(20, 184, 166)"
+                strokeWidth={1}
+                strokeDasharray="2,4"
+                fill="none"
+                filter="drop-shadow(0 0 3px rgba(20, 184, 166, 0.6))"
+                initialDelay={6}
+                animationDuration={1.8}
+                pathVariants={{
+                  d: [
+                    "M500,40 C550,30 650,30 750,40",
+                    "M500,40 C550,32 650,32 750,40",
+                    "M500,40 C550,28 650,28 750,40",
+                  ],
+                  duration: 10,
+                }}
+                filterVariants={{
+                  filter: [
+                    "drop-shadow(0 0 2px rgba(20, 184, 166, 0.5))",
+                    "drop-shadow(0 0 4px rgba(20, 184, 166, 0.7))",
+                    "drop-shadow(0 0 2px rgba(20, 184, 166, 0.5))",
+                  ],
+                  duration: 10,
+                }}
+                id="path-nexus-passion"
+              />
+
+              {/* Connection from Purpose to Professional */}
+              <AnimatedConstellationPath
+                d="M250,40 C240,80 220,120 200,160"
+                stroke="rgb(74, 222, 128)"
+                strokeWidth={1.5}
+                strokeDasharray="3,3"
+                fill="none"
+                filter="drop-shadow(0 0 4px rgba(74, 222, 128, 0.7))"
+                initialDelay={7.5}
+                animationDuration={1.5}
+                pathVariants={{
+                  d: [
+                    "M250,40 C240,80 220,120 200,160",
+                    "M250,40 C245,80 225,120 200,160",
+                    "M250,40 C235,80 215,120 200,160",
+                  ],
+                  duration: 12,
+                }}
+                filterVariants={{
+                  filter: [
+                    "drop-shadow(0 0 3px rgba(74, 222, 128, 0.6))",
+                    "drop-shadow(0 0 5px rgba(74, 222, 128, 0.8))",
+                    "drop-shadow(0 0 3px rgba(74, 222, 128, 0.6))",
+                  ],
+                  duration: 12,
+                }}
+                id="path-purpose-professional"
+              />
+
+              {/* Connection from Passion to Personal */}
+              <AnimatedConstellationPath
+                d="M750,40 C760,80 780,120 800,160"
+                stroke="rgb(56, 189, 248)"
+                strokeWidth={1.5}
+                strokeDasharray="3,3"
+                fill="none"
+                filter="drop-shadow(0 0 4px rgba(56, 189, 248, 0.7))"
+                initialDelay={7.5}
+                animationDuration={1.5}
+                pathVariants={{
+                  d: [
+                    "M750,40 C760,80 780,120 800,160",
+                    "M750,40 C755,80 775,120 800,160",
+                    "M750,40 C765,80 785,120 800,160",
+                  ],
+                  duration: 12,
+                }}
+                filterVariants={{
+                  filter: [
+                    "drop-shadow(0 0 3px rgba(56, 189, 248, 0.6))",
+                    "drop-shadow(0 0 5px rgba(56, 189, 248, 0.8))",
+                    "drop-shadow(0 0 3px rgba(56, 189, 248, 0.6))",
+                  ],
+                  duration: 12,
+                }}
+                id="path-passion-personal"
+              />
+
+              {/* Cross-connection from Growth to Personal (showing unexpected connections) */}
+              <AnimatedConstellationPath
+                d="M350,40 C450,100 650,120 800,160"
+                stroke="rgb(125, 211, 252)"
+                strokeWidth={1}
+                strokeDasharray="2,5"
+                fill="none"
+                filter="drop-shadow(0 0 3px rgba(125, 211, 252, 0.5))"
+                initialDelay={9}
+                animationDuration={2}
+                pathVariants={{
+                  d: [
+                    "M350,40 C450,100 650,120 800,160",
+                    "M350,40 C450,105 650,125 800,160",
+                    "M350,40 C450,95 650,115 800,160",
+                  ],
+                  duration: 15,
+                }}
+                filterVariants={{
+                  filter: [
+                    "drop-shadow(0 0 2px rgba(125, 211, 252, 0.4))",
+                    "drop-shadow(0 0 4px rgba(125, 211, 252, 0.6))",
+                    "drop-shadow(0 0 2px rgba(125, 211, 252, 0.4))",
+                  ],
+                  duration: 15,
+                }}
+                id="path-growth-personal"
+              />
+
+              {/* Cross-connection from Creativity to Professional (showing unexpected connections) */}
+              <AnimatedConstellationPath
+                d="M650,40 C550,100 350,120 200,160"
+                stroke="rgb(134, 239, 172)"
+                strokeWidth={1}
+                strokeDasharray="2,5"
+                fill="none"
+                filter="drop-shadow(0 0 3px rgba(134, 239, 172, 0.5))"
+                initialDelay={9}
+                animationDuration={2}
+                pathVariants={{
+                  d: [
+                    "M650,40 C550,100 350,120 200,160",
+                    "M650,40 C550,105 350,125 200,160",
+                    "M650,40 C550,95 350,115 200,160",
+                  ],
+                  duration: 15,
+                }}
+                filterVariants={{
+                  filter: [
+                    "drop-shadow(0 0 2px rgba(134, 239, 172, 0.4))",
+                    "drop-shadow(0 0 4px rgba(134, 239, 172, 0.6))",
+                    "drop-shadow(0 0 2px rgba(134, 239, 172, 0.4))",
+                  ],
+                  duration: 15,
+                }}
+                id="path-creativity-professional"
+              />
+
+              {/* Connection from Origin to Nexus */}
+              <AnimatedConstellationPath
+                d="M500,-20 C500,0 500,20 500,40"
+                stroke="rgb(20, 184, 166)"
+                strokeWidth={1.5}
+                strokeDasharray="3,3"
+                fill="none"
+                filter="drop-shadow(0 0 4px rgba(20, 184, 166, 0.7))"
+                initialDelay={0}
+                animationDuration={1.5}
+                pathVariants={{
+                  d: [
+                    "M500,-20 C500,0 500,20 500,40",
+                    "M502,-20 C502,0 501,20 500,40",
+                    "M498,-20 C498,0 499,20 500,40",
+                  ],
+                  duration: 8,
+                }}
+                filterVariants={{
+                  filter: [
+                    "drop-shadow(0 0 3px rgba(20, 184, 166, 0.7))",
+                    "drop-shadow(0 0 6px rgba(20, 184, 166, 0.9))",
+                    "drop-shadow(0 0 3px rgba(20, 184, 166, 0.7))",
+                  ],
+                  duration: 8,
+                }}
+                id="path-origin-nexus-2"
+              />
+
+              {/* Subtle connection between Professional and Personal worlds */}
+              <AnimatedConstellationPath
+                d="M200,160 C350,200 650,200 800,160"
+                stroke="rgb(139, 92, 246)"
+                strokeWidth={1}
+                strokeDasharray="1,6"
+                fill="none"
+                filter="drop-shadow(0 0 3px rgba(139, 92, 246, 0.5))"
+                initialDelay={10.5}
+                animationDuration={2.5}
+                pathVariants={{
+                  d: [
+                    "M200,160 C350,200 650,200 800,160",
+                    "M200,160 C350,205 650,205 800,160",
+                    "M200,160 C350,195 650,195 800,160",
+                  ],
+                  duration: 20,
+                }}
+                filterVariants={{
+                  filter: [
+                    "drop-shadow(0 0 2px rgba(139, 92, 246, 0.4))",
+                    "drop-shadow(0 0 4px rgba(139, 92, 246, 0.6))",
+                    "drop-shadow(0 0 2px rgba(139, 92, 246, 0.4))",
+                  ],
+                  duration: 20,
+                }}
+                id="path-professional-personal"
+              />
+            </svg>
+
+            {/* Interactive Constellation Points */}
+            {constellationDimensions.width > 0 && (
+              <>
+                {/* Nexus Point */}
+                <InteractiveConstellationPoint
+                  x={constellationDimensions.width / 2}
+                  y={40}
+                  size={3}
+                  color="rgb(20, 184, 166)"
+                  glowColor="rgba(20, 184, 166, 0.9)"
+                  label="Nexus"
+                  tooltipTitle="The Nexus"
+                  tooltipDescription="The central connection point where professional purpose and personal passion converge, creating a unified vision for healing our planet."
+                  tooltipPosition="top"
+                  delay={1.5}
+                  initialAnimation={true}
+                />
+
+                {/* Growth Point */}
+                <InteractiveConstellationPoint
+                  x={constellationDimensions.width * 0.35}
+                  y={40}
+                  size={2}
+                  color="rgb(74, 222, 128)"
+                  glowColor="rgba(74, 222, 128, 0.8)"
+                  label="Growth"
+                  tooltipTitle="Continuous Growth"
+                  tooltipDescription="The ongoing development of technical skills, leadership abilities, and understanding of sustainable systems that shapes my professional identity."
+                  tooltipPosition="top"
+                  delay={4}
+                  initialAnimation={true}
+                />
+
+                {/* Creativity Point */}
+                <InteractiveConstellationPoint
+                  x={constellationDimensions.width * 0.65}
+                  y={40}
+                  size={2}
+                  color="rgb(56, 189, 248)"
+                  glowColor="rgba(56, 189, 248, 0.8)"
+                  label="Creativity"
+                  tooltipTitle="Creative Expression"
+                  tooltipDescription="The wellspring of imagination and innovation that fuels my personal projects, artistic expression, and storytelling endeavors."
+                  tooltipPosition="top"
+                  delay={4}
+                  initialAnimation={true}
+                />
+
+                {/* Purpose Point */}
+                <InteractiveConstellationPoint
+                  x={constellationDimensions.width * 0.25}
+                  y={40}
+                  size={3}
+                  color="rgb(74, 222, 128)"
+                  glowColor="rgba(74, 222, 128, 0.8)"
+                  label="Purpose"
+                  tooltipTitle="Driven by Purpose"
+                  tooltipDescription="My mission to create energy systems that heal our planet while ensuring equitable access for all communities, especially those historically marginalized."
+                  tooltipPosition="bottom"
+                  delay={5}
+                  initialAnimation={true}
+                />
+
+                {/* Passion Point */}
+                <InteractiveConstellationPoint
+                  x={constellationDimensions.width * 0.75}
+                  y={40}
+                  size={3}
+                  color="rgb(56, 189, 248)"
+                  glowColor="rgba(56, 189, 248, 0.8)"
+                  label="Passion"
+                  tooltipTitle="Creative Passion"
+                  tooltipDescription="The creative drive that inspires my artistic endeavors, writing projects, and exploration of interconnected natural systems like mycelium networks."
+                  tooltipPosition="bottom"
+                  delay={5}
+                  initialAnimation={true}
+                />
+
+                {/* Professional Destination */}
+                <InteractiveConstellationPoint
+                  x={constellationDimensions.width * 0.2}
+                  y={160}
+                  size={3}
+                  color="rgb(74, 222, 128)"
+                  glowColor="rgba(74, 222, 128, 0.9)"
+                  label="Professional"
+                  tooltipTitle="Professional Repertoire"
+                  tooltipDescription="Click to explore my engineering work, research, and advocacy for equitable energy solutions and sustainable systems."
+                  tooltipPosition="left"
+                  delay={7}
+                  initialAnimation={true}
+                  navigateTo="/professional"
+                />
+
+                {/* Personal Destination */}
+                <InteractiveConstellationPoint
+                  x={constellationDimensions.width * 0.8}
+                  y={160}
+                  size={3}
+                  color="rgb(56, 189, 248)"
+                  glowColor="rgba(56, 189, 248, 0.9)"
+                  label="Personal"
+                  tooltipTitle="Mind Wandering"
+                  tooltipDescription="Click to discover my creative pursuits, artistic expression, and ongoing narrative explorations of interconnectedness."
+                  tooltipPosition="right"
+                  delay={7}
+                  initialAnimation={true}
+                  navigateTo="/personal"
+                />
+              </>
+            )}
+          </div>
         </div>
 
         {/* Two Worlds - with more playful elements */}

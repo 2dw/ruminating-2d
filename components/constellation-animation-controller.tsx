@@ -23,14 +23,22 @@ export function ConstellationAnimationController({
     setIsRetracing(true)
 
     // Trigger custom event that path components will listen for
-    const event = new CustomEvent("retrace-constellation")
+    const event = new CustomEvent("retrace-constellation", {
+      detail: { timestamp: Date.now() },
+    })
     document.dispatchEvent(event)
+
+    // Also trigger a more specific event for debugging
+    console.log("Retracing constellation animation...")
 
     // Reset retracing state after animation completes
     setTimeout(() => {
       setIsRetracing(false)
+      if (onAnimationComplete) {
+        onAnimationComplete()
+      }
     }, 12000)
-  }, [isRetracing])
+  }, [isRetracing, onAnimationComplete])
 
   return (
     <div className="relative">
