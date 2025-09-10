@@ -82,6 +82,19 @@ export default function ProfessionalPage() {
     })
   }, [])
 
+  useEffect(() => {
+    // Check if there's a target tab in sessionStorage
+    const targetTab = sessionStorage.getItem("targetTab")
+    if (targetTab) {
+      const tabIndex = tabs.findIndex((tab) => tab === targetTab)
+      if (tabIndex !== -1) {
+        setActiveIndex(tabIndex)
+      }
+      // Clear the target tab from sessionStorage
+      sessionStorage.removeItem("targetTab")
+    }
+  }, [])
+
   return (
     <div
       className={`min-h-screen w-full transition-colors duration-500 ${
@@ -108,7 +121,7 @@ export default function ProfessionalPage() {
                   aria-label="Return to main portal"
                 >
                   <svg className="h-5 w-5" viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z" />
+                    <path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8h-2v-6H7v6H5v-8l7-7.31z" />
                     <path d="M12 1L3 10v11h6v-6h6v6h6V10L12 1zm0 2.69L19 11v8h-2v-6H7v6H5v-8l7-7.31z" opacity="0.3" />
                   </svg>
                 </Button>

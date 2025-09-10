@@ -61,8 +61,12 @@ export default function PortalPage() {
     document.documentElement.classList.toggle("dark")
   }
 
-  const navigateTo = (path: string, worldName: string) => {
+  const navigateTo = (path: string, worldName: string, tabName?: string) => {
     announceToScreenReader(`Navigating to ${worldName}`)
+    if (tabName) {
+      // Store the target tab in sessionStorage so the destination page can read it
+      sessionStorage.setItem("targetTab", tabName)
+    }
     router.push(path)
   }
 
@@ -788,7 +792,7 @@ export default function PortalPage() {
                   transition={{ type: "spring", stiffness: 400 }}
                   onClick={(e) => {
                     e.stopPropagation()
-                    navigateTo("/professional", "Me Until Now")
+                    navigateTo("/professional", "Me Until Now", "Me Until Now")
                   }}
                 >
                   <BookOpen className="h-5 w-5 text-green-600 dark:text-green-400" aria-hidden="true" />
@@ -800,7 +804,7 @@ export default function PortalPage() {
                   transition={{ type: "spring", stiffness: 400 }}
                   onClick={(e) => {
                     e.stopPropagation()
-                    navigateTo("/professional", "Tiny Endeavors")
+                    navigateTo("/professional", "Tiny Endeavors", "Tiny Endeavors")
                   }}
                 >
                   <Sparkles className="h-5 w-5 text-green-600 dark:text-green-400" aria-hidden="true" />
@@ -812,7 +816,7 @@ export default function PortalPage() {
                   transition={{ type: "spring", stiffness: 400 }}
                   onClick={(e) => {
                     e.stopPropagation()
-                    navigateTo("/professional", "Mission Musings")
+                    navigateTo("/professional", "Mission Musings", "Mission Musings")
                   }}
                 >
                   <Lightbulb className="h-5 w-5 text-green-600 dark:text-green-400" aria-hidden="true" />
@@ -921,7 +925,7 @@ export default function PortalPage() {
                   transition={{ type: "spring", stiffness: 400 }}
                   onClick={(e) => {
                     e.stopPropagation()
-                    navigateTo("/personal", "Creative Endeavors")
+                    navigateTo("/personal", "Creative Endeavors", "Creative Endeavors")
                   }}
                 >
                   <Palette className="h-5 w-5 text-blue-600 dark:text-blue-400" aria-hidden="true" />
@@ -933,7 +937,7 @@ export default function PortalPage() {
                   transition={{ type: "spring", stiffness: 400 }}
                   onClick={(e) => {
                     e.stopPropagation()
-                    navigateTo("/personal", "Imagery Meanderings")
+                    navigateTo("/personal", "Imagery Meanderings", "Imagery Meanderings")
                   }}
                 >
                   <Camera className="h-5 w-5 text-blue-600 dark:text-blue-400" aria-hidden="true" />
@@ -945,7 +949,7 @@ export default function PortalPage() {
                   transition={{ type: "spring", stiffness: 400 }}
                   onClick={(e) => {
                     e.stopPropagation()
-                    navigateTo("/personal", "The Story Is Being Written")
+                    navigateTo("/personal", "The Story Is Being Written", "The Story Is Being Written")
                   }}
                 >
                   <PenTool className="h-5 w-5 text-blue-600 dark:text-blue-400" aria-hidden="true" />
