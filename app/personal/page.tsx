@@ -3,9 +3,10 @@
 import { useState, useRef, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { motion } from "framer-motion"
-import { Moon, Sun, ArrowLeft, Palette, Camera, PenTool } from "lucide-react"
+import { Moon, Sun, Palette, Camera, PenTool } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { DynamicFrame } from "@/components/dynamic-frame"
+import { DocumentCard } from "@/components/document-card"
 import Image from "next/image"
 
 const tabs = ["Creative Endeavors", "Imagery Meanderings", "The Story Is Being Written"]
@@ -62,6 +63,19 @@ export default function PersonalWorld() {
     setIsDarkMode(isDark)
   }, [])
 
+  useEffect(() => {
+    // Check if there's a target tab in sessionStorage
+    const targetTab = sessionStorage.getItem("targetTab")
+    if (targetTab) {
+      const tabIndex = tabs.findIndex((tab) => tab === targetTab)
+      if (tabIndex !== -1) {
+        setActiveIndex(tabIndex)
+      }
+      // Clear the target tab from sessionStorage
+      sessionStorage.removeItem("targetTab")
+    }
+  }, [])
+
   const toggleDarkMode = () => {
     setIsDarkMode(!isDarkMode)
     document.documentElement.classList.toggle("dark")
@@ -86,9 +100,9 @@ export default function PersonalWorld() {
 
         {/* Main content with better contrast */}
         <div className="relative z-10">
-          {/* Header with Tabs */}
+          {/* Header */}
           <header className="sticky top-0 z-10 backdrop-blur-md bg-white/80 dark:bg-[#0a1015]/80 border-b border-gray-200 dark:border-gray-800">
-            <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px:8">
+            <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
               <div className="flex justify-between items-center h-16">
                 <div className="flex items-center gap-4">
                   <motion.div whileHover={{ scale: 1.1, rotate: 5 }}>
@@ -97,8 +111,15 @@ export default function PersonalWorld() {
                       size="icon"
                       onClick={() => router.push("/")}
                       className="text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300"
+                      aria-label="Return to main portal"
                     >
-                      <ArrowLeft className="h-5 w-5" />
+                      <svg className="h-5 w-5" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8h3v-6h6v6h6V10L12 1zm0 2.69L19 11v8h-2v-6H7v6H5v-8l7-7.31z" />
+                        <path
+                          d="M12 1L3 10v11h6v-6h6v6h6V10L12 1zm0 2.69L19 11v8h-2v-6H7v6H5v-8l7-7.31z"
+                          opacity="0.3"
+                        />
+                      </svg>
                     </Button>
                   </motion.div>
                   <motion.h1
@@ -116,10 +137,7 @@ export default function PersonalWorld() {
                   {/* Hover Highlight */}
                   <div
                     className="absolute h-[30px] transition-all duration-300 ease-out bg-blue-100/50 dark:bg-blue-900/30 rounded-[6px] flex items-center"
-                    style={{
-                      ...hoverStyle,
-                      opacity: hoveredIndex !== null ? 1 : 0,
-                    }}
+                    style={hoverStyle}
                   />
 
                   {/* Active Indicator */}
@@ -186,6 +204,39 @@ export default function PersonalWorld() {
                     Beyond my professional work, I explore creativity through various mediums. These personal projects
                     allow me to process my experiences, connect with others, and find joy in the process of making.
                   </p>
+                </div>
+
+                {/* Digital Art Gallery */}
+                <div className="mb-12">
+                  <h3 className="text-xl font-serif font-semibold mb-6 text-blue-700 dark:text-blue-300">
+                    Digital Art Gallery
+                  </h3>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <DocumentCard
+                      title="Mycelium Networks"
+                      description="Digital illustration exploring the interconnected patterns of fungal networks and their parallels to human connection."
+                      url="/placeholder.svg?height=300&width=400&text=Mycelium+Networks"
+                      type="image"
+                      icon={<Palette className="h-6 w-6" />}
+                      color="blue"
+                    />
+                    <DocumentCard
+                      title="Energy Flow"
+                      description="Abstract representation of energy distribution systems inspired by natural patterns."
+                      url="/placeholder.svg?height=300&width=400&text=Energy+Flow"
+                      type="image"
+                      icon={<Palette className="h-6 w-6" />}
+                      color="blue"
+                    />
+                    <DocumentCard
+                      title="Roots and Circuits"
+                      description="A piece that bridges the organic and technological, showing how nature and engineering can coexist."
+                      url="/placeholder.svg?height=300&width=400&text=Roots+Circuits"
+                      type="image"
+                      icon={<Palette className="h-6 w-6" />}
+                      color="blue"
+                    />
+                  </div>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mt-8">
@@ -306,27 +357,61 @@ export default function PersonalWorld() {
                   </p>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  {[1, 2, 3, 4, 5, 6].map((item) => (
-                    <motion.div
-                      key={item}
-                      initial={{ opacity: 0, y: 20 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ duration: 0.5, delay: item * 0.1 }}
-                      whileHover={{ y: -5, scale: 1.02 }}
-                    >
-                      <DynamicFrame className="border border-blue-200 dark:border-blue-800 bg-white/95 dark:bg-gray-950/95">
-                        <div className="aspect-square bg-blue-100 dark:bg-blue-900/30 relative">
-                          <Image
-                            src={`/placeholder.svg?height=300&width=300&text=Photo+${item}`}
-                            alt={`Photography sample ${item}`}
-                            fill
-                            className="object-cover"
-                          />
-                        </div>
-                      </DynamicFrame>
-                    </motion.div>
-                  ))}
+                {/* Photography Gallery */}
+                <div className="mb-12">
+                  <h3 className="text-xl font-serif font-semibold mb-6 text-blue-700 dark:text-blue-300">
+                    Photography Collection
+                  </h3>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <DocumentCard
+                      title="Forest Connections"
+                      description="Capturing the intricate root systems and fungal networks in old-growth forests."
+                      url="/placeholder.svg?height=300&width=400&text=Forest+Connections"
+                      type="image"
+                      icon={<Camera className="h-6 w-6" />}
+                      color="blue"
+                    />
+                    <DocumentCard
+                      title="Urban Energy"
+                      description="The flow of energy through city infrastructure, from power lines to solar panels."
+                      url="/placeholder.svg?height=300&width=400&text=Urban+Energy"
+                      type="image"
+                      icon={<Camera className="h-6 w-6" />}
+                      color="blue"
+                    />
+                    <DocumentCard
+                      title="Water Networks"
+                      description="Rivers, streams, and waterways as nature's distribution networks."
+                      url="/placeholder.svg?height=300&width=400&text=Water+Networks"
+                      type="image"
+                      icon={<Camera className="h-6 w-6" />}
+                      color="blue"
+                    />
+                    <DocumentCard
+                      title="Coral Patterns"
+                      description="The branching patterns of coral reefs and their ecosystem connections."
+                      url="/placeholder.svg?height=300&width=400&text=Coral+Patterns"
+                      type="image"
+                      icon={<Camera className="h-6 w-6" />}
+                      color="blue"
+                    />
+                    <DocumentCard
+                      title="Mountain Paths"
+                      description="Hiking trails that mirror the natural flow of water and wildlife."
+                      url="/placeholder.svg?height=300&width=400&text=Mountain+Paths"
+                      type="image"
+                      icon={<Camera className="h-6 w-6" />}
+                      color="blue"
+                    />
+                    <DocumentCard
+                      title="Desert Networks"
+                      description="The surprising interconnections found in seemingly barren landscapes."
+                      url="/placeholder.svg?height=300&width=400&text=Desert+Networks"
+                      type="image"
+                      icon={<Camera className="h-6 w-6" />}
+                      color="blue"
+                    />
+                  </div>
                 </div>
 
                 <motion.div
@@ -375,6 +460,31 @@ export default function PersonalWorld() {
                 <h2 className="text-2xl font-serif font-bold mb-6 text-blue-700 dark:text-blue-300 bg-white/80 dark:bg-gray-950/80 inline-block px-3 py-1 rounded-md">
                   The Story Is Being Written
                 </h2>
+
+                {/* Writing Samples */}
+                <div className="mb-12">
+                  <h3 className="text-xl font-serif font-semibold mb-6 text-blue-700 dark:text-blue-300">
+                    Writing Samples
+                  </h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <DocumentCard
+                      title="The Mycelium Chronicles - Chapter 1"
+                      description="The opening chapter of my speculative fiction novel exploring human-mycelium communication."
+                      url="/placeholder.svg?height=400&width=300&text=Chapter+1"
+                      type="pdf"
+                      icon={<PenTool className="h-6 w-6" />}
+                      color="blue"
+                    />
+                    <DocumentCard
+                      title="Poetry Collection: Interconnected"
+                      description="A collection of poems exploring themes of connection, identity, and our relationship with nature."
+                      url="/placeholder.svg?height=400&width=300&text=Poetry+Collection"
+                      type="pdf"
+                      icon={<PenTool className="h-6 w-6" />}
+                      color="blue"
+                    />
+                  </div>
+                </div>
 
                 <motion.div
                   initial={{ opacity: 0, y: 20 }}

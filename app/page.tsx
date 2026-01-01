@@ -3,17 +3,16 @@
 import { useState, useEffect, useRef } from "react"
 import { useRouter } from "next/navigation"
 import { motion } from "framer-motion"
-import { ArrowRight, BookOpen, Sparkles, Lightbulb, Camera, Palette, PenTool } from "lucide-react"
-import { Button } from "@/components/ui/button"
 import { AccessibilityControls } from "@/components/accessibility-controls"
 import { useAccessibility } from "@/contexts/accessibility-context"
 import { StarryBackground } from "@/components/starry-background"
 import { InteractiveConstellationPoint } from "@/components/interactive-constellation-point"
-import { ConstellationAnimationController } from "@/components/constellation-animation-controller"
 import { AnimatedConstellationPath } from "@/components/animated-constellation-path"
-import { ConstellationInteractionHint } from "@/components/constellation-interaction-hint"
 import { ConstellationParticles } from "@/components/constellation-particles"
+import { ConstellationAnimationController } from "@/components/constellation-animation-controller"
 import { constellationPaths } from "@/config/constellation-paths"
+import { ArrowRight, BookOpen, Sparkles, Lightbulb, Camera, Palette, PenTool } from "lucide-react"
+import { Button } from "@/components/ui/button"
 
 export default function PortalPage() {
   const router = useRouter()
@@ -23,7 +22,6 @@ export default function PortalPage() {
   const { highContrast, announceToScreenReader } = useAccessibility()
   const constellationRef = useRef<HTMLDivElement>(null)
   const [constellationDimensions, setConstellationDimensions] = useState({ width: 0, height: 0 })
-  const [animationComplete, setAnimationComplete] = useState(false)
 
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
@@ -63,13 +61,13 @@ export default function PortalPage() {
     document.documentElement.classList.toggle("dark")
   }
 
-  const navigateTo = (path: string, worldName: string) => {
+  const navigateTo = (path: string, worldName: string, tabName?: string) => {
     announceToScreenReader(`Navigating to ${worldName}`)
+    if (tabName) {
+      // Store the target tab in sessionStorage so the destination page can read it
+      sessionStorage.setItem("targetTab", tabName)
+    }
     router.push(path)
-  }
-
-  const handleAnimationComplete = () => {
-    setAnimationComplete(true)
   }
 
   return (
@@ -84,87 +82,112 @@ export default function PortalPage() {
       {/* Accessibility Controls */}
       <AccessibilityControls isDarkMode={isDarkMode} toggleDarkMode={toggleDarkMode} />
 
-      <ConstellationAnimationController onAnimationComplete={handleAnimationComplete}>
-        {/* Header */}
-        <header className="fixed top-0 w-full z-40 backdrop-blur-md bg-white/80 dark:bg-[#0a1015]/80 border-b border-gray-200 dark:border-gray-800">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="flex justify-between items-center h-16">
-              <div className="flex items-center">
-                <motion.h1
-                  className="text-xl font-bold"
-                  initial={{ opacity: 0, y: -10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.5 }}
-                >
-                  Trudie Wang
-                </motion.h1>
-              </div>
+      {/* Header with Neural Network Background */}
+      <header className="fixed top-0 w-full z-40 backdrop-blur-md border-b border-gray-200 dark:border-gray-800 overflow-hidden">
+        {/* Neural Network Background Image */}
+        <div
+          className="absolute inset-0 bg-cover bg-center bg-no-repeat"
+          style={{
+            backgroundImage: `url('/neural-network-reference.jpg')`,
+            filter: "brightness(0.6) contrast(1.1) hue-rotate(20deg) saturate(1.3)",
+          }}
+        >
+          {/* Lighter overlay for better text contrast */}
+          <div className="absolute inset-0 bg-gradient-to-r from-blue-900/60 via-slate-800/50 to-indigo-900/60"></div>
+        </div>
+
+        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-end items-center h-16">
+            <div className="flex items-center">
+              <motion.h1
+                className="text-2xl font-bold text-white tracking-wide"
+                style={{
+                  fontFamily: "'Inter', 'Helvetica Neue', sans-serif",
+                  fontWeight: "700",
+                  letterSpacing: "0.05em",
+                  textShadow:
+                    "0 2px 4px rgba(0, 0, 0, 0.8), 0 0 20px rgba(0, 0, 0, 0.6), 0 0 40px rgba(147, 197, 253, 0.4)",
+                }}
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.5 }}
+                whileHover={{
+                  textShadow:
+                    "0 2px 6px rgba(0, 0, 0, 0.9), 0 0 30px rgba(0, 0, 0, 0.7), 0 0 60px rgba(147, 197, 253, 0.6)",
+                  scale: 1.05,
+                  letterSpacing: "0.08em",
+                }}
+              >
+                trudie wang
+              </motion.h1>
             </div>
           </div>
-        </header>
+        </div>
+      </header>
 
-        {/* Main Portal */}
-        <main id="main-content" className="pt-24 pb-16 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto" tabIndex={-1}>
-          <div className="text-center mb-6 relative">
-            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7 }}>
-              <h1 className="text-4xl md:text-5xl font-serif mb-6 text-teal-700 dark:text-teal-400 relative inline-block bg-white/70 dark:bg-[#0a1015]/70 px-4 py-2 rounded-lg">
-                imagining constellations from north stars
-                <motion.span
-                  className="absolute -top-6 -right-6 text-yellow-400 dark:text-yellow-300"
-                  animate={{
-                    rotate: [0, 15, 0, -15, 0],
-                    scale: [1, 1.2, 1, 1.2, 1],
-                  }}
-                  transition={{ duration: 5, repeat: Number.POSITIVE_INFINITY }}
-                  aria-hidden="true"
-                >
-                  ✦
-                </motion.span>
-                <motion.span
-                  className="absolute -bottom-2 -left-6 text-blue-400 dark:text-blue-300"
-                  animate={{
-                    rotate: [0, -15, 0, 15, 0],
-                    scale: [1, 1.1, 1, 1.1, 1],
-                  }}
-                  transition={{ duration: 4, repeat: Number.POSITIVE_INFINITY, delay: 1 }}
-                  aria-hidden="true"
-                >
-                  ✧
-                </motion.span>
-              </h1>
-            </motion.div>
-            <motion.p
-              className="text-lg md:text-xl max-w-3xl mx-auto text-gray-600 dark:text-gray-300 bg-white/70 dark:bg-[#0a1015]/70 px-4 py-2 rounded-lg inline-block"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ duration: 1, delay: 0.5 }}
-            >
-              Explore the interconnected paths of my professional journey and personal wanderings, like mycelium
-              connecting all living things in nature.
-            </motion.p>
+      {/* Main Portal */}
+      <main id="main-content" className="pt-24 pb-16 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto" tabIndex={-1}>
+        <div className="text-center mb-6 relative">
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7 }}>
+            <h1 className="text-4xl md:text-5xl font-serif mb-6 text-teal-700 dark:text-teal-400 relative inline-block bg-white/70 dark:bg-[#0a1015]/70 px-4 py-2 rounded-lg">
+              imagining constellations from north stars
+              <motion.span
+                className="absolute -top-6 -right-6 text-yellow-400 dark:text-yellow-300"
+                animate={{
+                  rotate: [0, 15, 0, -15, 0],
+                  scale: [1, 1.2, 1, 1.2, 1],
+                }}
+                transition={{ duration: 5, repeat: Number.POSITIVE_INFINITY }}
+                aria-hidden="true"
+              >
+                ✦
+              </motion.span>
+              <motion.span
+                className="absolute -bottom-2 -left-6 text-blue-400 dark:text-blue-300"
+                animate={{
+                  rotate: [0, -15, 0, 15, 0],
+                  scale: [1, 1.1, 1, 1.1, 1],
+                }}
+                transition={{ duration: 4, repeat: Number.POSITIVE_INFINITY, delay: 1 }}
+                aria-hidden="true"
+              >
+                ✧
+              </motion.span>
+            </h1>
+          </motion.div>
+          <motion.p
+            className="text-lg md:text-xl max-w-3xl mx-auto text-gray-600 dark:text-gray-300 bg-white/70 dark:bg-[#0a1015]/70 px-4 py-2 rounded-lg inline-block"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 1, delay: 0.5 }}
+          >
+            Explore the interconnected paths of my professional journey and personal wanderings, like mycelium
+            connecting all living things in nature.
+          </motion.p>
 
-            {/* Interactive Origin Point */}
-            <div className="absolute bottom-0 left-1/2 -translate-x-1/2">
-              <InteractiveConstellationPoint
-                x={0}
-                y={0}
-                size={4}
-                color="rgb(20, 184, 166)"
-                glowColor="rgba(20, 184, 166, 0.7)"
-                label="Origin"
-                tooltipTitle="Origin"
-                tooltipDescription="The starting point of my journey, where professional purpose and personal passion converge."
-                tooltipPosition="top"
-                delay={0}
-              />
-            </div>
+          {/* Interactive Origin Point */}
+          <div className="absolute bottom-0 left-1/2 -translate-x-1/2">
+            <InteractiveConstellationPoint
+              x={0}
+              y={0}
+              size={4}
+              color="rgb(20, 184, 166)"
+              glowColor="rgba(20, 184, 166, 0.7)"
+              label="Origin"
+              tooltipTitle="Origin"
+              tooltipDescription="The starting point of my journey, where professional purpose and personal passion converge."
+              tooltipPosition="top"
+              delay={0}
+            />
           </div>
+        </div>
 
-          {/* Mycelium-inspired connector - constellation-like forking trail */}
-          <div className="relative my-8" ref={constellationRef} aria-hidden="true">
-            {/* Constellation interaction hint */}
-            <ConstellationInteractionHint show={animationComplete} />
+        {/* Mycelium-inspired connector - constellation-like forking trail */}
+        <div className="relative my-8">
+          {/* Retrace button positioned above the constellation */}
+          <ConstellationAnimationController />
 
+          <div ref={constellationRef} aria-hidden="true">
             {/* Constellation Particles */}
             <ConstellationParticles paths={constellationPaths} />
 
@@ -589,8 +612,8 @@ export default function PortalPage() {
                   color="rgb(20, 184, 166)"
                   glowColor="rgba(20, 184, 166, 0.9)"
                   label="Nexus"
-                  tooltipTitle="Nexus"
-                  tooltipDescription="The central connection point where professional and personal worlds meet, creating a unified vision."
+                  tooltipTitle="The Nexus"
+                  tooltipDescription="The central connection point where professional purpose and personal passion converge, creating a unified vision for healing our planet."
                   tooltipPosition="top"
                   delay={1.5}
                   initialAnimation={true}
@@ -604,8 +627,8 @@ export default function PortalPage() {
                   color="rgb(74, 222, 128)"
                   glowColor="rgba(74, 222, 128, 0.8)"
                   label="Growth"
-                  tooltipTitle="Growth"
-                  tooltipDescription="The continuous development of skills and knowledge that shapes my professional identity."
+                  tooltipTitle="Continuous Growth"
+                  tooltipDescription="The ongoing development of technical skills, leadership abilities, and understanding of sustainable systems that shapes my professional identity."
                   tooltipPosition="top"
                   delay={4}
                   initialAnimation={true}
@@ -619,8 +642,8 @@ export default function PortalPage() {
                   color="rgb(56, 189, 248)"
                   glowColor="rgba(56, 189, 248, 0.8)"
                   label="Creativity"
-                  tooltipTitle="Creativity"
-                  tooltipDescription="The wellspring of imagination and innovation that fuels my personal projects and artistic expression."
+                  tooltipTitle="Creative Expression"
+                  tooltipDescription="The wellspring of imagination and innovation that fuels my personal projects, artistic expression, and storytelling endeavors."
                   tooltipPosition="top"
                   delay={4}
                   initialAnimation={true}
@@ -634,8 +657,8 @@ export default function PortalPage() {
                   color="rgb(74, 222, 128)"
                   glowColor="rgba(74, 222, 128, 0.8)"
                   label="Purpose"
-                  tooltipTitle="Purpose"
-                  tooltipDescription="My mission to create energy systems that heal our planet while ensuring equitable access for all communities."
+                  tooltipTitle="Driven by Purpose"
+                  tooltipDescription="My mission to create energy systems that heal our planet while ensuring equitable access for all communities, especially those historically marginalized."
                   tooltipPosition="bottom"
                   delay={5}
                   initialAnimation={true}
@@ -649,8 +672,8 @@ export default function PortalPage() {
                   color="rgb(56, 189, 248)"
                   glowColor="rgba(56, 189, 248, 0.8)"
                   label="Passion"
-                  tooltipTitle="Passion"
-                  tooltipDescription="The creative drive that inspires my artistic endeavors, writing, and exploration of interconnected natural systems."
+                  tooltipTitle="Creative Passion"
+                  tooltipDescription="The creative drive that inspires my artistic endeavors, writing projects, and exploration of interconnected natural systems like mycelium networks."
                   tooltipPosition="bottom"
                   delay={5}
                   initialAnimation={true}
@@ -665,10 +688,11 @@ export default function PortalPage() {
                   glowColor="rgba(74, 222, 128, 0.9)"
                   label="Professional"
                   tooltipTitle="Professional Repertoire"
-                  tooltipDescription="My engineering work, research, and advocacy for equitable energy solutions and sustainable systems."
+                  tooltipDescription="Click to explore my engineering work, research, and advocacy for equitable energy solutions and sustainable systems."
                   tooltipPosition="left"
                   delay={7}
                   initialAnimation={true}
+                  navigateTo="/professional"
                 />
 
                 {/* Personal Destination */}
@@ -680,273 +704,306 @@ export default function PortalPage() {
                   glowColor="rgba(56, 189, 248, 0.9)"
                   label="Personal"
                   tooltipTitle="Mind Wandering"
-                  tooltipDescription="My creative pursuits, artistic expression, and ongoing narrative explorations of interconnectedness."
+                  tooltipDescription="Click to discover my creative pursuits, artistic expression, and ongoing narrative explorations of interconnectedness."
                   tooltipPosition="right"
                   delay={7}
                   initialAnimation={true}
+                  navigateTo="/personal"
                 />
               </>
             )}
           </div>
+        </div>
 
-          {/* Two Worlds - with more playful elements */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mt-4">
-            {/* Professional World */}
-            <motion.div
-              className={`relative overflow-hidden rounded-2xl border transition-all duration-500 ${
-                hoveredWorld === "professional"
-                  ? "border-green-400 shadow-lg shadow-green-100 dark:shadow-green-900/20"
-                  : hoveredWorld === "personal"
-                    ? "border-gray-200 dark:border-gray-800 opacity-80"
-                    : "border-gray-200 dark:border-gray-800"
-              } dynamic-frame`}
-              onMouseEnter={() => setHoveredWorld("professional")}
-              onMouseLeave={() => setHoveredWorld(null)}
-              whileHover={{ y: -8, rotate: -1 }}
-              transition={{ duration: 0.3 }}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              style={{
-                transformOrigin: "center",
-              }}
+        {/* Two Worlds - with more playful elements */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mt-4">
+          {/* Professional World */}
+          <motion.div
+            className={`relative overflow-hidden rounded-2xl border transition-all duration-500 cursor-pointer ${
+              hoveredWorld === "professional"
+                ? "border-green-400 shadow-lg shadow-green-100 dark:shadow-green-900/20"
+                : hoveredWorld === "personal"
+                  ? "border-gray-200 dark:border-gray-800 opacity-80"
+                  : "border-gray-200 dark:border-gray-800"
+            } dynamic-frame`}
+            onMouseEnter={() => setHoveredWorld("professional")}
+            onMouseLeave={() => setHoveredWorld(null)}
+            onClick={() => navigateTo("/professional", "Professional Repertoire")}
+            whileHover={{ y: -8, rotate: -1 }}
+            transition={{ duration: 0.3 }}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            style={{
+              transformOrigin: "center",
+            }}
+          >
+            <div className="absolute inset-0 bg-gradient-to-br from-green-50 to-green-100 dark:from-green-950/30 dark:to-green-900/20 z-0"></div>
+
+            {/* Mycelium-inspired background pattern - moved to bottom to avoid overlap */}
+            <div
+              className="absolute bottom-0 left-0 right-0 h-1/3 opacity-5 dark:opacity-10 z-0 overflow-hidden"
+              aria-hidden="true"
             >
-              <div className="absolute inset-0 bg-gradient-to-br from-green-50 to-green-100 dark:from-green-950/30 dark:to-green-900/20 z-0"></div>
-
-              {/* Mycelium-inspired background pattern - moved to bottom to avoid overlap */}
-              <div
-                className="absolute bottom-0 left-0 right-0 h-1/3 opacity-5 dark:opacity-10 z-0 overflow-hidden"
-                aria-hidden="true"
-              >
-                <svg width="100%" height="100%" viewBox="0 0 100 100" preserveAspectRatio="none">
-                  <motion.path
-                    d="M0,80 Q25,60 50,80 T100,80"
-                    stroke="currentColor"
-                    className="text-green-600"
-                    fill="none"
-                    strokeWidth="0.5"
-                    animate={{
-                      d: ["M0,80 Q25,60 50,80 T100,80", "M0,80 Q25,65 50,75 T100,80", "M0,80 Q25,60 50,80 T100,80"],
-                    }}
-                    transition={{ duration: 8, repeat: Number.POSITIVE_INFINITY, ease: "easeInOut" }}
-                  />
-                  <motion.path
-                    d="M0,90 Q25,70 50,90 T100,90"
-                    stroke="currentColor"
-                    className="text-green-600"
-                    fill="none"
-                    strokeWidth="0.5"
-                    animate={{
-                      d: ["M0,90 Q25,70 50,90 T100,90", "M0,90 Q25,75 50,85 T100,90", "M0,90 Q25,70 50,90 T100,90"],
-                    }}
-                    transition={{ duration: 7, repeat: Number.POSITIVE_INFINITY, ease: "easeInOut", delay: 0.5 }}
-                  />
-                </svg>
-              </div>
-
-              <div className="relative z-10 p-8 bg-white/90 dark:bg-gray-950/90 rounded-xl">
-                <motion.div
-                  className="w-16 h-16 rounded-full bg-green-100 dark:bg-green-900/50 flex items-center justify-center mb-6"
-                  whileHover={{ rotate: 15, scale: 1.05 }}
-                  transition={{ type: "spring", stiffness: 300 }}
-                  aria-hidden="true"
-                >
-                  <BookOpen className="h-8 w-8 text-green-600 dark:text-green-400" />
-                </motion.div>
-                <h2 className="text-2xl font-serif mb-4 text-green-800 dark:text-green-300">Professional Repertoire</h2>
-                <p className="mb-8 text-gray-700 dark:text-gray-300">
-                  Explore my professional journey, tiny endeavors, and the mission musings that define my path to help
-                  heal our planet.
-                </p>
-
-                <div className="grid grid-cols-1 gap-4 mb-8">
-                  <motion.div
-                    className="flex items-center gap-3 text-gray-700 dark:text-gray-300"
-                    whileHover={{ x: 5 }}
-                    transition={{ type: "spring", stiffness: 400 }}
-                  >
-                    <BookOpen className="h-5 w-5 text-green-600 dark:text-green-400" aria-hidden="true" />
-                    <span>Me Until Now</span>
-                  </motion.div>
-                  <motion.div
-                    className="flex items-center gap-3 text-gray-700 dark:text-gray-300"
-                    whileHover={{ x: 5 }}
-                    transition={{ type: "spring", stiffness: 400 }}
-                  >
-                    <Sparkles className="h-5 w-5 text-green-600 dark:text-green-400" aria-hidden="true" />
-                    <span>Tiny Endeavors</span>
-                  </motion.div>
-                  <motion.div
-                    className="flex items-center gap-3 text-gray-700 dark:text-gray-300"
-                    whileHover={{ x: 5 }}
-                    transition={{ type: "spring", stiffness: 400 }}
-                  >
-                    <Lightbulb className="h-5 w-5 text-green-600 dark:text-green-400" aria-hidden="true" />
-                    <span>Mission Musings</span>
-                  </motion.div>
-                </div>
-
-                <Button
-                  onClick={() => navigateTo("/professional", "Professional Repertoire")}
-                  className="group bg-green-600 hover:bg-green-700 text-white overflow-hidden relative"
-                  aria-label="Enter Professional World section"
-                >
-                  <span className="relative z-10 flex items-center">
-                    Enter Professional World
-                    <ArrowRight
-                      className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1"
-                      aria-hidden="true"
-                    />
-                  </span>
-                  <motion.span
-                    className="absolute inset-0 bg-green-500"
-                    initial={{ x: "-100%" }}
-                    whileHover={{ x: 0 }}
-                    transition={{ duration: 0.3 }}
-                    aria-hidden="true"
-                  />
-                </Button>
-              </div>
-            </motion.div>
-
-            {/* Personal World */}
-            <motion.div
-              className={`relative overflow-hidden rounded-2xl border transition-all duration-500 ${
-                hoveredWorld === "personal"
-                  ? "border-blue-400 shadow-lg shadow-blue-100 dark:shadow-blue-900/20"
-                  : hoveredWorld === "professional"
-                    ? "border-gray-200 dark:border-gray-800 opacity-80"
-                    : "border-gray-200 dark:border-gray-800"
-              } dynamic-frame`}
-              onMouseEnter={() => setHoveredWorld("personal")}
-              onMouseLeave={() => setHoveredWorld(null)}
-              whileHover={{ y: -8, rotate: 1 }}
-              transition={{ duration: 0.3 }}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              style={{
-                transformOrigin: "center",
-              }}
-            >
-              <div className="absolute inset-0 bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-950/30 dark:to-blue-900/20 z-0"></div>
-
-              {/* Mycelium-inspired background pattern - moved to bottom to avoid overlap */}
-              <div
-                className="absolute bottom-0 left-0 right-0 h-1/3 opacity-5 dark:opacity-10 z-0 overflow-hidden"
-                aria-hidden="true"
-              >
-                <svg width="100%" height="100%" viewBox="0 0 100 100" preserveAspectRatio="none">
-                  <motion.path
-                    d="M0,80 Q25,100 50,80 T100,80"
-                    stroke="currentColor"
-                    className="text-blue-600"
-                    fill="none"
-                    strokeWidth="0.5"
-                    animate={{
-                      d: ["M0,80 Q25,100 50,80 T100,80", "M0,80 Q25,95 50,85 T100,80", "M0,80 Q25,100 50,80 T100,80"],
-                    }}
-                    transition={{ duration: 8, repeat: Number.POSITIVE_INFINITY, ease: "easeInOut" }}
-                  />
-                  <motion.path
-                    d="M0,90 Q25,110 50,90 T100,90"
-                    stroke="currentColor"
-                    className="text-blue-600"
-                    fill="none"
-                    strokeWidth="0.5"
-                    animate={{
-                      d: ["M0,90 Q25,110 50,90 T100,90", "M0,90 Q25,105 50,95 T100,90", "M0,90 Q25,110 50,90 T100,90"],
-                    }}
-                    transition={{ duration: 7, repeat: Number.POSITIVE_INFINITY, ease: "easeInOut", delay: 0.5 }}
-                  />
-                </svg>
-              </div>
-
-              <div className="relative z-10 p-8 bg-white/90 dark:bg-gray-950/90 rounded-xl">
-                <motion.div
-                  className="w-16 h-16 rounded-full bg-blue-100 dark:bg-blue-900/50 flex items-center justify-center mb-6"
-                  whileHover={{ rotate: -15, scale: 1.05 }}
-                  transition={{ type: "spring", stiffness: 300 }}
-                  aria-hidden="true"
-                >
-                  <Palette className="h-8 w-8 text-blue-600 dark:text-blue-400" />
-                </motion.div>
-                <h2 className="text-2xl font-serif mb-4 text-blue-800 dark:text-blue-300">Mind Wandering</h2>
-                <p className="mb-8 text-gray-700 dark:text-gray-300">
-                  Discover my creative endeavors, imagery meanderings, and the story that continues to unfold in my
-                  imagination.
-                </p>
-
-                <div className="grid grid-cols-1 gap-4 mb-8">
-                  <motion.div
-                    className="flex items-center gap-3 text-gray-700 dark:text-gray-300"
-                    whileHover={{ x: 5 }}
-                    transition={{ type: "spring", stiffness: 400 }}
-                  >
-                    <Palette className="h-5 w-5 text-blue-600 dark:text-blue-400" aria-hidden="true" />
-                    <span>Creative Endeavors</span>
-                  </motion.div>
-                  <motion.div
-                    className="flex items-center gap-3 text-gray-700 dark:text-gray-300"
-                    whileHover={{ x: 5 }}
-                    transition={{ type: "spring", stiffness: 400 }}
-                  >
-                    <Camera className="h-5 w-5 text-blue-600 dark:text-blue-400" aria-hidden="true" />
-                    <span>Imagery Meanderings</span>
-                  </motion.div>
-                  <motion.div
-                    className="flex items-center gap-3 text-gray-700 dark:text-gray-300"
-                    whileHover={{ x: 5 }}
-                    transition={{ type: "spring", stiffness: 400 }}
-                  >
-                    <PenTool className="h-5 w-5 text-blue-600 dark:text-blue-400" aria-hidden="true" />
-                    <span>The Story Is Being Written</span>
-                  </motion.div>
-                </div>
-
-                <Button
-                  onClick={() => navigateTo("/personal", "Mind Wandering")}
-                  className="group bg-blue-600 hover:bg-blue-700 text-white overflow-hidden relative"
-                  aria-label="Enter Personal World section"
-                >
-                  <span className="relative z-10 flex items-center">
-                    Enter Personal World
-                    <ArrowRight
-                      className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1"
-                      aria-hidden="true"
-                    />
-                  </span>
-                  <motion.span
-                    className="absolute inset-0 bg-blue-500"
-                    initial={{ x: "-100%" }}
-                    whileHover={{ x: 0 }}
-                    transition={{ duration: 0.3 }}
-                    aria-hidden="true"
-                  />
-                </Button>
-              </div>
-            </motion.div>
-          </div>
-        </main>
-
-        {/* Footer - more playful */}
-        <footer className="bg-gray-50 dark:bg-gray-900/50 py-8 mt-12 border-t border-gray-200 dark:border-gray-800">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="flex flex-col md:flex-row justify-between items-center">
-              <div className="mb-4 md:mb-0">
-                <p className="text-gray-600 dark:text-gray-400">© 2025 Trudie Wang. All rights reserved.</p>
-              </div>
-              <motion.p
-                className="text-sm text-gray-500 dark:text-gray-400 max-w-md text-center md:text-right font-serif italic"
-                animate={{
-                  opacity: [0.7, 1, 0.7],
-                }}
-                transition={{ duration: 4, repeat: Number.POSITIVE_INFINITY }}
-              >
-                "Like mycelium connects all living things in nature, our stories connect us all in the web of humanity."
-              </motion.p>
+              <svg width="100%" height="100%" viewBox="0 0 100 100" preserveAspectRatio="none">
+                <motion.path
+                  d="M0,80 Q25,60 50,80 T100,80"
+                  stroke="currentColor"
+                  className="text-green-600"
+                  fill="none"
+                  strokeWidth="0.5"
+                  animate={{
+                    d: ["M0,80 Q25,60 50,80 T100,80", "M0,80 Q25,65 50,75 T100,80", "M0,80 Q25,60 50,80 T100,80"],
+                  }}
+                  transition={{ duration: 8, repeat: Number.POSITIVE_INFINITY, ease: "easeInOut" }}
+                />
+                <motion.path
+                  d="M0,90 Q25,70 50,90 T100,90"
+                  stroke="currentColor"
+                  className="text-green-600"
+                  fill="none"
+                  strokeWidth="0.5"
+                  animate={{
+                    d: ["M0,90 Q25,70 50,90 T100,90", "M0,90 Q25,75 50,85 T100,90", "M0,90 Q25,70 50,90 T100,90"],
+                  }}
+                  transition={{ duration: 7, repeat: Number.POSITIVE_INFINITY, ease: "easeInOut", delay: 0.5 }}
+                />
+              </svg>
             </div>
+
+            <div className="relative z-10 p-8 bg-white/90 dark:bg-gray-950/90 rounded-xl">
+              <motion.div
+                className="w-16 h-16 rounded-full bg-green-100 dark:bg-green-900/50 flex items-center justify-center mb-6"
+                whileHover={{ rotate: 15, scale: 1.05 }}
+                transition={{ type: "spring", stiffness: 300 }}
+                aria-hidden="true"
+              >
+                <BookOpen className="h-8 w-8 text-green-600 dark:text-green-400" />
+              </motion.div>
+              <h2 className="text-2xl font-serif mb-4 text-green-800 dark:text-green-300">Professional Repertoire</h2>
+              <p className="mb-8 text-gray-700 dark:text-gray-300">
+                Explore my professional journey, tiny endeavors, and the mission musings that define my path to help
+                heal our planet.
+              </p>
+
+              <div className="grid grid-cols-1 gap-4 mb-8">
+                <motion.div
+                  className="flex items-center gap-3 text-gray-700 dark:text-gray-300 cursor-pointer hover:text-green-600 dark:hover:text-green-400 transition-colors"
+                  whileHover={{ x: 5 }}
+                  transition={{ type: "spring", stiffness: 400 }}
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    navigateTo("/professional", "Me Until Now", "Me Until Now")
+                  }}
+                >
+                  <BookOpen className="h-5 w-5 text-green-600 dark:text-green-400" aria-hidden="true" />
+                  <span>Me Until Now</span>
+                </motion.div>
+                <motion.div
+                  className="flex items-center gap-3 text-gray-700 dark:text-gray-300 cursor-pointer hover:text-green-600 dark:hover:text-green-400 transition-colors"
+                  whileHover={{ x: 5 }}
+                  transition={{ type: "spring", stiffness: 400 }}
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    navigateTo("/professional", "Tiny Endeavors", "Tiny Endeavors")
+                  }}
+                >
+                  <Sparkles className="h-5 w-5 text-green-600 dark:text-green-400" aria-hidden="true" />
+                  <span>Tiny Endeavors</span>
+                </motion.div>
+                <motion.div
+                  className="flex items-center gap-3 text-gray-700 dark:text-gray-300 cursor-pointer hover:text-green-600 dark:hover:text-green-400 transition-colors"
+                  whileHover={{ x: 5 }}
+                  transition={{ type: "spring", stiffness: 400 }}
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    navigateTo("/professional", "Mission Musings", "Mission Musings")
+                  }}
+                >
+                  <Lightbulb className="h-5 w-5 text-green-600 dark:text-green-400" aria-hidden="true" />
+                  <span>Mission Musings</span>
+                </motion.div>
+              </div>
+
+              <Button
+                onClick={(e) => {
+                  e.stopPropagation()
+                  navigateTo("/professional", "Professional Repertoire")
+                }}
+                className="group bg-green-600 hover:bg-green-700 text-white overflow-hidden relative"
+                aria-label="Enter Professional World section"
+              >
+                <span className="relative z-10 flex items-center">
+                  Enter Professional World
+                  <ArrowRight
+                    className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1"
+                    aria-hidden="true"
+                  />
+                </span>
+                <motion.span
+                  className="absolute inset-0 bg-green-500"
+                  initial={{ x: "-100%" }}
+                  whileHover={{ x: 0 }}
+                  transition={{ duration: 0.3 }}
+                  aria-hidden="true"
+                />
+              </Button>
+            </div>
+          </motion.div>
+
+          {/* Personal World */}
+          <motion.div
+            className={`relative overflow-hidden rounded-2xl border transition-all duration-500 cursor-pointer ${
+              hoveredWorld === "personal"
+                ? "border-blue-400 shadow-lg shadow-blue-100 dark:shadow-blue-900/20"
+                : hoveredWorld === "professional"
+                  ? "border-gray-200 dark:border-gray-800 opacity-80"
+                  : "border-gray-200 dark:border-gray-800"
+            } dynamic-frame`}
+            onMouseEnter={() => setHoveredWorld("personal")}
+            onMouseLeave={() => setHoveredWorld(null)}
+            onClick={() => navigateTo("/personal", "Mind Wandering")}
+            whileHover={{ y: -8, rotate: 1 }}
+            transition={{ duration: 0.3 }}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            style={{
+              transformOrigin: "center",
+            }}
+          >
+            <div className="absolute inset-0 bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-950/30 dark:to-blue-900/20 z-0"></div>
+
+            {/* Mycelium-inspired background pattern - moved to bottom to avoid overlap */}
+            <div
+              className="absolute bottom-0 left-0 right-0 h-1/3 opacity-5 dark:opacity-10 z-0 overflow-hidden"
+              aria-hidden="true"
+            >
+              <svg width="100%" height="100%" viewBox="0 0 100 100" preserveAspectRatio="none">
+                <motion.path
+                  d="M0,80 Q25,100 50,80 T100,80"
+                  stroke="currentColor"
+                  className="text-blue-600"
+                  fill="none"
+                  strokeWidth="0.5"
+                  animate={{
+                    d: ["M0,80 Q25,100 50,80 T100,80", "M0,80 Q25,95 50,85 T100,80", "M0,80 Q25,100 50,80 T100,80"],
+                  }}
+                  transition={{ duration: 8, repeat: Number.POSITIVE_INFINITY, ease: "easeInOut" }}
+                />
+                <motion.path
+                  d="M0,90 Q25,110 50,90 T100,90"
+                  stroke="currentColor"
+                  className="text-blue-600"
+                  fill="none"
+                  strokeWidth="0.5"
+                  animate={{
+                    d: ["M0,90 Q25,110 50,90 T100,90", "M0,90 Q25,105 50,95 T100,90", "M0,90 Q25,110 50,90 T100,90"],
+                  }}
+                  transition={{ duration: 7, repeat: Number.POSITIVE_INFINITY, ease: "easeInOut", delay: 0.5 }}
+                />
+              </svg>
+            </div>
+
+            <div className="relative z-10 p-8 bg-white/90 dark:bg-gray-950/90 rounded-xl">
+              <motion.div
+                className="w-16 h-16 rounded-full bg-blue-100 dark:bg-blue-900/50 flex items-center justify-center mb-6"
+                whileHover={{ rotate: -15, scale: 1.05 }}
+                transition={{ type: "spring", stiffness: 300 }}
+                aria-hidden="true"
+              >
+                <Palette className="h-8 w-8 text-blue-600 dark:text-blue-400" />
+              </motion.div>
+              <h2 className="text-2xl font-serif mb-4 text-blue-800 dark:text-blue-300">Mind Wandering</h2>
+              <p className="mb-8 text-gray-700 dark:text-gray-300">
+                Discover my creative endeavors, imagery meanderings, and the story that continues to unfold in my
+                imagination.
+              </p>
+
+              <div className="grid grid-cols-1 gap-4 mb-8">
+                <motion.div
+                  className="flex items-center gap-3 text-gray-700 dark:text-gray-300 cursor-pointer hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
+                  whileHover={{ x: 5 }}
+                  transition={{ type: "spring", stiffness: 400 }}
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    navigateTo("/personal", "Creative Endeavors", "Creative Endeavors")
+                  }}
+                >
+                  <Palette className="h-5 w-5 text-blue-600 dark:text-blue-400" aria-hidden="true" />
+                  <span>Creative Endeavors</span>
+                </motion.div>
+                <motion.div
+                  className="flex items-center gap-3 text-gray-700 dark:text-gray-300 cursor-pointer hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
+                  whileHover={{ x: 5 }}
+                  transition={{ type: "spring", stiffness: 400 }}
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    navigateTo("/personal", "Imagery Meanderings", "Imagery Meanderings")
+                  }}
+                >
+                  <Camera className="h-5 w-5 text-blue-600 dark:text-blue-400" aria-hidden="true" />
+                  <span>Imagery Meanderings</span>
+                </motion.div>
+                <motion.div
+                  className="flex items-center gap-3 text-gray-700 dark:text-gray-300 cursor-pointer hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
+                  whileHover={{ x: 5 }}
+                  transition={{ type: "spring", stiffness: 400 }}
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    navigateTo("/personal", "The Story Is Being Written", "The Story Is Being Written")
+                  }}
+                >
+                  <PenTool className="h-5 w-5 text-blue-600 dark:text-blue-400" aria-hidden="true" />
+                  <span>The Story Is Being Written</span>
+                </motion.div>
+              </div>
+
+              <Button
+                onClick={(e) => {
+                  e.stopPropagation()
+                  navigateTo("/personal", "Mind Wandering")
+                }}
+                className="group bg-blue-600 hover:bg-blue-700 text-white overflow-hidden relative"
+                aria-label="Enter Personal World section"
+              >
+                <span className="relative z-10 flex items-center">
+                  Enter Personal World
+                  <ArrowRight
+                    className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1"
+                    aria-hidden="true"
+                  />
+                </span>
+                <motion.span
+                  className="absolute inset-0 bg-blue-500"
+                  initial={{ x: "-100%" }}
+                  whileHover={{ x: 0 }}
+                  transition={{ duration: 0.3 }}
+                  aria-hidden="true"
+                />
+              </Button>
+            </div>
+          </motion.div>
+        </div>
+      </main>
+
+      {/* Footer - more playful */}
+      <footer className="bg-gray-50 dark:bg-gray-900/50 py-8 mt-12 border-t border-gray-200 dark:border-gray-800">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex flex-col md:flex-row justify-between items-center">
+            <div className="mb-4 md:mb-0">
+              <p className="text-gray-600 dark:text-gray-400">© 2025 Trudie Wang. All rights reserved.</p>
+            </div>
+            <motion.p
+              className="text-sm text-gray-500 dark:text-gray-400 max-w-md text-center md:text-right font-serif italic"
+              animate={{
+                opacity: [0.7, 1, 0.7],
+              }}
+              transition={{ duration: 4, repeat: Number.POSITIVE_INFINITY }}
+            >
+              "Like mycelium connects all living things in nature, our stories connect us all in the web of humanity."
+            </motion.p>
           </div>
-        </footer>
-      </ConstellationAnimationController>
+        </div>
+      </footer>
     </div>
   )
 }

@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react"
 import { motion, useAnimationControls } from "framer-motion"
 import { ConstellationTooltip } from "./constellation-tooltip"
+import { useRouter } from "next/navigation"
 
 interface InteractiveConstellationPointProps {
   x: number
@@ -18,6 +19,7 @@ interface InteractiveConstellationPointProps {
   pulseAnimation?: boolean
   initialAnimation?: boolean
   className?: string
+  navigateTo?: string // Add navigation capability
 }
 
 export function InteractiveConstellationPoint({
@@ -34,14 +36,28 @@ export function InteractiveConstellationPoint({
   pulseAnimation = true,
   initialAnimation = false,
   className = "",
+  navigateTo,
 }: InteractiveConstellationPointProps) {
   const [isHovered, setIsHovered] = useState(false)
   const [isTouched, setIsTouched] = useState(false)
+  const [isClicked, setIsClicked] = useState(false)
   const pointControls = useAnimationControls()
+  const router = useRouter()
 
   // Handle touch events for mobile
   const handleTouch = () => {
     setIsTouched(!isTouched)
+  }
+
+  // Handle click navigation
+  const handleClick = () => {
+    if (navigateTo) {
+      setIsClicked(true)
+      // Add a small delay for visual feedback
+      setTimeout(() => {
+        router.push(navigateTo)
+      }, 150)
+    }
   }
 
   // Show tooltip if either hovered or touched
@@ -116,16 +132,18 @@ export function InteractiveConstellationPoint({
     >
       {/* The constellation point */}
       <motion.div
-        className="relative cursor-pointer"
+        className={`relative ${navigateTo ? "cursor-pointer" : "cursor-default"}`}
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
         onTouchStart={handleTouch}
+        onClick={handleClick}
         initial={initialAnimation ? { scale: 0, opacity: 0 } : { scale: 1 }}
         animate={pointControls}
         whileHover={{
           scale: 1.5,
           boxShadow: `0 0 15px ${glowColor}`,
         }}
+        whileTap={navigateTo ? { scale: 1.2 } : {}}
         style={{
           width: `${size * 2}px`,
           height: `${size * 2}px`,
