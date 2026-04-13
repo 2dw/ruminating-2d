@@ -272,7 +272,7 @@ export default function ProfessionalPage() {
                 title="Trudie Wang - Resume"
                 description="Complete professional background, experience, and qualifications"
                 type="pdf"
-                url="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/git-blob/prj_bJvsLY6mweQTzYafHqxWBK1koIJ9/DwhIK8rL2TLUCR2C1ue2qm/app/documents/professional/wang%20resume%2012-2024.pdf"
+                url="https://trudie.dpdns.org/professional/wang%20resume%2012-2024.pdf"
                 icon={<FileText className="h-6 w-6" />}
                 color="green"
               />
@@ -301,7 +301,7 @@ export default function ProfessionalPage() {
                       title="ADMM for Distributed Energy Systems"
                       description="Advanced optimization techniques for distributed energy resource management (2015)"
                       type="pdf"
-                      url="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/git-blob/prj_bJvsLY6mweQTzYafHqxWBK1koIJ9/BDhG59ESWeANJdLH-iNrwL/app/documents/professional/papers/2015_wang_admm.pdf"
+                      url="https://trudie.dpdns.org/professional/papers/2015_wang_admm.pdf"
                       icon={<GraduationCap className="h-6 w-6" />}
                       color="green"
                     />
@@ -309,7 +309,7 @@ export default function ProfessionalPage() {
                       title="Model Predictive Control Applications"
                       description="Control theory applications in sustainable energy systems (2014)"
                       type="pdf"
-                      url="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/git-blob/prj_bJvsLY6mweQTzYafHqxWBK1koIJ9/5LJzoTcNhCDLjbqr3HRZNT/app/documents/professional/papers/2014_wang_mpc.pdf"
+                      url="https://trudie.dpdns.org/professional/papers/2014_wang_mpc.pdf"
                       icon={<GraduationCap className="h-6 w-6" />}
                       color="green"
                     />
