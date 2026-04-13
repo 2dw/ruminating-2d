@@ -272,7 +272,7 @@ export default function ProfessionalPage() {
                 title="Trudie Wang - Resume"
                 description="Complete professional background, experience, and qualifications"
                 type="pdf"
-                url="https://trudie.dpdns.org/professional/wang%20resume%2012-2024.pdf"
+                url="https://trudie.dpdns.org/professional/Trudie's%20resume.pdf"
                 icon={<FileText className="h-6 w-6" />}
                 color="green"
               />
@@ -298,18 +298,18 @@ export default function ProfessionalPage() {
                 <CardContent>
                   <div className="space-y-4">
                     <DocumentCard
-                      title="ADMM for Distributed Energy Systems"
+                      title="Dynamic Control and Optimization of Distributed Energy Resources in a Microgrid"
                       description="Advanced optimization techniques for distributed energy resource management (2015)"
                       type="pdf"
-                      url="https://trudie.dpdns.org/professional/papers/2015_wang_admm.pdf"
+                      url="https://trudie.dpdns.org/professional/2015%20Dynamic%20Control%20and%20Optimization%20of%20Distributed%20Energy%20Resources%20in%20a%20Microgrid.pdf"
                       icon={<GraduationCap className="h-6 w-6" />}
                       color="green"
                     />
                     <DocumentCard
-                      title="Model Predictive Control Applications"
+                      title="Control and Optimization of Grid-Tied Photovoltaic Storage Systems Using Model Predictive Control"
                       description="Control theory applications in sustainable energy systems (2014)"
                       type="pdf"
-                      url="https://trudie.dpdns.org/professional/papers/2014_wang_mpc.pdf"
+                      url="https://trudie.dpdns.org/professional/2014%20Control%20and%20Optimization%20of%20Grid-Tied%20Photovoltaic%20Storage%20Systems%20Using%20Model%20Predictive%20Control.pdf"
                       icon={<GraduationCap className="h-6 w-6" />}
                       color="green"
                     />
