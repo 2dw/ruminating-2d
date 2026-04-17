@@ -232,16 +232,22 @@ export default function ProfessionalPage() {
                     <div>
                       <h4 className="font-semibold text-green-600 dark:text-green-400">Stanford University</h4>
                       <p className="text-sm text-gray-600 dark:text-gray-400">
-                        MS in Management Science & Engineering (2015)
+                        Ph.D., Mechanical Engineering - Renewable energy systems, distributed optimization, controls, DER integration
                       </p>
                       <p className="text-sm text-gray-600 dark:text-gray-400">
-                        BS in Management Science & Engineering (2014)
+                        M.S., Mechanical Engineering
                       </p>
                     </div>
                     <div>
-                      <h4 className="font-semibold text-green-600 dark:text-green-400">Focus Areas</h4>
+                      <h4 className="font-semibold text-green-600 dark:text-green-400">UC Berkeley</h4>
                       <p className="text-sm text-gray-600 dark:text-gray-400">
-                        Energy systems optimization, sustainable technology, and equitable resource distribution
+                        B.S., Mechanical Engineering (Honors)
+                      </p>
+                    </div>
+                    <div>
+                      <h4 className="font-semibold text-green-600 dark:text-green-400">Core Expertise</h4>
+                      <p className="text-sm text-gray-600 dark:text-gray-400">
+                        Distributed optimization and control (MPC, ADMM), microgrids, VPPs, DERMS, transactive energy, forecasting, analytics, and systems thinking across energy, water, food, and waste
                       </p>
                     </div>
                   </div>
