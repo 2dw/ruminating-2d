@@ -232,16 +232,22 @@ export default function ProfessionalPage() {
                     <div>
                       <h4 className="font-semibold text-green-600 dark:text-green-400">Stanford University</h4>
                       <p className="text-sm text-gray-600 dark:text-gray-400">
-                        MS in Management Science & Engineering (2015)
+                        Ph.D., Mechanical Engineering - Renewable energy systems, distributed optimization, controls, DER integration
                       </p>
                       <p className="text-sm text-gray-600 dark:text-gray-400">
-                        BS in Management Science & Engineering (2014)
+                        M.S., Mechanical Engineering
                       </p>
                     </div>
                     <div>
-                      <h4 className="font-semibold text-green-600 dark:text-green-400">Focus Areas</h4>
+                      <h4 className="font-semibold text-green-600 dark:text-green-400">UC Berkeley</h4>
                       <p className="text-sm text-gray-600 dark:text-gray-400">
-                        Energy systems optimization, sustainable technology, and equitable resource distribution
+                        B.S., Mechanical Engineering (Honors)
+                      </p>
+                    </div>
+                    <div>
+                      <h4 className="font-semibold text-green-600 dark:text-green-400">Core Expertise</h4>
+                      <p className="text-sm text-gray-600 dark:text-gray-400">
+                        Distributed optimization and control (MPC, ADMM), microgrids, VPPs, DERMS, transactive energy, forecasting, analytics, and systems thinking across energy, water, food, and waste
                       </p>
                     </div>
                   </div>
@@ -272,7 +278,7 @@ export default function ProfessionalPage() {
                 title="Trudie Wang - Resume"
                 description="Complete professional background, experience, and qualifications"
                 type="pdf"
-                url="https://trudie.dpdns.org/professional/Trudie's%20resume.pdf"
+                url="https://assets.trudie.dpdns.org/professional/Trudie's%20resume.pdf"
                 icon={<FileText className="h-6 w-6" />}
                 color="green"
               />
@@ -301,7 +307,7 @@ export default function ProfessionalPage() {
                       title="Dynamic Control and Optimization of Distributed Energy Resources in a Microgrid"
                       description="Advanced optimization techniques for distributed energy resource management (2015)"
                       type="pdf"
-                      url="https://trudie.dpdns.org/professional/2015%20Dynamic%20Control%20and%20Optimization%20of%20Distributed%20Energy%20Resources%20in%20a%20Microgrid.pdf"
+                      url="https://assets.trudie.dpdns.org/professional/2015%20Dynamic%20Control%20and%20Optimization%20of%20Distributed%20Energy%20Resources%20in%20a%20Microgrid.pdf"
                       icon={<GraduationCap className="h-6 w-6" />}
                       color="green"
                     />
@@ -309,7 +315,7 @@ export default function ProfessionalPage() {
                       title="Control and Optimization of Grid-Tied Photovoltaic Storage Systems Using Model Predictive Control"
                       description="Control theory applications in sustainable energy systems (2014)"
                       type="pdf"
-                      url="https://trudie.dpdns.org/professional/2014%20Control%20and%20Optimization%20of%20Grid-Tied%20Photovoltaic%20Storage%20Systems%20Using%20Model%20Predictive%20Control.pdf"
+                      url="https://assets.trudie.dpdns.org/professional/2014%20Control%20and%20Optimization%20of%20Grid-Tied%20Photovoltaic%20Storage%20Systems%20Using%20Model%20Predictive%20Control.pdf"
                       icon={<GraduationCap className="h-6 w-6" />}
                       color="green"
                     />

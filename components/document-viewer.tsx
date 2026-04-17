@@ -86,7 +86,13 @@ export function DocumentViewer({ isOpen, onClose, title, url, type }: DocumentVi
             )}
 
             {!isLoading && !error && type === "pdf" && (
-              <iframe src={url} className="w-full h-full border-0" title={title} onError={() => setError(true)} />
+              <iframe 
+                src={`https://docs.google.com/viewer?url=${encodeURIComponent(url)}&embedded=true`} 
+                className="w-full h-full border-0" 
+                title={title} 
+                onError={() => setError(true)}
+                sandbox="allow-scripts allow-same-origin allow-popups"
+              />
             )}
 
             {!isLoading && !error && type === "image" && (
