@@ -44,10 +44,10 @@ export function AnimatedConstellationPath({
       // Initial trace animation
       await pathControls.start({
         pathLength: 1,
-        opacity: [0, 0.8, 1, 0.8],
+        opacity: [0, 0.6, 1],
         transition: {
           pathLength: { duration: animationDuration, ease: "easeOut", delay: initialDelay },
-          opacity: { duration: animationDuration + 0.5, delay: initialDelay },
+          opacity: { duration: animationDuration, delay: initialDelay },
         },
       })
 
@@ -79,10 +79,10 @@ export function AnimatedConstellationPath({
         // Trace animation
         await pathControls.start({
           pathLength: 1,
-          opacity: [0, 0.8, 1, 0.8],
+          opacity: [0, 0.6, 1],
           transition: {
             pathLength: { duration: animationDuration, ease: "easeOut", delay: initialDelay },
-            opacity: { duration: animationDuration + 0.5, delay: initialDelay },
+            opacity: { duration: animationDuration, delay: initialDelay },
           },
         })
 

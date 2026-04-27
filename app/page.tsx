@@ -17,11 +17,25 @@ import { Button } from "@/components/ui/button"
 export default function PortalPage() {
   const router = useRouter()
   const [isDarkMode, setIsDarkMode] = useState(false)
+  const [mounted, setMounted] = useState(false)
   const [hoveredWorld, setHoveredWorld] = useState<"professional" | "personal" | null>(null)
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 })
   const { highContrast, announceToScreenReader } = useAccessibility()
   const constellationRef = useRef<HTMLDivElement>(null)
   const [constellationDimensions, setConstellationDimensions] = useState({ width: 0, height: 0 })
+
+  // Initialize dark mode from localStorage after component mounts
+  useEffect(() => {
+    const isDarkFromStorage = localStorage.getItem("isDarkMode") === "true"
+    const isDarkFromSystem = window.matchMedia("(prefers-color-scheme: dark)").matches
+    const shouldBeDark = isDarkFromStorage || isDarkFromSystem
+
+    setIsDarkMode(shouldBeDark)
+    if (shouldBeDark) {
+      document.documentElement.classList.add("dark")
+    }
+    setMounted(true)
+  }, [])
 
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
@@ -57,7 +71,9 @@ export default function PortalPage() {
   }, [])
 
   const toggleDarkMode = () => {
-    setIsDarkMode(!isDarkMode)
+    const newDarkMode = !isDarkMode
+    setIsDarkMode(newDarkMode)
+    localStorage.setItem("isDarkMode", String(newDarkMode))
     document.documentElement.classList.toggle("dark")
   }
 
@@ -72,6 +88,7 @@ export default function PortalPage() {
 
   return (
     <div
+      suppressHydrationWarning
       className={`min-h-screen w-full transition-colors duration-500 ${
         isDarkMode ? "dark bg-[#0a1015] text-white" : "bg-[#f8fcff] text-[#0e0f11]"
       } ${highContrast ? "high-contrast" : ""} overflow-hidden`}
@@ -185,9 +202,8 @@ export default function PortalPage() {
         {/* Mycelium-inspired connector - constellation-like forking trail */}
         <div className="relative my-8">
           {/* Retrace button positioned above the constellation */}
-          <ConstellationAnimationController />
-
-          <div ref={constellationRef} aria-hidden="true">
+          <ConstellationAnimationController>
+            <div ref={constellationRef} aria-hidden="true">
             {/* Constellation Particles */}
             <ConstellationParticles paths={constellationPaths} />
 
@@ -218,9 +234,9 @@ export default function PortalPage() {
                 }}
                 filterVariants={{
                   filter: [
-                    "drop-shadow(0 0 3px rgba(20, 184, 166, 0.7))",
-                    "drop-shadow(0 0 6px rgba(20, 184, 166, 0.9))",
-                    "drop-shadow(0 0 3px rgba(20, 184, 166, 0.7))",
+                    "drop-shadow(0 0 4px rgba(20, 184, 166, 0.8))",
+                    "drop-shadow(0 0 8px rgba(20, 184, 166, 1))",
+                    "drop-shadow(0 0 4px rgba(20, 184, 166, 0.8))",
                   ],
                   duration: 8,
                 }}
@@ -243,9 +259,9 @@ export default function PortalPage() {
                 }}
                 filterVariants={{
                   filter: [
-                    "drop-shadow(0 0 3px rgba(20, 184, 166, 0.7))",
-                    "drop-shadow(0 0 6px rgba(20, 184, 166, 0.9))",
-                    "drop-shadow(0 0 3px rgba(20, 184, 166, 0.7))",
+                    "drop-shadow(0 0 4px rgba(20, 184, 166, 0.8))",
+                    "drop-shadow(0 0 8px rgba(20, 184, 166, 1))",
+                    "drop-shadow(0 0 4px rgba(20, 184, 166, 0.8))",
                   ],
                   duration: 10,
                 }}
@@ -272,9 +288,9 @@ export default function PortalPage() {
                 }}
                 filterVariants={{
                   filter: [
-                    "drop-shadow(0 0 3px rgba(74, 222, 128, 0.7))",
-                    "drop-shadow(0 0 6px rgba(74, 222, 128, 0.9))",
-                    "drop-shadow(0 0 3px rgba(74, 222, 128, 0.7))",
+                    "drop-shadow(0 0 4px rgba(74, 222, 128, 0.8))",
+                    "drop-shadow(0 0 8px rgba(74, 222, 128, 1))",
+                    "drop-shadow(0 0 4px rgba(74, 222, 128, 0.8))",
                   ],
                   duration: 12,
                 }}
@@ -301,9 +317,9 @@ export default function PortalPage() {
                 }}
                 filterVariants={{
                   filter: [
-                    "drop-shadow(0 0 3px rgba(56, 189, 248, 0.7))",
-                    "drop-shadow(0 0 6px rgba(56, 189, 248, 0.9))",
-                    "drop-shadow(0 0 3px rgba(56, 189, 248, 0.7))",
+                    "drop-shadow(0 0 4px rgba(56, 189, 248, 0.8))",
+                    "drop-shadow(0 0 8px rgba(56, 189, 248, 1))",
+                    "drop-shadow(0 0 4px rgba(56, 189, 248, 0.8))",
                   ],
                   duration: 12,
                 }}
@@ -712,7 +728,8 @@ export default function PortalPage() {
                 />
               </>
             )}
-          </div>
+            </div>
+          </ConstellationAnimationController>
         </div>
 
         {/* Two Worlds - with more playful elements */}

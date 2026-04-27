@@ -421,13 +421,12 @@ export default function ProfessionalPage() {
                 connect and explore how we can create positive impact together.
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                <Button className="bg-green-600 hover:bg-green-700 text-white">
+                <Button 
+                  className="bg-green-600 hover:bg-green-700 text-white"
+                  onClick={() => window.open("https://www.linkedin.com/in/trudie/", "_blank")}
+                >
                   <ExternalLink className="h-4 w-4 mr-2" />
                   Connect on LinkedIn
-                </Button>
-                <Button variant="outline" className="border-green-600 text-green-600 hover:bg-green-50 bg-transparent">
-                  <Download className="h-4 w-4 mr-2" />
-                  Download Resume
                 </Button>
               </div>
             </CardContent>

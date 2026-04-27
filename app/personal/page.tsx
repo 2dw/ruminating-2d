@@ -1,24 +1,41 @@
-"use client"
+﻿"use client"
 
 import { useState, useRef, useEffect } from "react"
-import { useRouter } from "next/navigation"
 import { motion } from "framer-motion"
-import { Moon, Sun, Palette, Camera, PenTool } from "lucide-react"
+import { Palette, Camera, PenTool, Sun, Moon } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { useRouter } from "next/navigation"
 import { DynamicFrame } from "@/components/dynamic-frame"
-import { DocumentCard } from "@/components/document-card"
-import Image from "next/image"
 
 const tabs = ["Creative Endeavors", "Imagery Meanderings", "The Story Is Being Written"]
 
+const tabIcons = [
+  <Palette key="creative" className="h-4 w-4" />,
+  <Camera key="imagery" className="h-4 w-4" />,
+  <PenTool key="story" className="h-4 w-4" />,
+]
+
 export default function PersonalWorld() {
   const router = useRouter()
-  const [hoveredIndex, setHoveredIndex] = useState<number | null>(null)
   const [activeIndex, setActiveIndex] = useState(0)
+  const [isDarkMode, setIsDarkMode] = useState(false)
+  const [hoveredIndex, setHoveredIndex] = useState(null)
+  const tabRefs = useRef([])
   const [hoverStyle, setHoverStyle] = useState({})
   const [activeStyle, setActiveStyle] = useState({ left: "0px", width: "0px" })
-  const [isDarkMode, setIsDarkMode] = useState(false)
-  const tabRefs = useRef<(HTMLDivElement | null)[]>([])
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
+
+  const toggleDarkMode = () => {
+    setIsDarkMode(!isDarkMode)
+    document.documentElement.classList.toggle("dark")
+  }
+
+  useEffect(() => {
+    // Initialize from DOM on mount to avoid hydration mismatch
+    const isDark = document.documentElement.classList.contains("dark")
+    setIsDarkMode(isDark)
+  }, [])
 
   useEffect(() => {
     if (hoveredIndex !== null) {
@@ -44,627 +61,309 @@ export default function PersonalWorld() {
     }
   }, [activeIndex])
 
-  useEffect(() => {
-    requestAnimationFrame(() => {
-      const overviewElement = tabRefs.current[0]
-      if (overviewElement) {
-        const { offsetLeft, offsetWidth } = overviewElement
-        setActiveStyle({
-          left: `${offsetLeft}px`,
-          width: `${offsetWidth}px`,
-        })
-      }
-    })
-  }, [])
-
-  useEffect(() => {
-    // Check if dark mode is enabled in localStorage or system preference
-    const isDark = document.documentElement.classList.contains("dark")
-    setIsDarkMode(isDark)
-  }, [])
-
-  useEffect(() => {
-    // Check if there's a target tab in sessionStorage
-    const targetTab = sessionStorage.getItem("targetTab")
-    if (targetTab) {
-      const tabIndex = tabs.findIndex((tab) => tab === targetTab)
-      if (tabIndex !== -1) {
-        setActiveIndex(tabIndex)
-      }
-      // Clear the target tab from sessionStorage
-      sessionStorage.removeItem("targetTab")
-    }
-  }, [])
-
-  const toggleDarkMode = () => {
-    setIsDarkMode(!isDarkMode)
-    document.documentElement.classList.toggle("dark")
-  }
-
-  const tabIcons = [
-    <Palette key="creative" className="h-4 w-4" />,
-    <Camera key="photography" className="h-4 w-4" />,
-    <PenTool key="fiction" className="h-4 w-4" />,
-  ]
-
   return (
     <div
-      className={`min-h-screen w-full transition-colors duration-300 ${
+      suppressHydrationWarning
+      className={`min-h-screen w-full transition-colors duration-500 ${
         isDarkMode ? "dark bg-[#0a1015] text-white" : "bg-[#f8fcff] text-[#0e0f11]"
       }`}
     >
-      {/* Add this to the main container div if there are any background patterns */}
-      <div className="relative">
-        {/* If there are any background patterns, add this */}
-        <div className="absolute inset-0 opacity-5 dark:opacity-10 z-0 pointer-events-none"></div>
-
-        {/* Main content with better contrast */}
-        <div className="relative z-10">
-          {/* Header */}
-          <header className="sticky top-0 z-10 backdrop-blur-md bg-white/80 dark:bg-[#0a1015]/80 border-b border-gray-200 dark:border-gray-800">
-            <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-              <div className="flex justify-between items-center h-16">
-                <div className="flex items-center gap-4">
-                  <motion.div whileHover={{ scale: 1.1, rotate: 5 }}>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => router.push("/")}
-                      className="text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300"
-                      aria-label="Return to main portal"
-                    >
-                      <svg className="h-5 w-5" viewBox="0 0 24 24" fill="currentColor">
-                        <path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8h3v-6h6v6h6V10L12 1zm0 2.69L19 11v8h-2v-6H7v6H5v-8l7-7.31z" />
-                        <path
-                          d="M12 1L3 10v11h6v-6h6v6h6V10L12 1zm0 2.69L19 11v8h-2v-6H7v6H5v-8l7-7.31z"
-                          opacity="0.3"
-                        />
-                      </svg>
-                    </Button>
-                  </motion.div>
-                  <motion.h1
-                    className="text-xl font-serif font-bold text-blue-700 dark:text-blue-400"
-                    initial={{ opacity: 0, x: -20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ duration: 0.5 }}
-                  >
-                    Mind Wandering
-                  </motion.h1>
-                </div>
-
-                {/* Tabs Navigation */}
-                <div className="relative hidden md:block">
-                  {/* Hover Highlight */}
-                  <div
-                    className="absolute h-[30px] transition-all duration-300 ease-out bg-blue-100/50 dark:bg-blue-900/30 rounded-[6px] flex items-center"
-                    style={hoverStyle}
-                  />
-
-                  {/* Active Indicator */}
-                  <motion.div
-                    className="absolute bottom-[-16px] h-[2px] bg-blue-600 dark:bg-blue-400 transition-all duration-300 ease-out"
-                    style={activeStyle}
-                    initial={{ scaleX: 0 }}
-                    animate={{ scaleX: 1 }}
-                    transition={{ duration: 0.3 }}
-                  />
-
-                  {/* Tabs */}
-                  <div className="relative flex space-x-[6px] items-center">
-                    {tabs.map((tab, index) => (
-                      <motion.div
-                        key={index}
-                        ref={(el) => (tabRefs.current[index] = el)}
-                        className={`px-3 py-2 cursor-pointer transition-colors duration-300 h-[30px] ${
-                          index === activeIndex
-                            ? "text-blue-700 dark:text-blue-300"
-                            : "text-gray-600 dark:text-gray-400"
-                        }`}
-                        onMouseEnter={() => setHoveredIndex(index)}
-                        onMouseLeave={() => setHoveredIndex(null)}
-                        onClick={() => setActiveIndex(index)}
-                        whileHover={{ y: -2 }}
-                        whileTap={{ scale: 0.95 }}
-                      >
-                        <div className="text-sm font-medium leading-5 whitespace-nowrap flex items-center justify-center h-full gap-1.5">
-                          {tabIcons[index]}
-                          {tab}
-                        </div>
-                      </motion.div>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Mobile Menu Button */}
-                <div className="md:hidden flex items-center">
-                  <Button variant="ghost" size="sm" onClick={() => {}} className="text-blue-600 dark:text-blue-400">
-                    Menu
-                  </Button>
-                </div>
-
-                {/* Dark Mode Toggle */}
-                <Button variant="ghost" size="icon" onClick={toggleDarkMode} className="ml-4">
-                  {isDarkMode ? <Sun className="h-[1.2rem] w-[1.2rem]" /> : <Moon className="h-[1.2rem] w-[1.2rem]" />}
+      {/* Header */}
+      <header className="sticky top-0 z-10 backdrop-blur-md bg-white/80 dark:bg-[#0a1015]/80 border-b border-gray-200 dark:border-gray-800">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between items-center h-16">
+            <div className="flex items-center gap-4">
+              <motion.div whileHover={{ scale: 1.1, rotate: 5 }}>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => router.push("/")}
+                  className="text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300"
+                  aria-label="Return to main portal"
+                >
+                  <svg className="h-5 w-5" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8h3v-6h6v6h6V10L12 1zm0 2.69L19 11v8h-2v-6H7v6H5v-8l7-7.31z" />
+                  </svg>
                 </Button>
+              </motion.div>
+              <motion.h1
+                className="text-xl font-serif font-bold text-blue-700 dark:text-blue-400"
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.5 }}
+              >
+                Mind Wandering
+              </motion.h1>
+            </div>
+
+            {/* Tabs Navigation */}
+            <div className="relative hidden md:block">
+              {/* Hover Highlight */}
+              <div
+                className="absolute h-[30px] transition-all duration-300 ease-out bg-blue-100/50 dark:bg-blue-900/30 rounded-[6px] flex items-center"
+                style={{
+                  ...hoverStyle,
+                  opacity: hoveredIndex !== null ? 1 : 0,
+                }}
+              />
+
+              {/* Active Indicator */}
+              <motion.div
+                className="absolute bottom-[-16px] h-[2px] bg-blue-600 dark:bg-blue-400 transition-all duration-300 ease-out"
+                style={activeStyle}
+                initial={{ scaleX: 0 }}
+                animate={{ scaleX: 1 }}
+                transition={{ duration: 0.3 }}
+              />
+
+              {/* Tabs */}
+              <div className="relative flex space-x-[6px] items-center">
+                {tabs.map((tab, index) => (
+                  <motion.div
+                    key={index}
+                    ref={(el) => (tabRefs.current[index] = el)}
+                    className={`px-3 py-2 cursor-pointer transition-colors duration-300 h-[30px] ${
+                      index === activeIndex ? "text-blue-700 dark:text-blue-300" : "text-gray-600 dark:text-gray-400"
+                    }`}
+                    onMouseEnter={() => setHoveredIndex(index)}
+                    onMouseLeave={() => setHoveredIndex(null)}
+                    onClick={() => setActiveIndex(index)}
+                    whileHover={{ y: -2 }}
+                    whileTap={{ scale: 0.95 }}
+                  >
+                    <div className="text-sm font-medium leading-5 whitespace-nowrap flex items-center justify-center h-full gap-1.5">
+                      {tabIcons[index]}
+                      {tab}
+                    </div>
+                  </motion.div>
+                ))}
               </div>
             </div>
-          </header>
 
-          {/* Main Content */}
-          <main className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-            {/* Creative Endeavors Section */}
-            {activeIndex === 0 && (
-              <section className="space-y-8">
-                <h2 className="text-2xl font-serif font-bold mb-6 text-blue-700 dark:text-blue-300 bg-white/80 dark:bg-gray-950/80 inline-block px-3 py-1 rounded-md">
-                  Creative Endeavors
-                </h2>
+            {/* Mobile Menu Button */}
+            <div className="md:hidden flex items-center">
+              <Button variant="ghost" size="sm" onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)} className="text-blue-600 dark:text-blue-400">
+                {isMobileMenuOpen ? "✕" : "☰"}
+              </Button>
+            </div>
 
-                <div className="prose prose-blue dark:prose-invert max-w-none">
-                  <p className="text-gray-700 dark:text-gray-300 text-lg">
-                    Beyond my professional work, I explore creativity through various mediums. These personal projects
-                    allow me to process my experiences, connect with others, and find joy in the process of making.
-                  </p>
-                </div>
+            {/* Dark Mode Toggle */}
+            <Button variant="ghost" size="icon" onClick={toggleDarkMode} className="ml-4">
+              {isDarkMode ? <Sun className="h-[1.2rem] w-[1.2rem]" /> : <Moon className="h-[1.2rem] w-[1.2rem]" />}
+            </Button>
+          </div>
 
-                {/* Digital Art Gallery */}
-                <div className="mb-12">
-                  <h3 className="text-xl font-serif font-semibold mb-6 text-blue-700 dark:text-blue-300">
-                    Digital Art Gallery
-                  </h3>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    <DocumentCard
-                      title="Mycelium Networks"
-                      description="Digital illustration exploring the interconnected patterns of fungal networks and their parallels to human connection."
-                      url="/placeholder.svg?height=300&width=400&text=Mycelium+Networks"
-                      type="image"
-                      icon={<Palette className="h-6 w-6" />}
-                      color="blue"
-                    />
-                    <DocumentCard
-                      title="Energy Flow"
-                      description="Abstract representation of energy distribution systems inspired by natural patterns."
-                      url="/placeholder.svg?height=300&width=400&text=Energy+Flow"
-                      type="image"
-                      icon={<Palette className="h-6 w-6" />}
-                      color="blue"
-                    />
-                    <DocumentCard
-                      title="Roots and Circuits"
-                      description="A piece that bridges the organic and technological, showing how nature and engineering can coexist."
-                      url="/placeholder.svg?height=300&width=400&text=Roots+Circuits"
-                      type="image"
-                      icon={<Palette className="h-6 w-6" />}
-                      color="blue"
-                    />
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mt-8">
-                  <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.5 }}
-                  >
-                    <DynamicFrame className="h-full border border-blue-200 dark:border-blue-800 bg-white/95 dark:bg-gray-950/95">
-                      <div className="h-48 bg-blue-100 dark:bg-blue-900/30 relative">
-                        <Image
-                          src="/placeholder.svg?height=192&width=384&text=Digital+Art"
-                          alt="Digital Art"
-                          fill
-                          className="object-cover"
-                        />
-                      </div>
-                      <div className="p-6">
-                        <h3 className="text-lg font-serif font-semibold mb-2 text-blue-700 dark:text-blue-300">
-                          Digital Art Explorations
-                        </h3>
-                        <p className="text-gray-700 dark:text-gray-300 mb-4">
-                          I create digital illustrations that explore the relationship between humanity and nature. Many
-                          of my pieces incorporate mycelium-inspired patterns and connections, reflecting my belief in
-                          our interconnectedness.
-                        </p>
-                      </div>
-                    </DynamicFrame>
-                  </motion.div>
-
-                  <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.5, delay: 0.2 }}
-                  >
-                    <DynamicFrame className="h-full border border-blue-200 dark:border-blue-800 bg-white/95 dark:bg-gray-950/95">
-                      <div className="h-48 bg-blue-100 dark:bg-blue-900/30 relative">
-                        <Image
-                          src="/placeholder.svg?height=192&width=384&text=Poetry"
-                          alt="Poetry"
-                          fill
-                          className="object-cover"
-                        />
-                      </div>
-                      <div className="p-6">
-                        <h3 className="text-lg font-serif font-semibold mb-2 text-blue-700 dark:text-blue-300">
-                          Poetry & Reflections
-                        </h3>
-                        <p className="text-gray-700 dark:text-gray-300 mb-4">
-                          Writing poetry helps me process complex emotions and ideas. My poems often explore themes of
-                          identity, belonging, and our relationship with the natural world.
-                        </p>
-                      </div>
-                    </DynamicFrame>
-                  </motion.div>
-                </div>
-
-                <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.5, delay: 0.3 }}
-                >
-                  <DynamicFrame className="mt-8 border border-blue-200 dark:border-blue-800 bg-white/95 dark:bg-gray-950/95">
-                    <div className="p-6">
-                      <h3 className="text-lg font-serif font-semibold mb-4 text-blue-700 dark:text-blue-300">
-                        Featured Poem: Mycelium Dreams
-                      </h3>
-                      <div className="prose prose-blue dark:prose-invert max-w-none">
-                        <blockquote className="italic text-gray-700 dark:text-gray-300 border-l-4 border-blue-500 pl-4">
-                          <p>
-                            Beneath our feet, a quiet conversation
-                            <br />
-                            Threads of life, weaving through the dark
-                            <br />
-                            Mycelium whispers, ancient and wise
-                            <br />
-                            Connecting what seems separate, healing what's harmed.
-                          </p>
-
-                          <p>
-                            I dream of human networks, just as kind
-                            <br />
-                            Resources flowing where they're needed most
-                            <br />
-                            No life too small, no corner left behind
-                            <br />A wisdom older than our youngest boast.
-                          </p>
-
-                          <p>
-                            In engineering steel and silicon
-                            <br />
-                            Can we remember fungal filaments?
-                            <br />
-                            The strength in softness, power in connection
-                            <br />
-                            The quiet work that needs no monument.
-                          </p>
-                        </blockquote>
-                      </div>
-                    </div>
-                  </DynamicFrame>
-                </motion.div>
-              </section>
-            )}
-
-            {/* Imagery Meanderings Section */}
-            {activeIndex === 1 && (
-              <section className="space-y-8">
-                <h2 className="text-2xl font-serif font-bold mb-6 text-blue-700 dark:text-blue-300 bg-white/80 dark:bg-gray-950/80 inline-block px-3 py-1 rounded-md">
-                  Imagery Meanderings
-                </h2>
-
-                <div className="prose prose-blue dark:prose-invert max-w-none mb-8">
-                  <p className="text-gray-700 dark:text-gray-300 text-lg">
-                    Photography allows me to document my travels and capture the beauty of interconnected natural
-                    systems. Through my lens, I seek to reveal the patterns and relationships that might otherwise go
-                    unnoticed.
-                  </p>
-                </div>
-
-                {/* Photography Gallery */}
-                <div className="mb-12">
-                  <h3 className="text-xl font-serif font-semibold mb-6 text-blue-700 dark:text-blue-300">
-                    Photography Collection
-                  </h3>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <DocumentCard
-                      title="Forest Connections"
-                      description="Capturing the intricate root systems and fungal networks in old-growth forests."
-                      url="/placeholder.svg?height=300&width=400&text=Forest+Connections"
-                      type="image"
-                      icon={<Camera className="h-6 w-6" />}
-                      color="blue"
-                    />
-                    <DocumentCard
-                      title="Urban Energy"
-                      description="The flow of energy through city infrastructure, from power lines to solar panels."
-                      url="/placeholder.svg?height=300&width=400&text=Urban+Energy"
-                      type="image"
-                      icon={<Camera className="h-6 w-6" />}
-                      color="blue"
-                    />
-                    <DocumentCard
-                      title="Water Networks"
-                      description="Rivers, streams, and waterways as nature's distribution networks."
-                      url="/placeholder.svg?height=300&width=400&text=Water+Networks"
-                      type="image"
-                      icon={<Camera className="h-6 w-6" />}
-                      color="blue"
-                    />
-                    <DocumentCard
-                      title="Coral Patterns"
-                      description="The branching patterns of coral reefs and their ecosystem connections."
-                      url="/placeholder.svg?height=300&width=400&text=Coral+Patterns"
-                      type="image"
-                      icon={<Camera className="h-6 w-6" />}
-                      color="blue"
-                    />
-                    <DocumentCard
-                      title="Mountain Paths"
-                      description="Hiking trails that mirror the natural flow of water and wildlife."
-                      url="/placeholder.svg?height=300&width=400&text=Mountain+Paths"
-                      type="image"
-                      icon={<Camera className="h-6 w-6" />}
-                      color="blue"
-                    />
-                    <DocumentCard
-                      title="Desert Networks"
-                      description="The surprising interconnections found in seemingly barren landscapes."
-                      url="/placeholder.svg?height=300&width=400&text=Desert+Networks"
-                      type="image"
-                      icon={<Camera className="h-6 w-6" />}
-                      color="blue"
-                    />
-                  </div>
-                </div>
-
-                <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.5, delay: 0.7 }}
-                >
-                  <DynamicFrame className="mt-8 border border-blue-200 dark:border-blue-800 bg-white/95 dark:bg-gray-950/95">
-                    <div className="p-6">
-                      <h3 className="text-lg font-serif font-semibold mb-3 text-blue-700 dark:text-blue-300">
-                        Photo Essay: The Hidden Networks
-                      </h3>
-                      <p className="text-gray-700 dark:text-gray-300">
-                        This ongoing photo series explores the visible manifestations of nature's interconnected
-                        systems—from the branching patterns of rivers and trees to the intricate structures of fungi and
-                        coral reefs. Through these images, I hope to inspire viewers to recognize the similar patterns
-                        that connect us all.
-                      </p>
-                      <div className="mt-4 grid grid-cols-2 gap-4">
-                        <div className="aspect-video bg-blue-100 dark:bg-blue-900/30 relative rounded-md overflow-hidden">
-                          <Image
-                            src="/placeholder.svg?height=180&width=320&text=Network+1"
-                            alt="Network photo 1"
-                            fill
-                            className="object-cover"
-                          />
-                        </div>
-                        <div className="aspect-video bg-blue-100 dark:bg-blue-900/30 relative rounded-md overflow-hidden">
-                          <Image
-                            src="/placeholder.svg?height=180&width=320&text=Network+2"
-                            alt="Network photo 2"
-                            fill
-                            className="object-cover"
-                          />
-                        </div>
-                      </div>
-                    </div>
-                  </DynamicFrame>
-                </motion.div>
-              </section>
-            )}
-
-            {/* The Story Is Being Written Section */}
-            {activeIndex === 2 && (
-              <section className="space-y-8">
-                <h2 className="text-2xl font-serif font-bold mb-6 text-blue-700 dark:text-blue-300 bg-white/80 dark:bg-gray-950/80 inline-block px-3 py-1 rounded-md">
-                  The Story Is Being Written
-                </h2>
-
-                {/* Writing Samples */}
-                <div className="mb-12">
-                  <h3 className="text-xl font-serif font-semibold mb-6 text-blue-700 dark:text-blue-300">
-                    Writing Samples
-                  </h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <DocumentCard
-                      title="The Mycelium Chronicles - Chapter 1"
-                      description="The opening chapter of my speculative fiction novel exploring human-mycelium communication."
-                      url="/placeholder.svg?height=400&width=300&text=Chapter+1"
-                      type="pdf"
-                      icon={<PenTool className="h-6 w-6" />}
-                      color="blue"
-                    />
-                    <DocumentCard
-                      title="Poetry Collection: Interconnected"
-                      description="A collection of poems exploring themes of connection, identity, and our relationship with nature."
-                      url="/placeholder.svg?height=400&width=300&text=Poetry+Collection"
-                      type="pdf"
-                      icon={<PenTool className="h-6 w-6" />}
-                      color="blue"
-                    />
-                  </div>
-                </div>
-
-                <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.5 }}
-                >
-                  <DynamicFrame className="border border-blue-200 dark:border-blue-800 bg-white/95 dark:bg-gray-950/95">
-                    <div className="p-6">
-                      <h3 className="text-lg font-serif font-semibold mb-3 text-blue-700 dark:text-blue-300">
-                        The Mycelium Chronicles
-                      </h3>
-                      <p className="text-gray-700 dark:text-gray-300 mb-4">
-                        I'm currently writing a speculative fiction novel set in a near-future world where humans have
-                        learned to communicate with mycelium networks. This ongoing project explores themes of
-                        interconnectedness, collective intelligence, and our relationship with the natural world.
-                      </p>
-                      <div className="prose prose-blue dark:prose-invert max-w-none">
-                        <blockquote className="italic text-gray-700 dark:text-gray-300 border-l-4 border-blue-500 pl-4">
-                          <p>
-                            "The first time Maya heard the mycelium speak, she was kneeling in her grandmother's garden,
-                            hands deep in the rich soil. It wasn't a voice, exactly—more like a feeling that formed
-                            itself into words in her mind. A gentle hum that resolved into meaning.
-                          </p>
-                          <p>'We have been waiting for you,' it seemed to say. 'For someone who would listen.'</p>
-                          <p>
-                            Maya withdrew her hands quickly, heart racing. She had heard the stories, of course—everyone
-                            had, since the Great Reconnection—but she had always assumed they were exaggerations.
-                            Metaphors for the new environmental awareness that had swept through society after the
-                            Climate Crisis of the 2030s.
-                          </p>
-                          <p>But this was no metaphor. This was a conversation."</p>
-                        </blockquote>
-                      </div>
-                    </div>
-                  </DynamicFrame>
-                </motion.div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                  <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.5, delay: 0.2 }}
-                  >
-                    <DynamicFrame className="border border-blue-200 dark:border-blue-800 bg-white/95 dark:bg-gray-950/95">
-                      <div className="p-6">
-                        <h3 className="text-lg font-serif font-semibold mb-3 text-blue-700 dark:text-blue-300">
-                          Story Themes
-                        </h3>
-                        <ul className="space-y-3 text-gray-700 dark:text-gray-300">
-                          <motion.li
-                            className="flex items-start gap-2"
-                            whileHover={{ x: 5 }}
-                            transition={{ type: "spring", stiffness: 400 }}
-                          >
-                            <div className="w-2 h-2 rounded-full bg-blue-500 mt-2"></div>
-                            <span>The wisdom embedded in natural systems and what humans can learn from them</span>
-                          </motion.li>
-                          <motion.li
-                            className="flex items-start gap-2"
-                            whileHover={{ x: 5 }}
-                            transition={{ type: "spring", stiffness: 400 }}
-                          >
-                            <div className="w-2 h-2 rounded-full bg-blue-500 mt-2"></div>
-                            <span>
-                              Bridging cultural and generational divides through shared connection to the earth
-                            </span>
-                          </motion.li>
-                          <motion.li
-                            className="flex items-start gap-2"
-                            whileHover={{ x: 5 }}
-                            transition={{ type: "spring", stiffness: 400 }}
-                          >
-                            <div className="w-2 h-2 rounded-full bg-blue-500 mt-2"></div>
-                            <span>
-                              Reimagining technology as an extension of natural processes rather than separate from them
-                            </span>
-                          </motion.li>
-                          <motion.li
-                            className="flex items-start gap-2"
-                            whileHover={{ x: 5 }}
-                            transition={{ type: "spring", stiffness: 400 }}
-                          >
-                            <div className="w-2 h-2 rounded-full bg-blue-500 mt-2"></div>
-                            <span>Finding hope and resilience in times of environmental crisis</span>
-                          </motion.li>
-                        </ul>
-                      </div>
-                    </DynamicFrame>
-                  </motion.div>
-
-                  <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.5, delay: 0.3 }}
-                  >
-                    <DynamicFrame className="border border-blue-200 dark:border-blue-800 bg-white/95 dark:bg-gray-950/95">
-                      <div className="p-6">
-                        <h3 className="text-lg font-serif font-semibold mb-3 text-blue-700 dark:text-blue-300">
-                          Writing Process
-                        </h3>
-                        <p className="text-gray-700 dark:text-gray-300 mb-4">
-                          This story grows organically, much like the mycelium networks that inspire it. I don't follow
-                          a rigid outline, instead allowing the narrative to branch and connect in unexpected ways.
-                        </p>
-                        <p className="text-gray-700 dark:text-gray-300">
-                          I write most often in the early mornings or while traveling, capturing ideas in a small
-                          notebook before developing them further. The story is intentionally always "in progress"—a
-                          living document that evolves as my own understanding of interconnectedness deepens.
-                        </p>
-                      </div>
-                    </DynamicFrame>
-                  </motion.div>
-                </div>
-
-                <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.5, delay: 0.4 }}
-                >
-                  <DynamicFrame className="mt-8 border border-blue-200 dark:border-blue-800 bg-white/95 dark:bg-gray-950/95">
-                    <div className="p-6">
-                      <h3 className="text-lg font-serif font-semibold mb-3 text-blue-700 dark:text-blue-300">
-                        Short Stories
-                      </h3>
-                      <p className="text-gray-700 dark:text-gray-300 mb-4">
-                        In addition to my novel-in-progress, I write short stories that explore similar themes of
-                        connection, nature, and identity. These shorter pieces allow me to experiment with different
-                        voices and perspectives.
-                      </p>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <motion.div
-                          className="border border-blue-100 dark:border-blue-800 rounded-md p-4"
-                          whileHover={{ y: -5, boxShadow: "0 10px 25px -5px rgba(59, 130, 246, 0.1)" }}
-                        >
-                          <h4 className="font-medium text-blue-700 dark:text-blue-300 mb-2">"The Listener"</h4>
-                          <p className="text-sm text-gray-700 dark:text-gray-300">
-                            A scientist develops technology to hear plant communications, only to discover they've been
-                            speaking to her all along.
-                          </p>
-                        </motion.div>
-                        <motion.div
-                          className="border border-blue-100 dark:border-blue-800 rounded-md p-4"
-                          whileHover={{ y: -5, boxShadow: "0 10px 25px -5px rgba(59, 130, 246, 0.1)" }}
-                        >
-                          <h4 className="font-medium text-blue-700 dark:text-blue-300 mb-2">"Roots and Branches"</h4>
-                          <p className="text-sm text-gray-700 dark:text-gray-300">
-                            An intergenerational story about a family's connection to a forest that holds their
-                            ancestors' memories.
-                          </p>
-                        </motion.div>
-                      </div>
-                    </div>
-                  </DynamicFrame>
-                </motion.div>
-              </section>
-            )}
-          </main>
-
-          {/* Footer */}
-          <footer className="bg-blue-50 dark:bg-blue-950/30 py-8 mt-12 border-t border-blue-100 dark:border-blue-900">
-            <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-              <div className="flex flex-col md:flex-row justify-between items-center">
-                <div className="mb-4 md:mb-0">
-                  <p className="text-gray-600 dark:text-gray-400">© 2025 Trudie Wang. All rights reserved.</p>
-                </div>
-                <motion.p
-                  className="text-sm text-blue-600 dark:text-blue-400 max-w-md text-center md:text-right font-serif italic"
-                  animate={{
-                    opacity: [0.7, 1, 0.7],
+          {/* Mobile Menu */}
+          {isMobileMenuOpen && (
+            <motion.div
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="md:hidden py-3 space-y-2 border-t border-gray-200 dark:border-gray-800"
+            >
+              {tabs.map((tab, index) => (
+                <motion.button
+                  key={`mobile-${index}`}
+                  onClick={() => {
+                    setActiveIndex(index)
+                    setIsMobileMenuOpen(false)
                   }}
-                  transition={{ duration: 4, repeat: Number.POSITIVE_INFINITY }}
+                  className={`w-full text-left px-4 py-2 rounded-md transition-colors flex items-center gap-2 ${
+                    activeIndex === index ? "bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300" : "text-gray-600 dark:text-gray-400"
+                  }`}
+                  whileHover={{ x: 5 }}
                 >
-                  "Like mycelium connects all living things in nature, our stories connect us all in the web of
-                  humanity."
-                </motion.p>
-              </div>
-            </div>
-          </footer>
+                  {tabIcons[index]}
+                  {tab}
+                </motion.button>
+              ))}
+            </motion.div>
+          )}
         </div>
-      </div>
+      </header>
+
+      {/* Main Content */}
+      <main className="pt-24 pb-16 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
+        {/* Hero Section */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6 }}
+          className="mb-16 text-center"
+        >
+          <h2 className="text-5xl font-serif font-bold mb-6 text-blue-700 dark:text-blue-300">Discover My Personal World</h2>
+          <p className="text-xl text-gray-700 dark:text-gray-300 max-w-3xl mx-auto mb-12">
+            Explore my creative endeavors, photography collections, and the stories that shape my imagination.
+          </p>
+        </motion.div>
+
+        {/* Tab Content */}
+        <div className="space-y-12">
+          {activeIndex === 0 && (
+            <motion.section
+              key="creative"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5 }}
+              className="space-y-8"
+            >
+              <div>
+                <h3 className="text-3xl font-serif font-bold text-blue-700 dark:text-blue-300 mb-3 flex items-center gap-2">
+                  <Palette className="h-8 w-8" />
+                  Creative Endeavors
+                </h3>
+                <p className="text-lg text-gray-700 dark:text-gray-300">
+                  Exploring creativity through art, design, and writing. This is where my imagination comes to life.
+                </p>
+              </div>
+
+              <DynamicFrame className="border border-blue-200 dark:border-blue-800 bg-white/95 dark:bg-gray-950/95">
+                <div className="p-8 space-y-6">
+                  <div>
+                    <h4 className="text-xl font-serif font-semibold mb-3 text-blue-700 dark:text-blue-300">Visual Art</h4>
+                    <p className="text-gray-700 dark:text-gray-300">
+                      From digital illustrations to physical mediums, I explore how visual storytelling can communicate complex ecological and emotional concepts.
+                    </p>
+                  </div>
+
+                  <div>
+                    <h4 className="text-xl font-serif font-semibold mb-3 text-blue-700 dark:text-blue-300">Design</h4>
+                    <p className="text-gray-700 dark:text-gray-300">
+                      Thoughtful design that bridges science, nature, and human experience. Creating interfaces and experiences that feel natural and intuitive.
+                    </p>
+                  </div>
+
+                  <div>
+                    <h4 className="text-xl font-serif font-semibold mb-3 text-blue-700 dark:text-blue-300">Writing</h4>
+                    <p className="text-gray-700 dark:text-gray-300">
+                      Crafting narratives that explore the interconnectedness of all living systems and the stories we tell ourselves about nature.
+                    </p>
+                  </div>
+                </div>
+              </DynamicFrame>
+            </motion.section>
+          )}
+
+          {activeIndex === 1 && (
+            <motion.section
+              key="imagery"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5 }}
+              className="space-y-8"
+            >
+              <div>
+                <h3 className="text-3xl font-serif font-bold text-blue-700 dark:text-blue-300 mb-3 flex items-center gap-2">
+                  <Camera className="h-8 w-8" />
+                  Imagery Meanderings
+                </h3>
+                <p className="text-lg text-gray-700 dark:text-gray-300">
+                  Photography from research trips, travels, and moments of beauty captured around the world.
+                </p>
+              </div>
+
+              <DynamicFrame className="border border-blue-200 dark:border-blue-800 bg-white/95 dark:bg-gray-950/95">
+                <div className="p-8 space-y-6">
+                  <p className="text-gray-700 dark:text-gray-300">
+                    My camera has documented ecosystems, wildlife, and landscapes across continents. Each photograph tells a story of the natural world's beauty and fragility.
+                  </p>
+
+                  <Button
+                    onClick={() => router.push("/personal/albums")}
+                    className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-6"
+                  >
+                    <Camera className="h-4 w-4 mr-2" />
+                    Browse Photo Collections
+                  </Button>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
+                    <Card className="border-blue-100 dark:border-blue-800 bg-blue-50/50 dark:bg-blue-900/10">
+                      <CardHeader>
+                        <CardTitle className="text-blue-700 dark:text-blue-300">2006 Baja California</CardTitle>
+                        <CardDescription>Earthwatch Research Expedition</CardDescription>
+                      </CardHeader>
+                      <CardContent>
+                        <p className="text-sm text-gray-700 dark:text-gray-300">
+                          Documenting marine biodiversity and conservation efforts during my first research expedition.
+                        </p>
+                      </CardContent>
+                    </Card>
+
+                    <Card className="border-blue-100 dark:border-blue-800 bg-blue-50/50 dark:bg-blue-900/10">
+                      <CardHeader>
+                        <CardTitle className="text-blue-700 dark:text-blue-300">Coming Soon</CardTitle>
+                        <CardDescription>Additional collections</CardDescription>
+                      </CardHeader>
+                      <CardContent>
+                        <p className="text-sm text-gray-700 dark:text-gray-300">
+                          More photo albums from future travels and research expeditions will be added here.
+                        </p>
+                      </CardContent>
+                    </Card>
+                  </div>
+                </div>
+              </DynamicFrame>
+            </motion.section>
+          )}
+
+          {activeIndex === 2 && (
+            <motion.section
+              key="story"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5 }}
+              className="space-y-8"
+            >
+              <div>
+                <h3 className="text-3xl font-serif font-bold text-blue-700 dark:text-blue-300 mb-3 flex items-center gap-2">
+                  <PenTool className="h-8 w-8" />
+                  The Story Is Being Written
+                </h3>
+                <p className="text-lg text-gray-700 dark:text-gray-300">
+                  A novel exploring interconnectedness, natural systems, and the stories we tell ourselves about the world.
+                </p>
+              </div>
+
+              <DynamicFrame className="border border-blue-200 dark:border-blue-800 bg-white/95 dark:bg-gray-950/95">
+                <div className="p-8 space-y-6">
+                  <div>
+                    <h4 className="text-xl font-serif font-semibold mb-3 text-blue-700 dark:text-blue-300">Novel in Progress</h4>
+                    <p className="text-gray-700 dark:text-gray-300">
+                      A literary exploration of how individual stories interweave with the larger narrative of our relationship with the natural world.
+                    </p>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-8">
+                    <div className="border border-blue-100 dark:border-blue-800 rounded-lg p-6">
+                      <h5 className="font-serif font-semibold text-lg mb-2 text-blue-700 dark:text-blue-300">"The Listener"</h5>
+                      <p className="text-sm text-gray-700 dark:text-gray-300">
+                        A scientist develops technology to hear plant communications, discovering that the forest has been speaking all along.
+                      </p>
+                    </div>
+
+                    <div className="border border-blue-100 dark:border-blue-800 rounded-lg p-6">
+                      <h5 className="font-serif font-semibold text-lg mb-2 text-blue-700 dark:text-blue-300">"Roots and Branches"</h5>
+                      <p className="text-sm text-gray-700 dark:text-gray-300">
+                        An intergenerational story about a family's connection to a forest, tracing how we inherit both land and responsibility.
+                      </p>
+                    </div>
+                  </div>
+
+                  <p className="text-gray-700 dark:text-gray-300 italic mt-6">
+                    More stories and excerpts coming soon as this collection grows...
+                  </p>
+                </div>
+              </DynamicFrame>
+            </motion.section>
+          )}
+        </div>
+      </main>
+
+      {/* Footer */}
+      <footer className="bg-blue-50 dark:bg-blue-950/30 py-8 mt-16 border-t border-blue-100 dark:border-blue-900">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+          <p className="text-gray-600 dark:text-gray-400">© 2025 Trudie Wang. All rights reserved.</p>
+        </div>
+      </footer>
     </div>
   )
 }
