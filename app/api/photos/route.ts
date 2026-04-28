@@ -23,9 +23,12 @@ export async function GET(request: Request) {
 
     const response = await s3Client.send(command)
 
-    // Filter for webp files only
-    const webpFiles = (response.Contents || [])
-      .filter((obj) => obj.Key?.toLowerCase().endsWith(".webp"))
+    // Filter for common image file types
+    const imageFiles = (response.Contents || [])
+      .filter((obj) => {
+        const key = obj.Key?.toLowerCase() || ""
+        return key.endsWith(".webp") || key.endsWith(".jpg") || key.endsWith(".jpeg") || key.endsWith(".png") || key.endsWith(".avif")
+      })
       .map((obj) => {
         // Use custom endpoint if available, otherwise fall back to Cloudflare endpoint
         const baseUrl = process.env.R2_CUSTOM_ENDPOINT 
@@ -45,12 +48,12 @@ export async function GET(request: Request) {
         return dateB - dateA // Sort newest first
       })
 
-    console.log(`[Photos API] Found ${webpFiles.length} webp files`)
+    console.log(`[Photos API] Found ${imageFiles.length} image files`)
     
     return Response.json({
       success: true,
-      photos: webpFiles,
-      count: webpFiles.length,
+      photos: imageFiles,
+      count: imageFiles.length,
     })
   } catch (error) {
     console.error("Error fetching photos from R2:", error)

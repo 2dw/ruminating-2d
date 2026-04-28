@@ -17,6 +17,7 @@ interface PhotoGallerySectionProps {
   description?: string
   prefix: string
   columns?: number
+  maxPhotos?: number
 }
 
 export function PhotoGallerySection({
@@ -24,6 +25,7 @@ export function PhotoGallerySection({
   description,
   prefix,
   columns = 3,
+  maxPhotos = 18,
 }: PhotoGallerySectionProps) {
   const [photos, setPhotos] = useState<Photo[]>([])
   const [loading, setLoading] = useState(true)
@@ -35,32 +37,23 @@ export function PhotoGallerySection({
         setLoading(true)
         const encodedPrefix = encodeURIComponent(prefix)
         const url = `/api/photos?prefix=${encodedPrefix}`
-        console.log(`[PhotoGallery] Fetching from: ${url}`)
-        
-        const response = await fetch(url)
-        console.log(`[PhotoGallery] Response status: ${response.status}`)
-        
+
+        const response = await fetch(url, { cache: "force-cache" })
         if (!response.ok) {
           throw new Error(`Failed to fetch photos: ${response.statusText}`)
         }
 
         const data = await response.json()
-        console.log(`[PhotoGallery] Response data:`, data)
-
         if (data.success && data.photos && data.photos.length > 0) {
-          console.log(`[PhotoGallery] Setting ${data.photos.length} photos`)
           setPhotos(data.photos)
-        } else if (data.success && (!data.photos || data.photos.length === 0)) {
-          console.log(`[PhotoGallery] No photos found for prefix: ${prefix}`)
+        } else if (data.success) {
           setPhotos([])
         } else {
           setError(data.message || "Failed to load photos")
         }
       } catch (err) {
         const errorMsg = err instanceof Error ? err.message : "Failed to load photos"
-        console.error(`[PhotoGallery] Error:`, errorMsg)
         setError(errorMsg)
-        console.error("Error fetching photos:", err)
       } finally {
         setLoading(false)
       }
@@ -122,6 +115,9 @@ export function PhotoGallerySection({
     4: "md:grid-cols-4",
   }[columns] || "md:grid-cols-3"
 
+  const visiblePhotos = maxPhotos ? photos.slice(0, maxPhotos) : photos
+  const isTruncated = maxPhotos !== undefined && photos.length > maxPhotos
+
   return (
     <div className="mb-12">
       <h3 className="text-xl font-serif font-semibold mb-6 text-blue-700 dark:text-blue-300">
@@ -131,7 +127,7 @@ export function PhotoGallerySection({
         <p className="text-gray-700 dark:text-gray-300 mb-6">{description}</p>
       )}
       <div className={`grid grid-cols-1 ${gridColsClass} gap-4`}>
-        {photos.map((photo, index) => (
+        {visiblePhotos.map((photo, index) => (
           <motion.div
             key={photo.key}
             initial={{ opacity: 0, y: 10 }}
@@ -144,6 +140,8 @@ export function PhotoGallerySection({
                 src={photo.url}
                 alt={photo.name}
                 fill
+                loading={index < 2 ? "eager" : "lazy"}
+                priority={index < 2}
                 className="object-cover group-hover:scale-105 transition-transform duration-300"
                 sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
               />
@@ -157,8 +155,13 @@ export function PhotoGallerySection({
         ))}
       </div>
       <p className="text-sm text-gray-500 dark:text-gray-400 mt-4">
-        {photos.length} photo{photos.length !== 1 ? "s" : ""} found
+        Showing {visiblePhotos.length} of {photos.length} photo{photos.length !== 1 ? "s" : ""} available{isTruncated ? "." : ""}
       </p>
+      {isTruncated && (
+        <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+          Showing the newest {visiblePhotos.length} photos for faster loading. More images are available in the full album.
+        </p>
+      )}
     </div>
   )
 }
