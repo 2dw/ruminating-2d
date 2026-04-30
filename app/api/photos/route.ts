@@ -30,20 +30,35 @@ export async function GET(request: Request) {
         return key.endsWith(".webp") || key.endsWith(".jpg") || key.endsWith(".jpeg") || key.endsWith(".png") || key.endsWith(".avif")
       })
       .map((obj) => {
-        // Use custom endpoint if available, otherwise construct R2 endpoint
-        let baseUrl = process.env.R2_CUSTOM_ENDPOINT
-        
-        if (!baseUrl) {
-          // Construct R2 URL: https://{bucket}.{account-id}.r2.cloudflarestorage.com
-          const bucket = process.env.R2_BUCKET_NAME
-          const accountId = process.env.R2_ACCOUNT_ID
+        const bucket = process.env.R2_BUCKET_NAME || ""
+        const customEndpoint = process.env.R2_CUSTOM_ENDPOINT
+        const endpoint = process.env.R2_ENDPOINT
+        const accountId = process.env.R2_ACCOUNT_ID
+
+        let baseUrl = customEndpoint || ""
+
+        if (!baseUrl && endpoint && bucket) {
+          try {
+            const endpointUrl = new URL(endpoint)
+            endpointUrl.hostname = `${bucket}.${endpointUrl.hostname}`
+            endpointUrl.pathname = ""
+            baseUrl = endpointUrl.toString().replace(/\/$/, "")
+          } catch {
+            baseUrl = endpoint
+          }
+        }
+
+        if (!baseUrl && bucket && accountId) {
           baseUrl = `https://${bucket}.${accountId}.r2.cloudflarestorage.com`
         }
-        
+
+        const encodedKey = encodeURI(obj.Key || "")
+        const url = baseUrl ? new URL(encodedKey, baseUrl).toString() : encodedKey
+
         return {
           key: obj.Key,
           name: obj.Key?.split("/").pop() || "",
-          url: `${baseUrl}/${obj.Key}`,
+          url,
           lastModified: obj.LastModified,
         }
       })
