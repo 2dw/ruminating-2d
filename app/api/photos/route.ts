@@ -1,4 +1,5 @@
-import { S3Client, ListObjectsV2Command } from "@aws-sdk/client-s3"
+import { S3Client, ListObjectsV2Command, GetObjectCommand } from "@aws-sdk/client-s3"
+import { getSignedUrl } from "@aws-sdk/s3-request-presigner"
 
 const s3Client = new S3Client({
   region: "auto",
@@ -54,10 +55,23 @@ export async function GET(request: Request) {
 
         const encodedKey = encodeURI(obj.Key || "")
         const url = baseUrl ? new URL(encodedKey, baseUrl).toString() : encodedKey
+// Generate signed URL for private bucket access
+        let signedUrl = url
+        try {
+          const command = new GetObjectCommand({
+            Bucket: process.env.R2_BUCKET_NAME,
+            Key: obj.Key,
+          })
+          signedUrl = await getSignedUrl(s3Client, command, { expiresIn: 3600 }) // 1 hour expiry
+        } catch (signError) {
+          console.warn("Failed to generate signed URL for", obj.Key, signError)
+          // Fall back to public URL if signing fails
+        }
 
         return {
           key: obj.Key,
           name: obj.Key?.split("/").pop() || "",
+          url: signedUame: obj.Key?.split("/").pop() || "",
           url,
           lastModified: obj.LastModified,
         }
