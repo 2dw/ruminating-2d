@@ -3,7 +3,6 @@
 import { motion } from "framer-motion"
 import { Camera, Palette, PenTool } from "lucide-react"
 import { useRouter } from "next/navigation"
-import { Button } from "@/components/ui/button"
 
 const sections = [
   {
@@ -30,17 +29,15 @@ export default function PersonalWorld() {
   const router = useRouter()
 
   return (
-    <div className="min-h-screen w-full bg-[#f8fcff] text-[#0e0f11] dark:bg-[#0a1015] dark:text-white transition-colors duration-500">
-      <main className="pt-24 pb-16 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
+    <div className="min-h-screen w-full bg-[#f8fcff] text-[#0e0f11] dark:bg-[#0a1015] dark:text-white transition-colors duration-500 pt-24">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
         <motion.div
           initial={{ opacity: 0, y: 18 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
           className="mb-16 text-center"
         >
-          <h1 className="text-5xl font-serif font-bold text-blue-700 dark:text-blue-300 mb-6">
-            Mind Wanderings
-          </h1>
+          <h1 className="text-5xl font-serif font-bold text-blue-700 dark:text-blue-300 mb-6">Mind Wanderings</h1>
           <p className="mx-auto max-w-3xl text-xl text-gray-700 dark:text-gray-300">
             A calm overview of my creative practice, photography journeys, and the writing that is still unfolding.
           </p>

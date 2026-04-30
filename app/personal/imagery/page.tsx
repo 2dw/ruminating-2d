@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation"
 import { motion } from "framer-motion"
 import { Camera } from "lucide-react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { DynamicFrame } from "@/components/dynamic-frame"
 import { PHOTO_ALBUMS } from "@/lib/photo-albums"
 
 export default function PersonalImageryPage() {
@@ -53,13 +54,16 @@ export default function PersonalImageryPage() {
   }, [])
 
   return (
-    <div className="min-h-screen bg-[#f8fcff] text-[#0e0f11] dark:bg-[#0a1015] dark:text-white transition-colors duration-500">
+    <div
+      suppressHydrationWarning
+      className="min-h-screen bg-[#f8fcff] text-[#0e0f11] dark:bg-[#0a1015] dark:text-white transition-colors duration-500 pt-24"
+    >
       <main className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
         <motion.div
           initial={{ opacity: 0, y: 18 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
-          className="rounded-[2rem] border border-slate-200 bg-white/90 p-10 shadow-xl shadow-slate-200/40 dark:border-slate-800 dark:bg-slate-950/80 dark:shadow-black/20"
+          className="space-y-8"
         >
           <div className="flex items-center gap-4 mb-8">
             <div className="flex h-14 w-14 items-center justify-center rounded-3xl bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-200">
@@ -68,7 +72,7 @@ export default function PersonalImageryPage() {
             <div>
               <h1 className="text-4xl font-serif font-bold text-slate-900 dark:text-white">Imagery Meanderings</h1>
               <p className="mt-2 text-sm text-slate-600 dark:text-slate-400 max-w-2xl">
-                A dedicated subpage for photography, visual storytelling, and album journeys. From here you can explore each album in its own space.
+                Photography allows me to document my travels and capture the beauty of interconnected natural systems. Through my lens, I seek to reveal the patterns and relationships that might otherwise go unnoticed.
               </p>
             </div>
           </div>
@@ -101,6 +105,41 @@ export default function PersonalImageryPage() {
               </Card>
             ))}
           </div>
+
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.7 }}
+          >
+            <DynamicFrame className="mt-8 border border-blue-200 dark:border-blue-800 bg-white/95 dark:bg-gray-950/95">
+              <div className="p-6">
+                <h3 className="text-lg font-serif font-semibold mb-3 text-blue-700 dark:text-blue-300">
+                  Photo Essay: The Hidden Networks
+                </h3>
+                <p className="text-gray-700 dark:text-gray-300">
+                  This ongoing photo series explores the visible manifestations of nature's interconnected systems—from the branching patterns of rivers and trees to the intricate structures of fungi and coral reefs. Through these images, I hope to inspire viewers to recognize the similar patterns that connect us all.
+                </p>
+                <div className="mt-4 grid grid-cols-2 gap-4">
+                  <div className="aspect-video bg-blue-100 dark:bg-blue-900/30 relative rounded-md overflow-hidden">
+                    <Image
+                      src="/placeholder.svg?height=180&width=320&text=Network+1"
+                      alt="Network photo 1"
+                      fill
+                      className="object-cover"
+                    />
+                  </div>
+                  <div className="aspect-video bg-blue-100 dark:bg-blue-900/30 relative rounded-md overflow-hidden">
+                    <Image
+                      src="/placeholder.svg?height=180&width=320&text=Network+2"
+                      alt="Network photo 2"
+                      fill
+                      className="object-cover"
+                    />
+                  </div>
+                </div>
+              </div>
+            </DynamicFrame>
+          </motion.div>
         </motion.div>
       </main>
     </div>

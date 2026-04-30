@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from "react"
 import { motion } from "framer-motion"
-import { FileText, GraduationCap, ExternalLink, Download, BookOpen, Sparkles, Lightbulb, Sun, Moon } from "lucide-react"
+import { FileText, GraduationCap, ExternalLink, Download, BookOpen, Sparkles, Lightbulb, Sun, Moon, Home } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { AccessibilityControls } from "@/components/accessibility-controls"
@@ -97,6 +97,7 @@ export default function ProfessionalPage() {
 
   return (
     <div
+      suppressHydrationWarning
       className={`min-h-screen w-full transition-colors duration-500 ${
         isDarkMode ? "dark bg-[#0a1015] text-white" : "bg-[#f8fcff] text-[#0e0f11]"
       }`}
@@ -120,10 +121,7 @@ export default function ProfessionalPage() {
                   className="text-green-600 dark:text-green-400 hover:text-green-700 dark:hover:text-green-300"
                   aria-label="Return to main portal"
                 >
-                  <svg className="h-5 w-5" viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8h-2v-6H7v6H5v-8l7-7.31z" />
-                    <path d="M12 1L3 10v11h6v-6h6v6h6V10L12 1zm0 2.69L19 11v8h-2v-6H7v6H5v-8l7-7.31z" opacity="0.3" />
-                  </svg>
+                  <Home className="h-5 w-5" />
                 </Button>
               </motion.div>
               <motion.h1
