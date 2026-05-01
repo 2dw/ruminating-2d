@@ -416,7 +416,7 @@ export default function PortalPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col md:flex-row justify-between items-center">
             <div className="mb-4 md:mb-0">
-              <p className="text-gray-600 dark:text-gray-400">© 2025 Trudie Wang. All rights reserved.</p>
+              <p className="text-gray-600 dark:text-gray-400">© 2026 Trudie Wang. All rights reserved.</p>
             </div>
             <motion.p
               className="text-sm text-gray-500 dark:text-gray-400 max-w-md text-center md:text-right font-serif italic"
@@ -425,7 +425,7 @@ export default function PortalPage() {
               }}
               transition={{ duration: 4, repeat: Number.POSITIVE_INFINITY }}
             >
-              "Like mycelium connects all living things in nature, our stories connect us all in the web of humanity."
+              Not all those who wander are lost. If you happen on my path, greet a fellow traveler!{" "}
             </motion.p>
           </div>
         </div>

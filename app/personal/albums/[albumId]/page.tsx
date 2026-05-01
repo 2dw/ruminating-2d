@@ -6,7 +6,15 @@ import { useParams, useRouter } from "next/navigation"
 import { motion } from "framer-motion"
 import { ArrowLeft, X } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { PHOTO_ALBUMS } from "@/lib/photo-albums"
+
+interface PhotoAlbum {
+  id: string
+  title: string
+  subtitle: string
+  description: string
+  prefix: string
+  cover?: string
+}
 
 interface Photo {
   key: string
@@ -18,18 +26,41 @@ export default function AlbumDetailPage() {
   const router = useRouter()
   const routeParams = useParams()
   const albumId = Array.isArray(routeParams?.albumId) ? routeParams.albumId[0] : routeParams?.albumId
+  const [albums, setAlbums] = useState<PhotoAlbum[]>([])
+  const [albumLoading, setAlbumLoading] = useState(true)
+
   const album = useMemo(
-    () => (albumId ? PHOTO_ALBUMS.find((item) => item.id === albumId) : undefined),
-    [albumId]
+    () => (albumId ? albums.find((item) => item.id === albumId) : undefined),
+    [albumId, albums]
   )
+
   const [photos, setPhotos] = useState<Photo[]>([])
   const [selectedIndex, setSelectedIndex] = useState(0)
   const [loading, setLoading] = useState(true)
   const [expanded, setExpanded] = useState(false)
   const selectedPhoto = photos[selectedIndex] ?? photos[0]
 
+  // Load albums data
   useEffect(() => {
-    if (!album) return
+    const loadAlbums = async () => {
+      try {
+        const response = await fetch('/api/albums')
+        const data = await response.json()
+        if (data.success && Array.isArray(data.albums)) {
+          setAlbums(data.albums)
+        }
+      } catch (error) {
+        console.warn('Failed to load albums:', error)
+      } finally {
+        setAlbumLoading(false)
+      }
+    }
+
+    loadAlbums()
+  }, [])
+
+  useEffect(() => {
+    if (!album || albumLoading) return
 
     let active = true
     const loadPhotos = async () => {
@@ -55,12 +86,12 @@ export default function AlbumDetailPage() {
     }
   }, [album])
 
-  if (albumId === undefined) {
+  if (albumId === undefined || albumLoading) {
     return (
       <div className="min-h-screen bg-[#f8fcff] text-[#0e0f11] dark:bg-[#0a1015] dark:text-white transition-colors duration-500">
         <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
           <div className="rounded-3xl border border-slate-200 bg-white/90 p-10 text-center shadow-xl dark:border-slate-800 dark:bg-slate-950/80">
-            <p className="text-lg text-slate-800 dark:text-slate-200">Resolving album…</p>
+            <p className="text-lg text-slate-800 dark:text-slate-200">{albumLoading ? "Loading albums…" : "Resolving album…"}</p>
           </div>
         </main>
       </div>

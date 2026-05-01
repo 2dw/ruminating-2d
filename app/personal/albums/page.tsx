@@ -9,46 +9,76 @@ import { Button } from "@/components/ui/button"
 import { AccessibilityControls } from "@/components/accessibility-controls"
 import { useAccessibility } from "@/contexts/accessibility-context"
 import { StarryBackground } from "@/components/starry-background"
-import { PHOTO_ALBUMS } from "@/lib/photo-albums"
+
+interface PhotoAlbum {
+  id: string
+  title: string
+  subtitle: string
+  description: string
+  prefix: string
+  cover?: string
+}
 
 export default function PhotoAlbumsPage() {
   const router = useRouter()
   const [isDarkMode, setIsDarkMode] = useState(false)
   const { highContrast } = useAccessibility()
   const [albumPreviews, setAlbumPreviews] = useState<Record<string, string>>({})
+  const [albums, setAlbums] = useState<PhotoAlbum[]>([])
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     let active = true
 
-    const loadPreviews = async () => {
-      const previews: Record<string, string> = {}
+    const loadAlbumsAndPreviews = async () => {
+      setLoading(true)
 
-      await Promise.all(
-        PHOTO_ALBUMS.map(async (album) => {
-          try {
-            const response = await fetch(`/api/photos?prefix=${encodeURIComponent(album.prefix)}`)
-            if (!response.ok) {
-              return
+      try {
+        // First load the albums
+        const albumsResponse = await fetch('/api/albums')
+        const albumsData = await albumsResponse.json()
+
+        if (!albumsData.success || !Array.isArray(albumsData.albums)) {
+          console.warn('Failed to load albums')
+          if (active) setLoading(false)
+          return
+        }
+
+        const discoveredAlbums = albumsData.albums
+        if (active) setAlbums(discoveredAlbums)
+
+        // Then load previews for each album
+        const previews: Record<string, string> = {}
+
+        await Promise.all(
+          discoveredAlbums.map(async (album: PhotoAlbum) => {
+            try {
+              const response = await fetch(`/api/photos?prefix=${encodeURIComponent(album.prefix)}`)
+              if (!response.ok) {
+                return
+              }
+
+              const data = await response.json()
+              if (data.success && Array.isArray(data.photos) && data.photos.length > 0) {
+                previews[album.id] = data.photos[0].url
+              }
+            } catch (error) {
+              console.warn(`Failed to load preview for ${album.id}:`, error)
             }
+          })
+        )
 
-            const data = await response.json()
-            if (data.success && Array.isArray(data.photos) && data.photos.length > 0) {
-              previews[album.id] = data.photos[0].url
-            }
-          } catch (error) {
-            console.warn(`Failed to load preview for ${album.id}:`, error)
-          }
-        })
-      )
-
-      if (active) {
-        setAlbumPreviews(previews)
-        setLoading(false)
+        if (active) {
+          setAlbumPreviews(previews)
+          setLoading(false)
+        }
+      } catch (error) {
+        console.warn('Failed to load albums and previews:', error)
+        if (active) setLoading(false)
       }
     }
 
-    loadPreviews()
+    loadAlbumsAndPreviews()
     return () => {
       active = false
     }
@@ -117,13 +147,13 @@ export default function PhotoAlbumsPage() {
               </p>
             </div>
             <p className="text-sm text-gray-500 dark:text-gray-400">
-              {loading ? "Loading album previews..." : `${PHOTO_ALBUMS.length} collection${PHOTO_ALBUMS.length !== 1 ? "s" : ""} available`}
+              {loading ? "Loading album previews..." : `${albums.length} collection${albums.length !== 1 ? "s" : ""} available`}
             </p>
           </div>
         </section>
 
         <section className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {PHOTO_ALBUMS.map((album) => {
+          {albums.map((album) => {
             const previewSrc = albumPreviews[album.id] ?? "/placeholder.jpg"
 
             return (

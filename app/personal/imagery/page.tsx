@@ -7,47 +7,77 @@ import { motion } from "framer-motion"
 import { Camera } from "lucide-react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { DynamicFrame } from "@/components/dynamic-frame"
-import { PHOTO_ALBUMS } from "@/lib/photo-albums"
+
+interface PhotoAlbum {
+  id: string
+  title: string
+  subtitle: string
+  description: string
+  prefix: string
+  cover?: string
+}
 
 export default function PersonalImageryPage() {
   const router = useRouter()
+  const [albums, setAlbums] = useState<PhotoAlbum[]>([])
   const [albumPreviews, setAlbumPreviews] = useState<Record<string, string>>({})
   const [loadingPreviews, setLoadingPreviews] = useState(true)
 
   useEffect(() => {
     let active = true
 
-    const loadPreviews = async () => {
-      const previews: Record<string, string> = {}
+    const loadAlbumsAndPreviews = async () => {
+      setLoadingPreviews(true)
 
-      await Promise.all(
-        PHOTO_ALBUMS.map(async (album) => {
-          if (album.cover && album.cover !== "/placeholder.jpg") {
-            previews[album.id] = album.cover
-            return
-          }
+      try {
+        // First load albums
+        const albumsResponse = await fetch('/api/albums')
+        const albumsData = await albumsResponse.json()
 
-          try {
-            const response = await fetch(`/api/photos?prefix=${encodeURIComponent(album.prefix)}`)
-            if (!response.ok) return
+        if (!albumsData.success || !Array.isArray(albumsData.albums)) {
+          console.warn('Failed to load albums')
+          if (active) setLoadingPreviews(false)
+          return
+        }
 
-            const data = await response.json()
-            if (data.success && Array.isArray(data.photos) && data.photos.length > 0) {
-              previews[album.id] = data.photos[0].url
+        const discoveredAlbums = albumsData.albums
+        if (active) setAlbums(discoveredAlbums)
+
+        // Then load previews
+        const previews: Record<string, string> = {}
+
+        await Promise.all(
+          discoveredAlbums.map(async (album: PhotoAlbum) => {
+            if (album.cover && album.cover !== "/placeholder.jpg") {
+              previews[album.id] = album.cover
+              return
             }
-          } catch (error) {
-            console.warn(`Failed to load preview for ${album.id}:`, error)
-          }
-        })
-      )
 
-      if (active) {
-        setAlbumPreviews(previews)
-        setLoadingPreviews(false)
+            try {
+              const response = await fetch(`/api/photos?prefix=${encodeURIComponent(album.prefix)}`)
+              if (!response.ok) return
+
+              const data = await response.json()
+              if (data.success && Array.isArray(data.photos) && data.photos.length > 0) {
+                previews[album.id] = data.photos[0].url
+              }
+            } catch (error) {
+              console.warn(`Failed to load preview for ${album.id}:`, error)
+            }
+          })
+        )
+
+        if (active) {
+          setAlbumPreviews(previews)
+          setLoadingPreviews(false)
+        }
+      } catch (error) {
+        console.warn('Failed to load albums and previews:', error)
+        if (active) setLoadingPreviews(false)
       }
     }
 
-    loadPreviews()
+    loadAlbumsAndPreviews()
     return () => {
       active = false
     }
@@ -78,7 +108,7 @@ export default function PersonalImageryPage() {
           </div>
 
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            {PHOTO_ALBUMS.map((album) => (
+            {albums.map((album) => (
               <Card key={album.id} className="overflow-hidden border-slate-200 dark:border-slate-800 bg-slate-50/90 dark:bg-slate-950/80 cursor-pointer transition hover:-translate-y-1 hover:border-blue-300 dark:hover:border-blue-600">
                 <button
                   type="button"

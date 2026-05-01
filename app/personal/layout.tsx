@@ -10,7 +10,12 @@ import { Button } from "@/components/ui/button"
 
 const tabs = [
   { title: "Creative Endeavors", href: "/personal/creative", icon: <Palette className="h-4 w-4" /> },
-  { title: "Imagery Meanderings", href: "/personal/imagery", icon: <Camera className="h-4 w-4" /> },
+  {
+    title: "Imagery Meanderings",
+    href: "/personal/imagery",
+    match: ["/personal/albums"],
+    icon: <Camera className="h-4 w-4" />,
+  },
   { title: "The Story Is Being Written", href: "/personal/story", icon: <PenTool className="h-4 w-4" /> },
 ]
 
@@ -24,9 +29,10 @@ export default function PersonalLayout({ children }: { children: ReactNode }) {
   const [isDarkMode, setIsDarkMode] = useState(false)
 
   useEffect(() => {
-    const index = tabs.findIndex(
-      (tab) => pathname === tab.href || (tab.href !== "/personal" && pathname.startsWith(tab.href))
-    )
+    const index = tabs.findIndex((tab) => {
+      const pathsToMatch = [tab.href, ...(tab.match ?? [])]
+      return pathsToMatch.some((path) => pathname === path || pathname.startsWith(path))
+    })
     setActiveIndex(index >= 0 ? index : 0)
   }, [pathname])
 
