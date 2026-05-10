@@ -68,7 +68,12 @@ export async function GET(request: Request) {
         return dateB - dateA // Sort newest first
       })
 
-    console.log(`[Photos API] Found ${imageFiles.length} image files`)
+    console.log(`[v0] Photos API - Found ${imageFiles.length} image files`)
+    console.log(`[v0] Photos API - R2_CUSTOM_ENDPOINT: ${process.env.R2_CUSTOM_ENDPOINT || 'NOT SET'}`)
+    console.log(`[v0] Photos API - R2_ENDPOINT: ${process.env.R2_ENDPOINT || 'NOT SET'}`)
+    if (imageFiles.length > 0) {
+      console.log(`[v0] Photos API - Sample URL: ${imageFiles[0].url}`)
+    }
     
     return Response.json({
       success: true,

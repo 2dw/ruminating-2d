@@ -68,7 +68,9 @@ export default function AlbumDetailPage() {
       try {
         const response = await fetch(`/api/photos?prefix=${encodeURIComponent(album.prefix)}`)
         const data = await response.json()
+        console.log("[v0] Photos API response:", data)
         if (active && data.success && Array.isArray(data.photos)) {
+          console.log("[v0] First photo URL:", data.photos[0]?.url)
           setPhotos(data.photos)
           setSelectedIndex(0)
         }
