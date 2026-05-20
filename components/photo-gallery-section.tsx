@@ -135,14 +135,18 @@ export function PhotoGallerySection({
             transition={{ duration: 0.3, delay: index * 0.05 }}
             className="relative group"
           >
-            <div className="relative aspect-square rounded-md overflow-hidden bg-blue-100 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-800">
+            <div
+              className="relative aspect-square rounded-md overflow-hidden bg-blue-100 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-800"
+              onContextMenu={(event) => event.preventDefault()}
+            >
               <Image
                 src={photo.url}
                 alt={photo.name}
                 fill
+                draggable={false}
                 loading={index < 2 ? "eager" : "lazy"}
                 priority={index < 2}
-                className="object-cover group-hover:scale-105 transition-transform duration-300"
+                className="protected-media object-cover group-hover:scale-105 transition-transform duration-300"
                 sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end p-4">

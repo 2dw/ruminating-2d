@@ -29,6 +29,46 @@ export default function RootLayout({
           {/* Screen reader announcer */}
           <div id="screen-reader-announcer" className="sr-only" aria-live="polite" aria-atomic="true"></div>
         </AccessibilityProvider>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              (() => {
+                const stripBisAttributes = (root = document) => {
+                  root.querySelectorAll?.("[bis_skin_checked]").forEach((node) => {
+                    node.removeAttribute("bis_skin_checked")
+                  })
+                }
+
+                stripBisAttributes()
+
+                const observer = new MutationObserver((mutations) => {
+                  mutations.forEach((mutation) => {
+                    if (mutation.type === "attributes" && mutation.attributeName === "bis_skin_checked") {
+                      mutation.target.removeAttribute("bis_skin_checked")
+                    }
+
+                    mutation.addedNodes.forEach((node) => {
+                      if (node.nodeType === Node.ELEMENT_NODE) {
+                        const element = node
+                        element.removeAttribute?.("bis_skin_checked")
+                        stripBisAttributes(element)
+                      }
+                    })
+                  })
+                })
+
+                observer.observe(document.documentElement, {
+                  attributes: true,
+                  childList: true,
+                  subtree: true,
+                  attributeFilter: ["bis_skin_checked"],
+                })
+
+                window.addEventListener("load", () => observer.disconnect(), { once: true })
+              })()
+            `,
+          }}
+        />
       </body>
     </html>
   )

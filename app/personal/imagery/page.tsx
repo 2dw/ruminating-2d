@@ -115,12 +115,16 @@ export default function PersonalImageryPage() {
                   onClick={() => router.push(`/personal/albums/${album.id}`)}
                   className="text-left w-full"
                 >
-                  <div className="relative h-44 overflow-hidden bg-slate-100 dark:bg-slate-900">
+                  <div
+                    className="relative h-44 overflow-hidden bg-slate-100 dark:bg-slate-900"
+                    onContextMenu={(event) => event.preventDefault()}
+                  >
                     <Image
                       src={albumPreviews[album.id] ?? album.cover ?? "/placeholder.jpg"}
                       alt={`${album.title} cover`}
                       fill
-                      className="object-cover transition duration-500 hover:scale-105"
+                      draggable={false}
+                      className="protected-media object-cover transition duration-500 hover:scale-105"
                     />
                   </div>
                   <CardHeader>
@@ -155,7 +159,8 @@ export default function PersonalImageryPage() {
                       src="/placeholder.svg?height=180&width=320&text=Network+1"
                       alt="Network photo 1"
                       fill
-                      className="object-cover"
+                      draggable={false}
+                      className="protected-media object-cover"
                     />
                   </div>
                   <div className="aspect-video bg-blue-100 dark:bg-blue-900/30 relative rounded-md overflow-hidden">
@@ -163,7 +168,8 @@ export default function PersonalImageryPage() {
                       src="/placeholder.svg?height=180&width=320&text=Network+2"
                       alt="Network photo 2"
                       fill
-                      className="object-cover"
+                      draggable={false}
+                      className="protected-media object-cover"
                     />
                   </div>
                 </div>

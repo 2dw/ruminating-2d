@@ -1,133 +1,108 @@
 "use client"
 
-import { motion } from "framer-motion"
-import { Palette } from "lucide-react"
-import { DynamicFrame } from "@/components/dynamic-frame"
 import Image from "next/image"
+import { useRouter } from "next/navigation"
+import { motion } from "framer-motion"
+import { Brush, Palette, PenTool } from "lucide-react"
+
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+
+const creativeProjects = [
+  {
+    title: "Digital Art Explorations",
+    subtitle: "Illustrations and visual experiments",
+    description:
+      "A living gallery of artwork pulled directly from the art folder in R2, designed to update as the collection changes.",
+    href: "/personal/creative/art",
+    image: "/placeholder.svg?height=224&width=448&text=Digital+Art",
+    icon: Brush,
+  },
+  {
+    title: "Poetry & Reflections",
+    subtitle: "Language, identity, and natural systems",
+    description:
+      "Poems and reflective fragments that help me process belonging, connection, and the quiet wisdom of the natural world.",
+    href: "/personal/creative/poetry",
+    image: "/placeholder.svg?height=224&width=448&text=Poetry",
+    icon: PenTool,
+  },
+]
 
 export default function PersonalCreativePage() {
+  const router = useRouter()
+
   return (
     <div
       suppressHydrationWarning
-      className="min-h-screen bg-[#f8fcff] text-[#0e0f11] dark:bg-[#0a1015] dark:text-white transition-colors duration-500 pt-24"
+      className="min-h-screen bg-[#f8fcff] pt-24 text-[#0e0f11] transition-colors duration-500 dark:bg-[#0a1015] dark:text-white"
     >
-      <main className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-
+      <main className="mx-auto max-w-6xl px-4 py-16 sm:px-6 lg:px-8">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
           className="space-y-8"
         >
-          <div className="flex items-center gap-4 mb-8">
+          <div className="mb-8 flex items-center gap-4">
             <div className="flex h-14 w-14 items-center justify-center rounded-3xl bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-200">
               <Palette className="h-7 w-7" />
             </div>
             <div>
               <h1 className="text-4xl font-serif font-bold text-slate-900 dark:text-white">Creative Endeavors</h1>
-              <p className="mt-2 text-sm text-slate-600 dark:text-slate-400 max-w-2xl">
-                Beyond my professional work, I explore creativity through various mediums. These personal projects allow me to process my experiences, connect with others, and find joy in the process of making.
+              <p className="mt-2 max-w-2xl text-sm text-slate-600 dark:text-slate-400">
+                Beyond my professional work, I explore creativity through various mediums. Choose a project to open its dedicated space.
               </p>
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5 }}
-            >
-              <DynamicFrame className="h-full border border-blue-200 dark:border-blue-800 bg-white/95 dark:bg-gray-950/95">
-                <div className="h-48 bg-blue-100 dark:bg-blue-900/30 relative">
-                  <Image
-                    src="/placeholder.svg?height=192&width=384&text=Digital+Art"
-                    alt="Digital Art"
-                    fill
-                    className="object-cover"
-                  />
-                </div>
-                <div className="p-6">
-                  <h3 className="text-lg font-serif font-semibold mb-2 text-blue-700 dark:text-blue-300">
-                    Digital Art Explorations
-                  </h3>
-                  <p className="text-gray-700 dark:text-gray-300 mb-4">
-                    I create digital illustrations that explore the relationship between humanity and nature. Many of my pieces incorporate mycelium-inspired patterns and connections, reflecting my belief in our interconnectedness.
-                  </p>
-                </div>
-              </DynamicFrame>
-            </motion.div>
+          <section className="grid gap-6 sm:grid-cols-2">
+            {creativeProjects.map((project, index) => {
+              const Icon = project.icon
 
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0.2 }}
-            >
-              <DynamicFrame className="h-full border border-blue-200 dark:border-blue-800 bg-white/95 dark:bg-gray-950/95">
-                <div className="h-48 bg-blue-100 dark:bg-blue-900/30 relative">
-                  <Image
-                    src="/placeholder.svg?height=192&width=384&text=Poetry"
-                    alt="Poetry"
-                    fill
-                    className="object-cover"
-                  />
-                </div>
-                <div className="p-6">
-                  <h3 className="text-lg font-serif font-semibold mb-2 text-blue-700 dark:text-blue-300">
-                    Poetry & Reflections
-                  </h3>
-                  <p className="text-gray-700 dark:text-gray-300 mb-4">
-                    Writing poetry helps me process complex emotions and ideas. My poems often explore themes of identity, belonging, and our relationship with the natural world.
-                  </p>
-                </div>
-              </DynamicFrame>
-            </motion.div>
-          </div>
-
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.3 }}
-          >
-            <DynamicFrame className="mt-8 border border-blue-200 dark:border-blue-800 bg-white/95 dark:bg-gray-950/95">
-              <div className="p-6">
-                <h3 className="text-lg font-serif font-semibold mb-4 text-blue-700 dark:text-blue-300">
-                  Featured Poem: Mycelium Dreams
-                </h3>
-                <div className="prose prose-blue dark:prose-invert max-w-none">
-                  <blockquote className="italic text-gray-700 dark:text-gray-300 border-l-4 border-blue-500 pl-4">
-                    <p>
-                      Beneath our feet, a quiet conversation
-                      <br />
-                      Threads of life, weaving through the dark
-                      <br />
-                      Mycelium whispers, ancient and wise
-                      <br />
-                      Connecting what seems separate, healing what's harmed.
-                    </p>
-
-                    <p>
-                      I dream of human networks, just as kind
-                      <br />
-                      Resources flowing where they're needed most
-                      <br />
-                      No life too small, no corner left behind
-                      <br />A wisdom older than our youngest boast.
-                    </p>
-
-                    <p>
-                      In engineering steel and silicon
-                      <br />
-                      Can we remember fungal filaments?
-                      <br />
-                      The strength in softness, power in connection
-                      <br />
-                      The quiet work that needs no monument.
-                    </p>
-                  </blockquote>
-                </div>
-              </div>
-            </DynamicFrame>
-          </motion.div>
+              return (
+                <motion.div
+                  key={project.href}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.5, delay: index * 0.12 }}
+                >
+                  <Card className="h-full overflow-hidden border-slate-200 bg-slate-50/90 transition hover:-translate-y-1 hover:border-blue-300 hover:shadow-md dark:border-slate-800 dark:bg-slate-950/80 dark:hover:border-blue-600">
+                    <button
+                      type="button"
+                      onClick={() => router.push(project.href)}
+                      className="group h-full w-full text-left"
+                    >
+                      <div
+                        className="relative h-56 overflow-hidden bg-slate-100 dark:bg-slate-900"
+                        onContextMenu={(event) => event.preventDefault()}
+                      >
+                        <Image
+                          src={project.image}
+                          alt=""
+                          fill
+                          draggable={false}
+                          className="protected-media object-cover transition duration-500 group-hover:scale-105"
+                          sizes="(max-width: 768px) 100vw, 50vw"
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-transparent opacity-20" />
+                      </div>
+                      <CardHeader>
+                        <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-2xl bg-blue-100 text-blue-700 dark:bg-blue-900/60 dark:text-blue-200">
+                          <Icon className="h-5 w-5" />
+                        </div>
+                        <CardTitle className="text-blue-700 dark:text-blue-300">{project.title}</CardTitle>
+                        <CardDescription>{project.subtitle}</CardDescription>
+                      </CardHeader>
+                      <CardContent>
+                        <p className="text-sm text-slate-700 dark:text-slate-300">{project.description}</p>
+                        <div className="mt-4 text-sm font-medium text-blue-600 dark:text-blue-300">Open project →</div>
+                      </CardContent>
+                    </button>
+                  </Card>
+                </motion.div>
+              )
+            })}
+          </section>
         </motion.div>
       </main>
     </div>

@@ -111,6 +111,36 @@
     background-clip: content-box;
   }
 
+  .custom-scrollbar-horizontal {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(37, 99, 235, 0.7) rgba(219, 234, 254, 0.75);
+  }
+
+  .custom-scrollbar-horizontal::-webkit-scrollbar {
+    height: 8px;
+  }
+
+  .custom-scrollbar-horizontal::-webkit-scrollbar-track {
+    background: linear-gradient(90deg, rgba(219, 234, 254, 0.25), rgba(191, 219, 254, 0.85), rgba(219, 234, 254, 0.25));
+    border-radius: 9999px;
+  }
+
+  .custom-scrollbar-horizontal::-webkit-scrollbar-thumb {
+    background: linear-gradient(90deg, rgba(37, 99, 235, 0.9), rgba(14, 165, 233, 0.85));
+    border-radius: 9999px;
+    border: 2px solid rgba(248, 252, 255, 0.85);
+  }
+
+  .custom-scrollbar-horizontal::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(90deg, rgba(29, 78, 216, 1), rgba(2, 132, 199, 0.95));
+  }
+
+  .protected-media {
+    -webkit-touch-callout: none;
+    -webkit-user-drag: none;
+    user-select: none;
+  }
+
   .dark .custom-scrollbar {
     scrollbar-color: rgba(96, 165, 250, 0.8) rgba(15, 23, 42, 0.75);
   }
@@ -121,5 +151,18 @@
 
   .dark .custom-scrollbar::-webkit-scrollbar-thumb {
     background: rgba(96, 165, 250, 0.75);
+  }
+
+  .dark .custom-scrollbar-horizontal {
+    scrollbar-color: rgba(96, 165, 250, 0.78) rgba(15, 23, 42, 0.9);
+  }
+
+  .dark .custom-scrollbar-horizontal::-webkit-scrollbar-track {
+    background: linear-gradient(90deg, rgba(15, 23, 42, 0.25), rgba(30, 41, 59, 0.95), rgba(15, 23, 42, 0.25));
+  }
+
+  .dark .custom-scrollbar-horizontal::-webkit-scrollbar-thumb {
+    background: linear-gradient(90deg, rgba(96, 165, 250, 0.9), rgba(45, 212, 191, 0.75));
+    border-color: rgba(10, 16, 21, 0.95);
   }
 }

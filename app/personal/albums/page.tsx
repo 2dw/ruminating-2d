@@ -163,12 +163,16 @@ export default function PhotoAlbumsPage() {
                 onClick={() => router.push(`/personal/albums/${album.id}`)}
                 className="group overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm transition hover:-translate-y-1 hover:border-blue-300 hover:shadow-md dark:border-slate-800 dark:bg-slate-950/90 dark:hover:border-blue-500"
               >
-                <div className="relative h-56 overflow-hidden bg-slate-100 dark:bg-slate-900">
+                <div
+                  className="relative h-56 overflow-hidden bg-slate-100 dark:bg-slate-900"
+                  onContextMenu={(event) => event.preventDefault()}
+                >
                   <Image
                     src={previewSrc}
                     alt={`Preview for ${album.title}`}
                     fill
-                    className="object-cover transition duration-500 group-hover:scale-105"
+                    draggable={false}
+                    className="protected-media object-cover transition duration-500 group-hover:scale-105"
                     sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-transparent opacity-20" />

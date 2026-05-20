@@ -150,6 +150,7 @@ export default function AlbumDetailPage() {
                   <button
                     type="button"
                     onClick={() => setExpanded(true)}
+                    onContextMenu={(event) => event.preventDefault()}
                     className="group relative block overflow-hidden rounded-[1.5rem] bg-slate-900"
                     aria-label="Open expanded image preview"
                   >
@@ -158,7 +159,8 @@ export default function AlbumDetailPage() {
                       alt={selectedPhoto.name || album.title}
                       width={1200}
                       height={900}
-                      className="h-[44rem] w-full object-cover transition duration-300 group-hover:scale-105"
+                      draggable={false}
+                      className="protected-media h-[44rem] w-full object-cover transition duration-300 group-hover:scale-105"
                     />
                     <div className="pointer-events-none absolute inset-x-0 bottom-0 bg-gradient-to-t from-slate-950/90 to-transparent p-4 text-white">
                       <p className="text-sm font-semibold">
@@ -179,6 +181,7 @@ export default function AlbumDetailPage() {
                         key={photo.key}
                         type="button"
                         onClick={() => setSelectedIndex(index)}
+                        onContextMenu={(event) => event.preventDefault()}
                         className={`overflow-hidden rounded-3xl border p-0 transition ${
                           index === selectedIndex
                             ? "border-blue-500 shadow-lg shadow-blue-500/20"
@@ -190,7 +193,8 @@ export default function AlbumDetailPage() {
                           alt={photo.name || `Thumbnail ${index + 1}`}
                           width={400}
                           height={300}
-                          className="h-28 w-full object-cover"
+                          draggable={false}
+                          className="protected-media h-28 w-full object-cover"
                         />
                       </button>
                     ))}
@@ -218,12 +222,16 @@ export default function AlbumDetailPage() {
                 <X className="h-5 w-5" />
               </button>
             </div>
-            <div className="relative h-[85vh] w-full max-w-6xl overflow-hidden rounded-[2rem] border border-white/10 bg-black">
+            <div
+              className="relative h-[85vh] w-full max-w-6xl overflow-hidden rounded-[2rem] border border-white/10 bg-black"
+              onContextMenu={(event) => event.preventDefault()}
+            >
               <Image
                 src={selectedPhoto.url}
                 alt={selectedPhoto.name || album.title}
                 fill
-                className="object-contain"
+                draggable={false}
+                className="protected-media object-contain"
               />
             </div>
           </motion.div>

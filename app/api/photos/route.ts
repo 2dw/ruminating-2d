@@ -1,5 +1,7 @@
 import { S3Client, ListObjectsV2Command } from "@aws-sdk/client-s3"
 
+export const dynamic = "force-dynamic"
+
 const s3Client = new S3Client({
   region: "auto",
   credentials: {
@@ -70,11 +72,18 @@ export async function GET(request: Request) {
 
     console.log(`[Photos API] Found ${imageFiles.length} image files`)
     
-    return Response.json({
-      success: true,
-      photos: imageFiles,
-      count: imageFiles.length,
-    })
+    return Response.json(
+      {
+        success: true,
+        photos: imageFiles,
+        count: imageFiles.length,
+      },
+      {
+        headers: {
+          "Cache-Control": "no-store, max-age=0",
+        },
+      },
+    )
   } catch (error) {
     console.error("Error fetching photos from R2:", error)
     return Response.json(
