@@ -20,6 +20,10 @@ interface Artwork {
 interface ArtworkCarouselProps {
   prefix?: string
   refreshIntervalMs?: number
+  autoRotate?: boolean
+  autoRotateIntervalMs?: number
+  captionMode?: "none" | "filename"
+  captions?: Record<string, string>
 }
 
 function getArtworkTitle(name: string) {
@@ -37,7 +41,25 @@ function getVersionedUrl(artwork: Artwork) {
   return `${artwork.url}${separator}v=${encodeURIComponent(artwork.lastModified)}`
 }
 
-export function ArtworkCarousel({ prefix = "art/", refreshIntervalMs = 60000 }: ArtworkCarouselProps) {
+function getArtworkCaption(
+  artwork: Artwork,
+  captions: Record<string, string>,
+  captionMode: "none" | "filename",
+) {
+  const override = captions[artwork.key] ?? captions[artwork.name]
+  if (override !== undefined) return override
+  if (captionMode === "filename") return getArtworkTitle(artwork.name)
+  return ""
+}
+
+export function ArtworkCarousel({
+  prefix = "art/",
+  refreshIntervalMs = 60000,
+  autoRotate = false,
+  autoRotateIntervalMs = 5200,
+  captionMode = "none",
+  captions = {},
+}: ArtworkCarouselProps) {
   const [artwork, setArtwork] = useState<Artwork[]>([])
   const [selectedIndex, setSelectedIndex] = useState(0)
   const [isLoading, setIsLoading] = useState(true)
@@ -53,6 +75,7 @@ export function ArtworkCarousel({ prefix = "art/", refreshIntervalMs = 60000 }: 
 
   const activeArtwork = artwork[selectedIndex]
   const hasMultipleItems = artwork.length > 1
+  const activeCaption = activeArtwork ? getArtworkCaption(activeArtwork, captions, captionMode) : ""
 
   const loadArtwork = useCallback(
     async (showRefreshingState = false) => {
@@ -137,14 +160,14 @@ export function ArtworkCarousel({ prefix = "art/", refreshIntervalMs = 60000 }: 
   }, [emblaApi])
 
   useEffect(() => {
-    if (!emblaApi || !hasMultipleItems || isPaused) return
+    if (!autoRotate || !emblaApi || !hasMultipleItems || isPaused) return
 
     const intervalId = window.setInterval(() => {
       emblaApi.scrollNext()
-    }, 5200)
+    }, autoRotateIntervalMs)
 
     return () => window.clearInterval(intervalId)
-  }, [emblaApi, hasMultipleItems, isPaused, artwork.length])
+  }, [autoRotate, autoRotateIntervalMs, emblaApi, hasMultipleItems, isPaused, artwork.length])
 
   useEffect(() => {
     emblaApi?.reInit()
@@ -219,7 +242,7 @@ export function ArtworkCarousel({ prefix = "art/", refreshIntervalMs = 60000 }: 
               Digital Art Explorations
             </h2>
             <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-700 dark:text-slate-300">
-              A rotating view of the artwork in the art folder. Add, remove, or replace files in R2 and this carousel refreshes from the bucket.
+              Browse the artwork in the art folder. Add, remove, or replace files in R2 and this carousel refreshes from the bucket.
             </p>
           </div>
           <div className="flex items-center gap-2">
@@ -244,7 +267,7 @@ export function ArtworkCarousel({ prefix = "art/", refreshIntervalMs = 60000 }: 
                   <div className="relative aspect-[4/3] overflow-hidden rounded-md bg-white shadow-sm dark:bg-slate-950">
                     <Image
                       src={getVersionedUrl(piece)}
-                      alt={getArtworkTitle(piece.name) || "Artwork"}
+                      alt={getArtworkCaption(piece, captions, captionMode) || getArtworkTitle(piece.name) || "Artwork"}
                       fill
                       draggable={false}
                       priority={index === 0}
@@ -284,11 +307,13 @@ export function ArtworkCarousel({ prefix = "art/", refreshIntervalMs = 60000 }: 
 
         <div className="mt-5 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
           <div className="min-w-0">
-            <h3 className="truncate font-serif text-lg font-semibold text-slate-900 dark:text-white">
-              {getArtworkTitle(activeArtwork.name)}
-            </h3>
+            {activeCaption && (
+              <h3 className="truncate font-serif text-lg font-semibold text-slate-900 dark:text-white">
+                {activeCaption}
+              </h3>
+            )}
             {activeArtwork.lastModified && (
-              <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
+              <p className={cn("text-xs text-slate-500 dark:text-slate-400", activeCaption && "mt-1")}>
                 Updated {new Date(activeArtwork.lastModified).toLocaleDateString(undefined, {
                   month: "short",
                   day: "numeric",
@@ -316,7 +341,7 @@ export function ArtworkCarousel({ prefix = "art/", refreshIntervalMs = 60000 }: 
                 >
                   <Image
                     src={getVersionedUrl(piece)}
-                    alt=""
+                    alt={getArtworkCaption(piece, captions, captionMode) || ""}
                     fill
                     draggable={false}
                     className="protected-media object-cover"

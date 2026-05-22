@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation"
 
 import { ArtworkCarousel } from "@/components/artwork-carousel"
 import { Button } from "@/components/ui/button"
+import { artworkCaptions } from "@/config/artwork-captions"
 
 export default function CreativeArtPage() {
   const router = useRouter()
@@ -43,7 +44,7 @@ export default function CreativeArtPage() {
             </div>
           </div>
 
-          <ArtworkCarousel prefix="art/" />
+          <ArtworkCarousel prefix="art/" captions={artworkCaptions} />
         </motion.div>
       </main>
     </div>
