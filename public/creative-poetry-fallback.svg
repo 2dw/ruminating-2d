@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 520" role="img" aria-labelledby="title desc">
+  <title id="title">Poetry preview</title>
+  <desc id="desc">A quiet writing desk with blue paper, ink, and natural linework.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#f8fcff"/>
+      <stop offset="0.58" stop-color="#e0f2fe"/>
+      <stop offset="1" stop-color="#dcfce7"/>
+    </linearGradient>
+    <linearGradient id="paper" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#ffffff"/>
+      <stop offset="1" stop-color="#eff6ff"/>
+    </linearGradient>
+  </defs>
+  <rect width="960" height="520" fill="url(#bg)"/>
+  <rect x="250" y="78" width="460" height="360" rx="18" fill="url(#paper)" stroke="#bfdbfe" stroke-width="3"/>
+  <path d="M325 170h245M325 215h310M325 260h220M325 305h280" stroke="#2563eb" stroke-width="12" stroke-linecap="round" opacity="0.24"/>
+  <path d="M664 142c46 28 56 78 31 126-27 52-89 78-147 105" fill="none" stroke="#0f766e" stroke-width="8" stroke-linecap="round" opacity="0.55"/>
+  <path d="M675 141c-33 2-60 13-82 35 36 13 67 1 82-35Z" fill="#14b8a6" opacity="0.45"/>
+  <path d="M240 402c-45-45-58-91-38-137 22 48 57 87 102 119" fill="none" stroke="#2563eb" stroke-width="6" stroke-linecap="round" opacity="0.32"/>
+  <circle cx="735" cy="105" r="28" fill="#60a5fa" opacity="0.28"/>
+</svg>

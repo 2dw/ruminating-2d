@@ -25,11 +25,18 @@ export async function GET(request: Request) {
 
     const response = await s3Client.send(command)
 
-    // Filter for common image file types
+    // Filter for common image file types, including animated project GIFs
     const imageFiles = (response.Contents || [])
       .filter((obj) => {
         const key = obj.Key?.toLowerCase() || ""
-        return key.endsWith(".webp") || key.endsWith(".jpg") || key.endsWith(".jpeg") || key.endsWith(".png") || key.endsWith(".avif")
+        return (
+          key.endsWith(".webp") ||
+          key.endsWith(".jpg") ||
+          key.endsWith(".jpeg") ||
+          key.endsWith(".png") ||
+          key.endsWith(".avif") ||
+          key.endsWith(".gif")
+        )
       })
       .map((obj) => {
         const customEndpoint = process.env.R2_CUSTOM_ENDPOINT

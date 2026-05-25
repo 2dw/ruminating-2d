@@ -354,25 +354,37 @@ export default function PortalPage() {
 
               <div className="grid grid-cols-1 gap-4 mb-8">
                 <motion.div
-                  className="flex items-center gap-3 text-gray-700 dark:text-gray-300 cursor-default transition-colors"
-                  whileHover={{ x: 0 }}
+                  className="flex items-center gap-3 text-gray-700 dark:text-gray-300 cursor-pointer hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
+                  whileHover={{ x: 5 }}
                   transition={{ type: "spring", stiffness: 400 }}
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    navigateTo("/personal/creative", "Creative Endeavors")
+                  }}
                 >
                   <Palette className="h-5 w-5 text-blue-600 dark:text-blue-400" aria-hidden="true" />
                   <span>Creative Endeavors</span>
                 </motion.div>
                 <motion.div
-                  className="flex items-center gap-3 text-gray-700 dark:text-gray-300 cursor-default transition-colors"
-                  whileHover={{ x: 0 }}
+                  className="flex items-center gap-3 text-gray-700 dark:text-gray-300 cursor-pointer hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
+                  whileHover={{ x: 5 }}
                   transition={{ type: "spring", stiffness: 400 }}
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    navigateTo("/personal/imagery", "Imagery Meanderings")
+                  }}
                 >
                   <Camera className="h-5 w-5 text-blue-600 dark:text-blue-400" aria-hidden="true" />
                   <span>Imagery Meanderings</span>
                 </motion.div>
                 <motion.div
-                  className="flex items-center gap-3 text-gray-700 dark:text-gray-300 cursor-default transition-colors"
-                  whileHover={{ x: 0 }}
+                  className="flex items-center gap-3 text-gray-700 dark:text-gray-300 cursor-pointer hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
+                  whileHover={{ x: 5 }}
                   transition={{ type: "spring", stiffness: 400 }}
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    navigateTo("/personal/story", "The Story Is Being Written")
+                  }}
                 >
                   <PenTool className="h-5 w-5 text-blue-600 dark:text-blue-400" aria-hidden="true" />
                   <span>The Story Is Being Written</span>

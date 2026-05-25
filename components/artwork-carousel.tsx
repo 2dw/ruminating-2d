@@ -24,6 +24,10 @@ interface ArtworkCarouselProps {
   autoRotateIntervalMs?: number
   captionMode?: "none" | "filename"
   captions?: Record<string, string>
+  title?: string
+  description?: string
+  emptyTitle?: string
+  emptyDescription?: string
 }
 
 function getArtworkTitle(name: string) {
@@ -59,6 +63,10 @@ export function ArtworkCarousel({
   autoRotateIntervalMs = 5200,
   captionMode = "none",
   captions = {},
+  title = "Digital Art Explorations",
+  description = "Browse the artwork in the art folder. Add, remove, or replace files in R2 and this carousel refreshes from the bucket.",
+  emptyTitle = "Digital Art Explorations",
+  emptyDescription = "No artwork was found in this folder yet. New images added to R2 will appear here automatically.",
 }: ArtworkCarouselProps) {
   const [artwork, setArtwork] = useState<Artwork[]>([])
   const [selectedIndex, setSelectedIndex] = useState(0)
@@ -212,9 +220,9 @@ export function ArtworkCarousel({
       <DynamicFrame className="border border-blue-200 bg-white/95 dark:border-blue-800 dark:bg-gray-950/95">
         <div className="flex min-h-[22rem] items-center justify-center p-8 text-center">
           <div>
-            <h2 className="font-serif text-2xl font-semibold text-blue-700 dark:text-blue-300">Digital Art Explorations</h2>
+            <h2 className="font-serif text-2xl font-semibold text-blue-700 dark:text-blue-300">{emptyTitle}</h2>
             <p className="mt-3 max-w-md text-sm text-slate-600 dark:text-slate-400">
-              No artwork was found in the art folder yet. New images added to R2 will appear here automatically.
+              {emptyDescription}
             </p>
           </div>
         </div>
@@ -239,10 +247,10 @@ export function ArtworkCarousel({
               Live from R2
             </p>
             <h2 className="mt-2 font-serif text-2xl font-semibold text-blue-700 dark:text-blue-300">
-              Digital Art Explorations
+              {title}
             </h2>
             <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-700 dark:text-slate-300">
-              Browse the artwork in the art folder. Add, remove, or replace files in R2 and this carousel refreshes from the bucket.
+              {description}
             </p>
           </div>
           <div className="flex items-center gap-2">
