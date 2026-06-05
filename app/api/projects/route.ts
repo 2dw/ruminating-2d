@@ -1,4 +1,5 @@
 import { S3Client, ListObjectsV2Command } from "@aws-sdk/client-s3"
+import { creativeProjectOverrides } from "@/config/creative-projects"
 
 export const dynamic = "force-dynamic"
 
@@ -44,13 +45,16 @@ export async function GET() {
     const projects = Array.from(projectPaths)
       .sort()
       .map((projectPath) => {
+        const id = toId(projectPath)
         const title = toTitle(projectPath)
+        const override = creativeProjectOverrides[id] ?? creativeProjectOverrides[projectPath]
+        const displayTitle = override?.title ?? title
 
         return {
-          id: toId(projectPath),
-          title,
-          subtitle: "Creative Project",
-          description: `A creative project collection from ${title}.`,
+          id,
+          title: displayTitle,
+          subtitle: override?.subtitle ?? "Creative Project",
+          description: override?.description ?? `A creative project collection from ${displayTitle}.`,
           prefix: `projects/${projectPath}/`,
           cover: "/creative-project-fallback.svg",
         }
