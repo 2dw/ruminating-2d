@@ -39,27 +39,13 @@ export async function GET(request: Request) {
         )
       })
       .map((obj) => {
-        const customEndpoint = process.env.R2_CUSTOM_ENDPOINT
-        const endpoint = process.env.R2_ENDPOINT
-        const bucket = process.env.R2_BUCKET_NAME || ""
-        const accountId = process.env.R2_ACCOUNT_ID
-
-        let baseUrl = customEndpoint || ""
-
-        if (!baseUrl && endpoint && bucket) {
-          try {
-            const endpointUrl = new URL(endpoint)
-            endpointUrl.hostname = `${bucket}.${endpointUrl.hostname}`
-            endpointUrl.pathname = ""
-            baseUrl = endpointUrl.toString().replace(/\/$/, "")
-          } catch {
-            baseUrl = endpoint
-          }
-        }
-
-        if (!baseUrl && bucket && accountId) {
-          baseUrl = `https://${bucket}.${accountId}.r2.cloudflarestorage.com`
-        }
+        // Public base URL for serving R2 assets. R2_CUSTOM_ENDPOINT takes
+        // priority (used in production). If it isn't available (e.g. in the
+        // v0 preview sandbox), fall back to the known public custom domain.
+        // We intentionally do NOT fall back to the S3 API endpoint
+        // (*.r2.cloudflarestorage.com) since that requires signed requests
+        // and is not publicly fetchable from a browser.
+        const baseUrl = process.env.R2_CUSTOM_ENDPOINT || "https://assets.trudie.dpdns.org"
 
         const encodedKey = encodeURI(obj.Key || "")
         const url = baseUrl ? new URL(encodedKey, baseUrl).toString() : encodedKey
