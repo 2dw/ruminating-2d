@@ -17,6 +17,7 @@ const tabs = [
 
 export default function ProfessionalLayout({ children }: { children: ReactNode }) {
   const pathname = usePathname() || "/professional"
+  const isRoot = pathname === "/professional" || pathname === "/professional/"
   const [activeIndex, setActiveIndex] = useState(0)
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null)
   const tabRefs = useRef<(HTMLDivElement | null)[]>([])
@@ -104,26 +105,37 @@ export default function ProfessionalLayout({ children }: { children: ReactNode }
               />
 
               <div className="relative flex items-center space-x-[6px]">
-                {tabs.map((tab, index) => (
-                  <motion.div
-                    key={tab.href}
-                    ref={(el) => {
-                      tabRefs.current[index] = el
-                    }}
-                    className={`h-[30px] cursor-pointer px-3 py-2 transition-colors duration-300 ${
-                      index === activeIndex ? "text-green-700 dark:text-green-300" : "text-gray-600 dark:text-gray-400"
-                    }`}
-                    onMouseEnter={() => setHoveredIndex(index)}
-                    onMouseLeave={() => setHoveredIndex(null)}
-                    whileHover={{ y: -2 }}
-                    whileTap={{ scale: 0.95 }}
-                  >
-                    <Link href={tab.href} className="flex h-full items-center justify-center gap-1.5 whitespace-nowrap text-sm font-medium leading-5">
-                      {tab.icon}
-                      {tab.title}
-                    </Link>
-                  </motion.div>
-                ))}
+                {tabs.map((tab, index) => {
+                  const anchorHref = isRoot ? `#${tab.href.split("/").pop()}` : tab.href
+
+                  return (
+                    <motion.div
+                      key={tab.href}
+                      ref={(el) => {
+                        tabRefs.current[index] = el
+                      }}
+                      className={`h-[30px] cursor-pointer px-3 py-2 transition-colors duration-300 ${
+                        index === activeIndex ? "text-green-700 dark:text-green-300" : "text-gray-600 dark:text-gray-400"
+                      }`}
+                      onMouseEnter={() => setHoveredIndex(index)}
+                      onMouseLeave={() => setHoveredIndex(null)}
+                      whileHover={{ y: -2 }}
+                      whileTap={{ scale: 0.95 }}
+                    >
+                      {isRoot ? (
+                        <a href={anchorHref} className="flex h-full items-center justify-center gap-1.5 whitespace-nowrap text-sm font-medium leading-5">
+                          {tab.icon}
+                          {tab.title}
+                        </a>
+                      ) : (
+                        <Link href={anchorHref} className="flex h-full items-center justify-center gap-1.5 whitespace-nowrap text-sm font-medium leading-5">
+                          {tab.icon}
+                          {tab.title}
+                        </Link>
+                      )}
+                    </motion.div>
+                  )
+                })}
               </div>
             </div>
 

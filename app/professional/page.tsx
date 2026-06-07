@@ -61,13 +61,16 @@ export default function ProfessionalPage() {
             </div>
           </div>
 
-          <section className="grid gap-6 md:grid-cols-3">
+          <section className="grid gap-6 grid-cols-1">
             {professionalSections.map((section, index) => {
               const Icon = section.icon
+              const sectionId = section.href.split("/").pop()
 
               return (
-                <motion.div
+                <motion.section
                   key={section.href}
+                  id={sectionId}
+                  className="scroll-mt-28"
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.5, delay: index * 0.12 }}
@@ -87,7 +90,7 @@ export default function ProfessionalPage() {
                       </CardContent>
                     </button>
                   </Card>
-                </motion.div>
+                </motion.section>
               )
             })}
           </section>
