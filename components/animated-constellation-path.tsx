@@ -37,6 +37,14 @@ export function AnimatedConstellationPath({
   const pathControls = useAnimationControls()
   const [hasAnimated, setHasAnimated] = useState(false)
   const pathRef = useRef<SVGPathElement>(null)
+  const hasValidPath = typeof d === "string" && d.trim().length > 0
+  const hasValidPathAnimation = typeof pathVariants.d === "string" && pathVariants.d.trim().length > 0
+
+  if (!hasValidPath) {
+    // A missing or invalid SVG path should not block the entire constellation overlay.
+    // TODO: restore the exact path data here once a valid `d` value can be supplied.
+    return null
+  }
 
   // Initial animation
   useEffect(() => {
@@ -52,7 +60,7 @@ export function AnimatedConstellationPath({
       })
 
       // Start the continuous animation after the initial trace
-      if (Object.keys(pathVariants).length > 0) {
+      if (hasValidPathAnimation) {
         pathControls.start({
           d: pathVariants.d,
           filter: filterVariants.filter,
@@ -67,7 +75,7 @@ export function AnimatedConstellationPath({
     }
 
     sequence()
-  }, [pathControls, animationDuration, initialDelay, pathVariants, filterVariants])
+  }, [pathControls, animationDuration, initialDelay, hasValidPathAnimation, pathVariants, filterVariants])
 
   // Listen for retrace event
   useEffect(() => {
@@ -87,7 +95,7 @@ export function AnimatedConstellationPath({
         })
 
         // Restart the continuous animation
-        if (hasAnimated && Object.keys(pathVariants).length > 0) {
+        if (hasAnimated && hasValidPathAnimation) {
           pathControls.start({
             d: pathVariants.d,
             filter: filterVariants.filter,
@@ -106,7 +114,7 @@ export function AnimatedConstellationPath({
     return () => {
       document.removeEventListener("retrace-constellation", handleRetrace)
     }
-  }, [pathControls, animationDuration, initialDelay, pathVariants, filterVariants, hasAnimated])
+  }, [pathControls, animationDuration, initialDelay, hasAnimated, hasValidPathAnimation, pathVariants, filterVariants])
 
   return (
     <motion.path
