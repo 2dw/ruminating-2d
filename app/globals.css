@@ -157,3 +157,18 @@ textarea:focus-visible {
 .high-contrast .text-subtle {
   opacity: 1 !important;
 }
+
+.constellation-star {
+  animation: constellation-twinkle 6s ease-in-out infinite;
+  transform: translate(-50%, -50%);
+}
+
+@keyframes constellation-twinkle {
+  0%,
+  100% {
+    transform: translate(-50%, -50%) scale(0.86);
+  }
+  50% {
+    transform: translate(-50%, -50%) scale(1.26);
+  }
+}

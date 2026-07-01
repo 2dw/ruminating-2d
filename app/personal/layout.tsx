@@ -21,7 +21,6 @@ const tabs = [
 
 export default function PersonalLayout({ children }: { children: ReactNode }) {
   const pathname = usePathname() || "/personal"
-  const isRoot = pathname === "/personal" || pathname === "/personal/"
   const [activeIndex, setActiveIndex] = useState(0)
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null)
   const tabRefs = useRef<(HTMLDivElement | null)[]>([])
@@ -112,37 +111,26 @@ export default function PersonalLayout({ children }: { children: ReactNode }) {
               />
 
               <div className="relative flex space-x-[6px] items-center">
-                {tabs.map((tab, index) => {
-                  const anchorHref = isRoot ? `#${tab.href.split("/").pop()}` : tab.href
-
-                  return (
-                    <motion.div
-                      key={tab.href}
-                      ref={(el) => {
-                        if (el) tabRefs.current[index] = el
-                      }}
-                      className={`px-3 py-2 cursor-pointer transition-colors duration-300 h-[30px] ${
-                        index === activeIndex ? "text-blue-700 dark:text-blue-300" : "text-gray-600 dark:text-gray-400"
-                      }`}
-                      onMouseEnter={() => setHoveredIndex(index)}
-                      onMouseLeave={() => setHoveredIndex(null)}
-                      whileHover={{ y: -2 }}
-                      whileTap={{ scale: 0.95 }}
-                    >
-                      {isRoot ? (
-                        <a href={anchorHref} className="text-sm font-medium leading-5 whitespace-nowrap flex items-center justify-center h-full gap-1.5">
-                          {tab.icon}
-                          {tab.title}
-                        </a>
-                      ) : (
-                        <Link href={anchorHref} className="text-sm font-medium leading-5 whitespace-nowrap flex items-center justify-center h-full gap-1.5">
-                          {tab.icon}
-                          {tab.title}
-                        </Link>
-                      )}
-                    </motion.div>
-                  )
-                })}
+                {tabs.map((tab, index) => (
+                  <motion.div
+                    key={tab.href}
+                    ref={(el) => {
+                      if (el) tabRefs.current[index] = el
+                    }}
+                    className={`px-3 py-2 cursor-pointer transition-colors duration-300 h-[30px] ${
+                      index === activeIndex ? "text-blue-700 dark:text-blue-300" : "text-gray-600 dark:text-gray-400"
+                    }`}
+                    onMouseEnter={() => setHoveredIndex(index)}
+                    onMouseLeave={() => setHoveredIndex(null)}
+                    whileHover={{ y: -2 }}
+                    whileTap={{ scale: 0.95 }}
+                  >
+                    <Link href={tab.href} className="text-sm font-medium leading-5 whitespace-nowrap flex items-center justify-center h-full gap-1.5">
+                      {tab.icon}
+                      {tab.title}
+                    </Link>
+                  </motion.div>
+                ))}
               </div>
             </div>
 

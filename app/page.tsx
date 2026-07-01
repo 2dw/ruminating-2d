@@ -1,12 +1,12 @@
 "use client"
 
-import { useState, useEffect, useRef } from "react"
+import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { motion } from "framer-motion"
 import { AccessibilityControls } from "@/components/accessibility-controls"
 import { useAccessibility } from "@/contexts/accessibility-context"
 import { StarryBackground } from "@/components/starry-background"
-import { ArrowRight, BookOpen, Sparkles, Lightbulb, Camera, Palette, PenTool, Home, Sun, Moon } from "lucide-react"
+import { ArrowRight, BookOpen, Sparkles, Lightbulb, Camera, Palette, PenTool } from "lucide-react"
 import { Button } from "@/components/ui/button"
 
 export default function PortalPage() {
@@ -14,17 +14,6 @@ export default function PortalPage() {
   const [isDarkMode, setIsDarkMode] = useState(false)
   const [hoveredWorld, setHoveredWorld] = useState<"professional" | "personal" | null>(null)
   const { highContrast, announceToScreenReader } = useAccessibility()
-  const heroRef = useRef<HTMLElement | null>(null)
-  const professionalRef = useRef<HTMLDivElement | null>(null)
-  const personalRef = useRef<HTMLDivElement | null>(null)
-
-  const scrollToSection = (section: HTMLElement | null) => {
-    section?.scrollIntoView({ behavior: "smooth", block: "start" })
-  }
-
-  const scrollToHero = () => {
-    scrollToSection(heroRef.current)
-  }
 
   // Initialize dark mode from localStorage after component mounts
   useEffect(() => {
@@ -45,7 +34,7 @@ export default function PortalPage() {
     document.documentElement.classList.toggle("dark")
   }
 
-  const navigateTo = (path: string, worldName: string) => {
+  const navigateTo = (path: string, worldName: string, tabName?: string) => {
     announceToScreenReader(`Navigating to ${worldName}`)
     router.push(path)
   }
@@ -55,7 +44,7 @@ export default function PortalPage() {
       suppressHydrationWarning
       className={`min-h-screen w-full transition-colors duration-500 ${
         isDarkMode ? "dark bg-[#0a1015] text-white" : "bg-[#f8fcff] text-[#0e0f11]"
-      } ${highContrast ? "high-contrast" : ""} overflow-x-hidden`}
+      } ${highContrast ? "high-contrast" : ""} overflow-hidden`}
     >
       {/* Shooting Stars */}
       <StarryBackground shootingStarCount={3} />
@@ -78,78 +67,37 @@ export default function PortalPage() {
         </div>
 
         <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <button
-              type="button"
-              onClick={() => {
-                if (heroRef.current) {
-                  heroRef.current.scrollIntoView({ behavior: "smooth", block: "start" })
-                }
-              }}
-              className="text-2xl font-bold text-white tracking-wide"
-              style={{
-                fontFamily: "'Inter', 'Helvetica Neue', sans-serif",
-                fontWeight: "700",
-                letterSpacing: "0.05em",
-                textShadow:
-                  "0 2px 4px rgba(0, 0, 0, 0.8), 0 0 20px rgba(0, 0, 0, 0.6), 0 0 40px rgba(147, 197, 253, 0.4)",
-              }}
-            >
-              trudie wang
-            </button>
-
-            <nav className="hidden sm:flex items-center gap-4">
-              <button
-                type="button"
-                onClick={scrollToHero}
-                className="flex items-center gap-2 px-3 py-2 rounded transition text-sm text-white hover:text-blue-200"
-                aria-label="Home"
-                title="Home"
+          <div className="flex justify-end items-center h-16">
+            <div className="flex items-center">
+              <motion.h1
+                className="text-2xl font-bold text-white tracking-wide"
+                style={{
+                  fontFamily: "'Inter', 'Helvetica Neue', sans-serif",
+                  fontWeight: "700",
+                  letterSpacing: "0.05em",
+                  textShadow:
+                    "0 2px 4px rgba(0, 0, 0, 0.8), 0 0 20px rgba(0, 0, 0, 0.6), 0 0 40px rgba(147, 197, 253, 0.4)",
+                }}
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.5 }}
+                whileHover={{
+                  textShadow:
+                    "0 2px 6px rgba(0, 0, 0, 0.9), 0 0 30px rgba(0, 0, 0, 0.7), 0 0 60px rgba(147, 197, 253, 0.6)",
+                  scale: 1.05,
+                  letterSpacing: "0.08em",
+                }}
               >
-                <Home className="h-5 w-5 text-white" aria-hidden="true" />
-                <span className="hidden md:inline">Home</span>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => scrollToSection(professionalRef.current)}
-                className="flex items-center gap-2 px-3 py-2 rounded transition text-sm text-white hover:text-blue-200"
-                aria-label="Professional"
-                title="Professional"
-              >
-                <BookOpen className="h-5 w-5 text-white" aria-hidden="true" />
-                <span className="hidden md:inline">Professional</span>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => scrollToSection(personalRef.current)}
-                className="flex items-center gap-2 px-3 py-2 rounded transition text-sm text-white hover:text-blue-200"
-                aria-label="Personal"
-                title="Personal"
-              >
-                <Palette className="h-5 w-5 text-white" aria-hidden="true" />
-                <span className="hidden md:inline">Personal</span>
-              </button>
-            </nav>
-
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={toggleDarkMode}
-              className="text-white hover:bg-white/20"
-              aria-label="Toggle dark mode"
-              title={isDarkMode ? "Switch to light mode" : "Switch to dark mode"}
-            >
-              {isDarkMode ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
-            </Button>
+                trudie wang
+              </motion.h1>
+            </div>
           </div>
         </div>
       </header>
 
       {/* Main Portal */}
       <main id="main-content" className="pt-24 pb-16 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto" tabIndex={-1}>
-        <section ref={heroRef} id="hero" className="scroll-mt-28 text-center mb-6 relative py-12 md:py-16">
+        <div className="text-center mb-6 relative">
           <div className="pointer-events-none absolute inset-0 overflow-hidden">
             <motion.span
               className="absolute left-1/2 top-6 h-40 w-40 -translate-x-1/2 rounded-full bg-teal-300/10 blur-3xl"
@@ -198,14 +146,14 @@ export default function PortalPage() {
             Explore the interconnected paths of my professional journey and personal wanderings, like mycelium
             connecting all living things in nature.
           </motion.p>
-        </section>
 
-        <div className="grid grid-cols-1 gap-6 mt-6">
+        </div>
+
+        {/* Two Worlds - with more playful elements */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mt-4">
           {/* Professional World */}
           <motion.div
-            ref={professionalRef}
-            id="professional"
-            className={`scroll-mt-28 relative overflow-hidden rounded-2xl border transition-all duration-500 cursor-pointer ${
+            className={`relative overflow-hidden rounded-2xl border transition-all duration-500 cursor-pointer ${
               hoveredWorld === "professional"
                 ? "border-green-400 shadow-lg shadow-green-100 dark:shadow-green-900/20"
                 : hoveredWorld === "personal"
@@ -224,6 +172,8 @@ export default function PortalPage() {
             }}
           >
             <div className="absolute inset-0 bg-gradient-to-br from-green-50 to-green-100 dark:from-green-950/30 dark:to-green-900/20 z-0"></div>
+
+            {/* Mycelium-inspired background pattern - moved to bottom to avoid overlap */}
             <div
               className="absolute bottom-0 left-0 right-0 h-1/3 opacity-5 dark:opacity-10 z-0 overflow-hidden"
               aria-hidden="true"
@@ -336,9 +286,7 @@ export default function PortalPage() {
 
           {/* Personal World */}
           <motion.div
-            ref={personalRef}
-            id="personal"
-            className={`scroll-mt-28 relative overflow-hidden rounded-2xl border transition-all duration-500 cursor-pointer ${
+            className={`relative overflow-hidden rounded-2xl border transition-all duration-500 cursor-pointer ${
               hoveredWorld === "personal"
                 ? "border-blue-400 shadow-lg shadow-blue-100 dark:shadow-blue-900/20"
                 : hoveredWorld === "professional"
@@ -357,6 +305,8 @@ export default function PortalPage() {
             }}
           >
             <div className="absolute inset-0 bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-950/30 dark:to-blue-900/20 z-0"></div>
+
+            {/* Mycelium-inspired background pattern - moved to bottom to avoid overlap */}
             <div
               className="absolute bottom-0 left-0 right-0 h-1/3 opacity-5 dark:opacity-10 z-0 overflow-hidden"
               aria-hidden="true"
