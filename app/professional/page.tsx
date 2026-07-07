@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from "react"
 import { motion } from "framer-motion"
-import { FileText, GraduationCap, ExternalLink, Download, BookOpen, Sparkles, Lightbulb, Sun, Moon, Home } from "lucide-react"
+import { FileText, GraduationCap, ExternalLink, Download, BookOpen, Sparkles, Lightbulb, Sun, Moon } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { AccessibilityControls } from "@/components/accessibility-controls"
@@ -32,11 +32,6 @@ export default function ProfessionalPage() {
   const toggleDarkMode = () => {
     setIsDarkMode(!isDarkMode)
     document.documentElement.classList.toggle("dark")
-  }
-
-  const navigateBack = () => {
-    announceToScreenReader("Navigating back to main portal")
-    router.push("/")
   }
 
   useEffect(() => {
@@ -108,90 +103,7 @@ export default function ProfessionalPage() {
       {/* Accessibility Controls */}
       <AccessibilityControls isDarkMode={isDarkMode} toggleDarkMode={toggleDarkMode} />
 
-      {/* Header */}
-      <header className="sticky top-0 z-10 backdrop-blur-md bg-white/80 dark:bg-[#0a1015]/80 border-b border-gray-200 dark:border-gray-800">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <div className="flex items-center gap-4">
-              <motion.div whileHover={{ scale: 1.1, rotate: 5 }}>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => router.push("/")}
-                  className="text-green-600 dark:text-green-400 hover:text-green-700 dark:hover:text-green-300"
-                  aria-label="Return to main portal"
-                >
-                  <Home className="h-5 w-5" />
-                </Button>
-              </motion.div>
-              <motion.h1
-                className="text-xl font-serif font-bold text-green-700 dark:text-green-400"
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ duration: 0.5 }}
-              >
-                Professional Repertoire
-              </motion.h1>
-            </div>
-
-            {/* Tabs Navigation */}
-            <div className="relative hidden md:block">
-              {/* Hover Highlight */}
-              <div
-                className="absolute h-[30px] transition-all duration-300 ease-out bg-green-100/50 dark:bg-green-900/30 rounded-[6px] flex items-center"
-                style={{
-                  ...hoverStyle,
-                  opacity: hoveredIndex !== null ? 1 : 0,
-                }}
-              />
-
-              {/* Active Indicator */}
-              <motion.div
-                className="absolute bottom-[-16px] h-[2px] bg-green-600 dark:bg-green-400 transition-all duration-300 ease-out"
-                style={activeStyle}
-                initial={{ scaleX: 0 }}
-                animate={{ scaleX: 1 }}
-                transition={{ duration: 0.3 }}
-              />
-
-              {/* Tabs */}
-              <div className="relative flex space-x-[6px] items-center">
-                {tabs.map((tab, index) => (
-                  <motion.div
-                    key={index}
-                    ref={(el) => (tabRefs.current[index] = el)}
-                    className={`px-3 py-2 cursor-pointer transition-colors duration-300 h-[30px] ${
-                      index === activeIndex ? "text-green-700 dark:text-green-300" : "text-gray-600 dark:text-gray-400"
-                    }`}
-                    onMouseEnter={() => setHoveredIndex(index)}
-                    onMouseLeave={() => setHoveredIndex(null)}
-                    onClick={() => setActiveIndex(index)}
-                    whileHover={{ y: -2 }}
-                    whileTap={{ scale: 0.95 }}
-                  >
-                    <div className="text-sm font-medium leading-5 whitespace-nowrap flex items-center justify-center h-full gap-1.5">
-                      {tabIcons[index]}
-                      {tab}
-                    </div>
-                  </motion.div>
-                ))}
-              </div>
-            </div>
-
-            {/* Mobile Menu Button */}
-            <div className="md:hidden flex items-center">
-              <Button variant="ghost" size="sm" onClick={() => {}} className="text-green-600 dark:text-green-400">
-                Menu
-              </Button>
-            </div>
-
-            {/* Dark Mode Toggle */}
-            <Button variant="ghost" size="icon" onClick={toggleDarkMode} className="ml-4">
-              {isDarkMode ? <Sun className="h-[1.2rem] w-[1.2rem]" /> : <Moon className="h-[1.2rem] w-[1.2rem]" />}
-            </Button>
-          </div>
-        </div>
-      </header>
+      
 
       {/* Main Content */}
       <main className="pt-24 pb-16 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
