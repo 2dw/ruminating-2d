@@ -20,7 +20,7 @@ const r2 = new S3Client({
 
 async function getR2Object(key) {
   const cmd = new GetObjectCommand({
-    Bucket: process.env.R2_BUCKET_NAME || "ecoflow-history",
+    Bucket: "ecoflow-history",
     Key: key,
   });
   const resp = await r2.send(cmd);

@@ -28,7 +28,7 @@ const r2 = new S3Client({
   },
 });
 
-const BUCKET = process.env.R2_BUCKET_NAME || "ecoflow-history";
+const BUCKET = "ecoflow-history";
 const ADMIN_SECRET = process.env.ECOFLOW_ADMIN_SECRET;
 
 function checkAuth(request) {
