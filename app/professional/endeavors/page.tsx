@@ -1,12 +1,13 @@
 "use client"
 
 import { motion } from "framer-motion"
-import { ArrowLeft, GraduationCap, Sparkles } from "lucide-react"
+import { ArrowLeft, GraduationCap, Sparkles, Zap } from "lucide-react"
 import { useRouter } from "next/navigation"
 
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { DocumentCard } from "@/components/document-card"
+import BatteryViewer from "@/components/BatteryViewer"
 
 export default function ProfessionalEndeavorsPage() {
   const router = useRouter()
@@ -25,12 +26,13 @@ export default function ProfessionalEndeavorsPage() {
             <div>
               <h1 className="text-4xl font-serif font-bold text-slate-900 dark:text-white">Tiny Endeavors</h1>
               <p className="mt-2 max-w-2xl text-sm text-slate-600 dark:text-slate-400">
-                Research publications and professional experience across energy systems and optimization.
+                Research publications and live projects at the intersection of energy systems and personal infrastructure.
               </p>
             </div>
           </div>
 
           <section className="grid gap-8 md:grid-cols-2">
+            {/* Research Publications — unchanged */}
             <Card className="border-green-200 dark:border-green-800">
               <CardHeader>
                 <CardTitle className="text-green-700 dark:text-green-400">Research Publications</CardTitle>
@@ -58,26 +60,32 @@ export default function ProfessionalEndeavorsPage() {
               </CardContent>
             </Card>
 
-            <Card className="border-green-200 dark:border-green-800">
+            {/* Home Energy Dashboard — new */}
+            <Card className="border-green-200 dark:border-green-800 overflow-hidden">
               <CardHeader>
-                <CardTitle className="text-green-700 dark:text-green-400">Professional Experience</CardTitle>
-                <CardDescription>Key roles and contributions in the energy sector</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
+                <div className="flex items-center justify-between">
                   <div>
-                    <h2 className="font-semibold text-green-600 dark:text-green-400">Energy Systems Engineer</h2>
-                    <p className="text-sm text-gray-600 dark:text-gray-400">Developing optimization algorithms for renewable energy integration</p>
-                  </div>
-                  <div>
-                    <h2 className="font-semibold text-green-600 dark:text-green-400">Research Collaborator</h2>
-                    <p className="text-sm text-gray-600 dark:text-gray-400">Working on equitable energy access solutions for underserved communities</p>
-                  </div>
-                  <div>
-                    <h2 className="font-semibold text-green-600 dark:text-green-400">Sustainability Advocate</h2>
-                    <p className="text-sm text-gray-600 dark:text-gray-400">Promoting inclusive approaches to clean energy transition</p>
+                    <CardTitle className="text-green-700 dark:text-green-400 flex items-center gap-2">
+                      <Zap className="h-4 w-4" />
+                      Home Energy Dashboard
+                    </CardTitle>
+                    <CardDescription>
+                      Live solar + battery monitoring, forecasting, and PG&E integration
+                    </CardDescription>
                   </div>
                 </div>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {/* Live battery widget */}
+                <BatteryViewer />
+
+                {/* Link to full dashboard */}
+                <button
+                  onClick={() => router.push("/professional/endeavors/energy")}
+                  className="w-full rounded-lg border border-green-200 dark:border-green-800 py-2.5 text-sm text-green-700 dark:text-green-400 hover:bg-green-50 dark:hover:bg-green-950/30 transition-colors"
+                >
+                  open full dashboard →
+                </button>
               </CardContent>
             </Card>
           </section>
