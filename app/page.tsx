@@ -52,38 +52,28 @@ export default function PortalPage() {
       {/* Accessibility Controls */}
       <AccessibilityControls isDarkMode={isDarkMode} toggleDarkMode={toggleDarkMode} />
 
-      {/* Header with Neural Network Background */}
-      <header className="fixed top-0 w-full z-40 backdrop-blur-md border-b border-gray-200 dark:border-gray-800 overflow-hidden">
-        {/* Neural Network Background Image */}
-        <div
-          className="absolute inset-0 bg-cover bg-center bg-no-repeat"
-          style={{
-            backgroundImage: `url('/neural-network-reference.jpg')`,
-            filter: "brightness(0.6) contrast(1.1) hue-rotate(20deg) saturate(1.3)",
-          }}
-        >
-          {/* Lighter overlay for better text contrast */}
-          <div className="absolute inset-0 bg-gradient-to-r from-blue-900/60 via-slate-800/50 to-indigo-900/60"></div>
-        </div>
-
+      {/* Navigation Header */}
+      <header className="fixed top-0 w-full z-40 backdrop-blur-md border-b border-slate-200/40 dark:border-slate-800/40 bg-white/40 dark:bg-[#0a1015]/40 transition-colors duration-500">
         <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-end items-center h-16">
             <div className="flex items-center">
               <motion.h1
-                className="text-2xl font-bold text-white tracking-wide"
+                className="text-2xl font-bold text-slate-800 dark:text-white tracking-wide"
                 style={{
                   fontFamily: "'Inter', 'Helvetica Neue', sans-serif",
                   fontWeight: "700",
                   letterSpacing: "0.05em",
-                  textShadow:
-                    "0 2px 4px rgba(0, 0, 0, 0.8), 0 0 20px rgba(0, 0, 0, 0.6), 0 0 40px rgba(147, 197, 253, 0.4)",
+                  textShadow: isDarkMode
+                    ? "0 2px 8px rgba(0, 0, 0, 0.4), 0 0 16px rgba(45, 212, 191, 0.4)"
+                    : "0 2px 8px rgba(255, 255, 255, 0.4), 0 0 16px rgba(15, 118, 110, 0.2)",
                 }}
                 initial={{ opacity: 0, x: 20 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ duration: 0.5 }}
                 whileHover={{
-                  textShadow:
-                    "0 2px 6px rgba(0, 0, 0, 0.9), 0 0 30px rgba(0, 0, 0, 0.7), 0 0 60px rgba(147, 197, 253, 0.6)",
+                  textShadow: isDarkMode
+                    ? "0 2px 12px rgba(0, 0, 0, 0.6), 0 0 24px rgba(45, 212, 191, 0.6)"
+                    : "0 2px 12px rgba(255, 255, 255, 0.6), 0 0 24px rgba(15, 118, 110, 0.3)",
                   scale: 1.05,
                   letterSpacing: "0.08em",
                 }}
