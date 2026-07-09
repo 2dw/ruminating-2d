@@ -1,33 +1,46 @@
 "use client"
 
-import { useState, useRef, useEffect } from "react"
+import { useEffect, useState } from "react"
 import { motion } from "framer-motion"
-import { FileText, GraduationCap, ExternalLink, Download, BookOpen, Sparkles, Lightbulb, Sun, Moon } from "lucide-react"
+import { BookOpen, Sparkles, Lightbulb, ExternalLink, ArrowRight } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { AccessibilityControls } from "@/components/accessibility-controls"
 import { useAccessibility } from "@/contexts/accessibility-context"
 import { StarryBackground } from "@/components/starry-background"
-import { DocumentCard } from "@/components/document-card"
 import { useRouter } from "next/navigation"
 
-const tabs = ["Me Until Now", "Tiny Endeavors", "Mission Musings"]
-
-const tabIcons = [
-  <BookOpen key="me" className="h-4 w-4" />,
-  <Sparkles key="endeavors" className="h-4 w-4" />,
-  <Lightbulb key="musings" className="h-4 w-4" />,
+const sections = [
+  {
+    title: "Me Until Now",
+    icon: BookOpen,
+    href: "/professional/me",
+    description:
+      "Two decades at the intersection of engineering, distributed energy, and the conviction that a sustainable future must also be an equitable one. Stanford Ph.D. · three startups · two acquisitions.",
+    tags: ["Microgrids", "VPPs", "DER Optimization", "MPC · ADMM"],
+  },
+  {
+    title: "Tiny Endeavors",
+    icon: Sparkles,
+    href: "/professional/endeavors",
+    description:
+      "Research publications, live projects, and the home energy dashboard — where the engineering work becomes tangible. IEEE publications on DER control, plus a live solar + battery system built from scratch.",
+    tags: ["IEEE Publications", "Home Energy", "EcoFlow API", "Cloudflare R2"],
+  },
+  {
+    title: "Mission Musings",
+    icon: Lightbulb,
+    href: "/professional/musings",
+    description:
+      "Electrons are the network through which our resources communicate. Thoughts on distributed intelligence, the nexus of energy and water and food and waste, and what an equitable energy transition actually requires.",
+    tags: ["Systems Thinking", "Energy Equity", "Circular Economy", "Decarbonization"],
+  },
 ]
 
 export default function ProfessionalPage() {
   const router = useRouter()
-  const [isDarkMode, setIsDarkMode] = useState(false)
   const { announceToScreenReader } = useAccessibility()
-  const [activeIndex, setActiveIndex] = useState(0)
-  const [hoveredIndex, setHoveredIndex] = useState(null)
-  const tabRefs = useRef([])
-  const [hoverStyle, setHoverStyle] = useState({})
-  const [activeStyle, setActiveStyle] = useState({ left: "0px", width: "0px" })
+  const [isDarkMode, setIsDarkMode] = useState(false)
 
   const toggleDarkMode = () => {
     setIsDarkMode(!isDarkMode)
@@ -35,59 +48,8 @@ export default function ProfessionalPage() {
   }
 
   useEffect(() => {
-    // Check if dark mode is enabled in localStorage or system preference
     const isDark = document.documentElement.classList.contains("dark")
     setIsDarkMode(isDark)
-  }, [])
-
-  useEffect(() => {
-    if (hoveredIndex !== null) {
-      const hoveredElement = tabRefs.current[hoveredIndex]
-      if (hoveredElement) {
-        const { offsetLeft, offsetWidth } = hoveredElement
-        setHoverStyle({
-          left: `${offsetLeft}px`,
-          width: `${offsetWidth}px`,
-        })
-      }
-    }
-  }, [hoveredIndex])
-
-  useEffect(() => {
-    const activeElement = tabRefs.current[activeIndex]
-    if (activeElement) {
-      const { offsetLeft, offsetWidth } = activeElement
-      setActiveStyle({
-        left: `${offsetLeft}px`,
-        width: `${offsetWidth}px`,
-      })
-    }
-  }, [activeIndex])
-
-  useEffect(() => {
-    requestAnimationFrame(() => {
-      const overviewElement = tabRefs.current[0]
-      if (overviewElement) {
-        const { offsetLeft, offsetWidth } = overviewElement
-        setActiveStyle({
-          left: `${offsetLeft}px`,
-          width: `${offsetWidth}px`,
-        })
-      }
-    })
-  }, [])
-
-  useEffect(() => {
-    // Check if there's a target tab in sessionStorage
-    const targetTab = sessionStorage.getItem("targetTab")
-    if (targetTab) {
-      const tabIndex = tabs.findIndex((tab) => tab === targetTab)
-      if (tabIndex !== -1) {
-        setActiveIndex(tabIndex)
-      }
-      // Clear the target tab from sessionStorage
-      sessionStorage.removeItem("targetTab")
-    }
   }, [])
 
   return (
@@ -97,251 +59,133 @@ export default function ProfessionalPage() {
         isDarkMode ? "dark bg-[#0a1015] text-white" : "bg-[#f8fcff] text-[#0e0f11]"
       }`}
     >
-      {/* Shooting Stars */}
       <StarryBackground shootingStarCount={2} />
-
-      {/* Accessibility Controls */}
       <AccessibilityControls isDarkMode={isDarkMode} toggleDarkMode={toggleDarkMode} />
 
-      
+      <main className="pt-24 pb-16 px-4 sm:px-6 lg:px-8 max-w-5xl mx-auto">
 
-      {/* Main Content */}
-      <main className="pt-24 pb-16 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
-        {/* Hero Section */}
+        {/* Hero */}
         <motion.div
-          className="text-center mb-12"
+          className="text-center mb-14"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.7 }}
         >
-          <h1 className="text-4xl md:text-5xl font-serif mb-6 text-green-700 dark:text-green-400">
+          <h1 className="text-4xl md:text-5xl font-serif mb-5 text-green-700 dark:text-green-400">
             Professional Repertoire
           </h1>
-          <p className="text-lg md:text-xl max-w-3xl mx-auto text-gray-600 dark:text-gray-300">
-            My journey through engineering, research, and advocacy for equitable energy solutions and sustainable
-            systems that heal our planet.
+          <p className="text-lg md:text-xl max-w-2xl mx-auto text-gray-600 dark:text-gray-300 leading-relaxed">
+            Engineering and product leadership at the frontier of distributed energy —
+            building platforms, scaling acquisitions, and proving that intelligent systems
+            and equitable access are not in conflict.
           </p>
         </motion.div>
 
-        {/* Me Until Now Section */}
-        {activeIndex === 0 && (
-          <motion.section
-            className="mb-16"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.7, delay: 0.2 }}
-          >
-            <h2 className="text-3xl font-serif mb-8 text-green-800 dark:text-green-300">Me Until Now</h2>
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-              <Card className="border-green-200 dark:border-green-800">
-                <CardHeader>
-                  <CardTitle className="text-green-700 dark:text-green-400">Background & Education</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-4">
-                    <div>
-                      <h4 className="font-semibold text-green-600 dark:text-green-400">Stanford University</h4>
-                      <p className="text-sm text-gray-600 dark:text-gray-400">
-                        Ph.D., Mechanical Engineering - Renewable energy systems, distributed optimization, controls, DER integration
-                      </p>
-                      <p className="text-sm text-gray-600 dark:text-gray-400">
-                        M.S., Mechanical Engineering
-                      </p>
+        {/* Section cards */}
+        <div className="grid gap-6 md:grid-cols-1 lg:grid-cols-3 mb-14">
+          {sections.map((section, i) => {
+            const Icon = section.icon
+            return (
+              <motion.div
+                key={section.title}
+                initial={{ opacity: 0, y: 24 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6, delay: 0.15 + i * 0.1 }}
+              >
+                <Card
+                  className="border-green-200 dark:border-green-800 h-full cursor-pointer group
+                             hover:border-green-400 dark:hover:border-green-600
+                             hover:shadow-md transition-all duration-200"
+                  onClick={() => router.push(section.href)}
+                >
+                  <CardHeader className="pb-3">
+                    <div className="flex items-center justify-between">
+                      <div className="flex h-10 w-10 items-center justify-center rounded-2xl
+                                      bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300
+                                      group-hover:bg-green-200 dark:group-hover:bg-green-800 transition-colors">
+                        <Icon className="h-5 w-5" />
+                      </div>
+                      <ArrowRight className="h-4 w-4 text-green-400 dark:text-green-600
+                                             opacity-0 group-hover:opacity-100 transition-opacity" />
                     </div>
-                    <div>
-                      <h4 className="font-semibold text-green-600 dark:text-green-400">UC Berkeley</h4>
-                      <p className="text-sm text-gray-600 dark:text-gray-400">
-                        B.S., Mechanical Engineering (Honors)
-                      </p>
+                    <CardTitle className="text-green-700 dark:text-green-400 mt-3">
+                      {section.title}
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed">
+                      {section.description}
+                    </p>
+                    <div className="flex flex-wrap gap-1.5">
+                      {section.tags.map(tag => (
+                        <span
+                          key={tag}
+                          className="inline-block rounded-full border border-green-200 dark:border-green-800
+                                     px-2.5 py-0.5 text-xs text-green-700 dark:text-green-400"
+                        >
+                          {tag}
+                        </span>
+                      ))}
                     </div>
-                    <div>
-                      <h4 className="font-semibold text-green-600 dark:text-green-400">Core Expertise</h4>
-                      <p className="text-sm text-gray-600 dark:text-gray-400">
-                        Distributed optimization and control (MPC, ADMM), microgrids, VPPs, DERMS, transactive energy, forecasting, analytics, and systems thinking across energy, water, food, and waste
-                      </p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
+                  </CardContent>
+                </Card>
+              </motion.div>
+            )
+          })}
+        </div>
 
-              <Card className="border-green-200 dark:border-green-800">
-                <CardHeader>
-                  <CardTitle className="text-green-700 dark:text-green-400">Current Mission</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-gray-700 dark:text-gray-300">
-                    As an Asian female engineer, I'm passionate about creating energy systems that not only heal our
-                    planet but ensure equitable access for all communities. My work focuses on the intersection of
-                    technology, sustainability, and social justice.
-                  </p>
-                </CardContent>
-              </Card>
-            </div>
-
-            {/* Resume Document */}
-            <div className="mt-8">
-              <h3 className="text-xl font-semibold mb-4 text-green-700 dark:text-green-400 flex items-center">
-                <FileText className="h-5 w-5 mr-2" />
-                Resume
-              </h3>
-              <DocumentCard
-                title="Trudie Wang - Resume"
-                description="Complete professional background, experience, and qualifications"
-                type="pdf"
-                url="https://assets.trudie.dpdns.org/professional/Trudie's%20resume.pdf"
-                icon={<FileText className="h-6 w-6" />}
-                color="green"
-              />
-            </div>
-          </motion.section>
-        )}
-
-        {/* Tiny Endeavors Section */}
-        {activeIndex === 1 && (
-          <motion.section
-            className="mb-16"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.7, delay: 0.4 }}
-          >
-            <h2 className="text-3xl font-serif mb-8 text-green-800 dark:text-green-300">Tiny Endeavors</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-              <Card className="border-green-200 dark:border-green-800">
-                <CardHeader>
-                  <CardTitle className="text-green-700 dark:text-green-400">Research Publications</CardTitle>
-                  <CardDescription>Academic contributions to energy systems and optimization</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-4">
-                    <DocumentCard
-                      title="Dynamic Control and Optimization of Distributed Energy Resources in a Microgrid"
-                      description="Advanced optimization techniques for distributed energy resource management (2015)"
-                      type="pdf"
-                      url="https://assets.trudie.dpdns.org/professional/2015%20Dynamic%20Control%20and%20Optimization%20of%20Distributed%20Energy%20Resources%20in%20a%20Microgrid.pdf"
-                      icon={<GraduationCap className="h-6 w-6" />}
-                      color="green"
-                    />
-                    <DocumentCard
-                      title="Control and Optimization of Grid-Tied Photovoltaic Storage Systems Using Model Predictive Control"
-                      description="Control theory applications in sustainable energy systems (2014)"
-                      type="pdf"
-                      url="https://assets.trudie.dpdns.org/professional/2014%20Control%20and%20Optimization%20of%20Grid-Tied%20Photovoltaic%20Storage%20Systems%20Using%20Model%20Predictive%20Control.pdf"
-                      icon={<GraduationCap className="h-6 w-6" />}
-                      color="green"
-                    />
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card className="border-green-200 dark:border-green-800">
-                <CardHeader>
-                  <CardTitle className="text-green-700 dark:text-green-400">Professional Experience</CardTitle>
-                  <CardDescription>Key roles and contributions in the energy sector</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-4">
-                    <div>
-                      <h4 className="font-semibold text-green-600 dark:text-green-400">Energy Systems Engineer</h4>
-                      <p className="text-sm text-gray-600 dark:text-gray-400">
-                        Developing optimization algorithms for renewable energy integration
-                      </p>
-                    </div>
-                    <div>
-                      <h4 className="font-semibold text-green-600 dark:text-green-400">Research Collaborator</h4>
-                      <p className="text-sm text-gray-600 dark:text-gray-400">
-                        Working on equitable energy access solutions for underserved communities
-                      </p>
-                    </div>
-                    <div>
-                      <h4 className="font-semibold text-green-600 dark:text-green-400">Sustainability Advocate</h4>
-                      <p className="text-sm text-gray-600 dark:text-gray-400">
-                        Promoting inclusive approaches to clean energy transition
-                      </p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-          </motion.section>
-        )}
-
-        {/* Mission Musings Section */}
-        {activeIndex === 2 && (
-          <motion.section
-            className="mb-16"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.7, delay: 0.6 }}
-          >
-            <h2 className="text-3xl font-serif mb-8 text-green-800 dark:text-green-300">Mission Musings</h2>
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-              <Card className="border-green-200 dark:border-green-800">
-                <CardHeader>
-                  <CardTitle className="text-green-700 dark:text-green-400">Healing Our Planet</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-gray-700 dark:text-gray-300">
-                    Every energy system we design should contribute to planetary healing. This means considering not
-                    just efficiency, but regenerative impact on ecosystems and communities.
-                  </p>
-                </CardContent>
-              </Card>
-
-              <Card className="border-green-200 dark:border-green-800">
-                <CardHeader>
-                  <CardTitle className="text-green-700 dark:text-green-400">Equitable Access</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-gray-700 dark:text-gray-300">
-                    Clean energy shouldn't be a privilege. My work focuses on ensuring that sustainable solutions are
-                    accessible to all communities, especially those historically marginalized.
-                  </p>
-                </CardContent>
-              </Card>
-
-              <Card className="border-green-200 dark:border-green-800">
-                <CardHeader>
-                  <CardTitle className="text-green-700 dark:text-green-400">Interconnected Systems</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-gray-700 dark:text-gray-300">
-                    Like mycelium networks in nature, our energy systems should be interconnected, resilient, and
-                    mutually supportive, creating webs of sustainability.
-                  </p>
-                </CardContent>
-              </Card>
-            </div>
-          </motion.section>
-        )}
-
-        {/* Call to Action */}
-        <motion.section
-          className="text-center"
+        {/* Thought leadership strip */}
+        <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.7, delay: 0.8 }}
+          transition={{ duration: 0.7, delay: 0.5 }}
+          className="mb-14"
         >
-          <Card className="border-green-200 dark:border-green-800 bg-green-50 dark:bg-green-950/20">
-            <CardContent className="pt-6">
-              <h3 className="text-2xl font-serif mb-4 text-green-800 dark:text-green-300">
-                Let's Build a Sustainable Future Together
+          <Card className="border-green-200 dark:border-green-800 bg-green-50/60 dark:bg-green-950/20">
+            <CardContent className="pt-6 pb-5">
+              <h3 className="text-sm font-semibold text-green-700 dark:text-green-400
+                             uppercase tracking-widest mb-4">
+                Thought Leadership
               </h3>
-              <p className="text-gray-700 dark:text-gray-300 mb-6">
-                Interested in collaborating on energy equity projects or discussing sustainable systems? I'd love to
-                connect and explore how we can create positive impact together.
-              </p>
-              <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                <Button 
-                  className="bg-green-600 hover:bg-green-700 text-white"
-                  onClick={() => window.open("https://www.linkedin.com/in/trudie/", "_blank")}
-                >
-                  <ExternalLink className="h-4 w-4 mr-2" />
-                  Connect on LinkedIn
-                </Button>
+              <div className="flex flex-wrap gap-2">
+                {[
+                  "Distributech", "RE+ Grid Edge", "NABCEP", "IEEE Tech Expo",
+                  "Smart Grid", "Wood Mackenzie Grid Edge Summit", "Stanford Energy Seminar",
+                  "NY Climate Week", "Interchange Recharged Podcast",
+                  "Microgrid Knowledge", "GridTECH", "International Microgrid Symposium",
+                ].map(venue => (
+                  <span
+                    key={venue}
+                    className="rounded-full bg-white dark:bg-green-950/40 border border-green-200
+                               dark:border-green-800 px-3 py-1 text-xs text-gray-600 dark:text-gray-400"
+                  >
+                    {venue}
+                  </span>
+                ))}
               </div>
             </CardContent>
           </Card>
-        </motion.section>
+        </motion.div>
+
+        {/* CTA */}
+        <motion.div
+          className="text-center"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.7, delay: 0.65 }}
+        >
+          <p className="text-gray-500 dark:text-gray-400 text-sm mb-4">
+            Interested in collaborating on energy equity, distributed systems, or climate technology?
+          </p>
+          <Button
+            className="bg-green-600 hover:bg-green-700 text-white"
+            onClick={() => window.open("https://www.linkedin.com/in/trudie/", "_blank")}
+          >
+            <ExternalLink className="h-4 w-4 mr-2" />
+            Connect on LinkedIn
+          </Button>
+        </motion.div>
+
       </main>
     </div>
   )
