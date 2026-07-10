@@ -39,6 +39,7 @@ interface MyceliumNode {
   x: number
   y: number
   size: number
+  depth: number
 }
 
 interface MyceliumPath {
@@ -47,29 +48,70 @@ interface MyceliumPath {
   startY: number
   endX: number
   endY: number
+  cp1X: number  // cubic bezier control point 1
+  cp1Y: number
+  cp2X: number  // cubic bezier control point 2
+  cp2Y: number
   startNodeId: string | null
   endNodeId: string
+  depth: number
 }
 
+// Seeded deterministic pseudo-random so the grid is stable across re-renders
+let _seed = 42
+function srng() {
+  _seed = (_seed * 1664525 + 1013904223) & 0xffffffff
+  return ((_seed >>> 0) / 0xffffffff)
+}
+function resetSrng() { _seed = 42 }
+
+// Green palette shades for mycelium nodes (dark mode) keyed by depth
+const GREEN_SHADES_DARK = [
+  "rgba(21, 128, 61, 0.9)",   // depth 0 – forest-green root
+  "rgba(22, 163, 74, 0.85)",  // depth 1
+  "rgba(34, 197, 94, 0.82)",  // depth 2
+  "rgba(74, 222, 128, 0.78)", // depth 3
+  "rgba(134, 239, 172, 0.7)", // depth 4 – light emerald tips
+]
+const GREEN_SHADES_LIGHT = [
+  "rgba(20, 83, 45, 0.85)",   // depth 0
+  "rgba(21, 128, 61, 0.75)",  // depth 1
+  "rgba(22, 163, 74, 0.68)",  // depth 2
+  "rgba(34, 197, 94, 0.58)",  // depth 3
+  "rgba(74, 222, 128, 0.48)", // depth 4
+]
+
 function generateMyceliumGrid() {
+  resetSrng()
   const paths: MyceliumPath[] = []
   const nodes: MyceliumNode[] = []
   
   // Root origins along the top header area (percentages of screen width)
-  const origins = [8, 20, 36, 50, 64, 80, 92]
+  const origins = [5, 15, 28, 42, 56, 70, 83, 94]
   let nodeId = 0
   let pathId = 0
   
-  function grow(x: number, y: number, angle: number, length: number, depth: number, parentNodeId: string | null) {
-    if (depth > 4) return
+  function grow(
+    x: number, y: number,
+    angle: number, length: number,
+    depth: number, parentNodeId: string | null
+  ) {
+    if (depth > 5) return
     
-    const rad = angle
-    const endX = x + Math.cos(rad) * length
-    const endY = y + Math.sin(rad) * length * 1.3 // stretch vertically slightly
+    const endX = x + Math.cos(angle) * length
+    const endY = y + Math.sin(angle) * length * 1.2
     
-    // keep it in the top 35% of the screen to blend with header
-    if (endX < 0 || endX > 100 || endY < 0 || endY > 35) return
+    // Keep roots in the top ~38% of screen to overlap with the transparent header
+    if (endX < -2 || endX > 102 || endY < -1 || endY > 38) return
     
+    // Cubic bezier control points — pull them sideways to create a meander
+    const drift1 = (srng() - 0.5) * length * 1.8
+    const drift2 = (srng() - 0.5) * length * 1.4
+    const cp1X = x + (endX - x) * 0.3 + drift1
+    const cp1Y = y + (endY - y) * 0.3 + (srng() - 0.3) * length * 0.6
+    const cp2X = x + (endX - x) * 0.7 + drift2
+    const cp2Y = y + (endY - y) * 0.7 + (srng() - 0.3) * length * 0.5
+
     const nodeKey = `mycelium-node-${nodeId++}`
     const pathKey = `mycelium-path-${pathId++}`
     
@@ -77,31 +119,34 @@ function generateMyceliumGrid() {
       id: nodeKey,
       x: endX,
       y: endY,
-      size: 1.0 + (4 - depth) * 0.4,
+      size: 1.2 + (5 - depth) * 0.45,
+      depth,
     })
     
     paths.push({
       id: pathKey,
-      startX: x,
-      startY: y,
-      endX,
-      endY,
+      startX: x, startY: y,
+      endX, endY,
+      cp1X, cp1Y, cp2X, cp2Y,
       startNodeId: parentNodeId,
       endNodeId: nodeKey,
+      depth,
     })
     
-    const branchChance = 0.55
-    if (Math.random() < branchChance) {
-      grow(endX, endY, angle - (0.2 + Math.random() * 0.35), length * 0.72, depth + 1, nodeKey)
-      grow(endX, endY, angle + (0.2 + Math.random() * 0.35), length * 0.72, depth + 1, nodeKey)
+    // Vary branching based on depth: denser near root
+    const branchChance = depth < 2 ? 0.72 : 0.48
+    const spread = 0.18 + srng() * 0.38
+    if (srng() < branchChance) {
+      grow(endX, endY, angle - spread, length * (0.68 + srng() * 0.12), depth + 1, nodeKey)
+      grow(endX, endY, angle + spread, length * (0.68 + srng() * 0.12), depth + 1, nodeKey)
     } else {
-      grow(endX, endY, angle + (Math.random() * 0.3 - 0.15), length * 0.78, depth + 1, nodeKey)
+      grow(endX, endY, angle + (srng() * 0.28 - 0.14), length * (0.75 + srng() * 0.1), depth + 1, nodeKey)
     }
   }
   
   origins.forEach((origX) => {
-    // Start grow pointing mostly downwards (PI/2 = 90 deg)
-    grow(origX, 0, Math.PI / 2 + (Math.random() * 0.3 - 0.15), 5 + Math.random() * 3, 0, null)
+    const startAngle = Math.PI / 2 + (srng() * 0.4 - 0.2)
+    grow(origX, 0, startAngle, 4.5 + srng() * 3.5, 0, null)
   })
   
   return { paths, nodes }
@@ -121,6 +166,8 @@ export function StarryBackground({ shootingStarCount = 3, isDarkMode = false }: 
   const [mycelium, setMycelium] = useState<{ paths: MyceliumPath[]; nodes: MyceliumNode[] }>({ paths: [], nodes: [] })
   const [activeMyceliumNodes, setActiveMyceliumNodes] = useState<Record<string, number>>({})
   const [activeMyceliumPaths, setActiveMyceliumPaths] = useState<Record<string, number>>({})
+  // Normalised 0-1 position of pointer within viewport height (0 = top, 1 = bottom)
+  const [pointerYNorm, setPointerYNorm] = useState(0)
   
   const starsRef = useRef<Star[]>([])
   const myceliumRef = useRef<{ paths: MyceliumPath[]; nodes: MyceliumNode[] }>({ paths: [], nodes: [] })
@@ -238,6 +285,9 @@ export function StarryBackground({ shootingStarCount = 3, isDarkMode = false }: 
       setConnections(nextConnections)
       setPointerGlow({ x: pointer.x, y: pointer.y, active: true })
 
+      // Track vertical position for colour morphing (0 = top, 1 = bottom)
+      setPointerYNorm(Math.min(1, Math.max(0, pointer.y / window.innerHeight)))
+
       // Calculate distances for mycelium nodes
       const nextActiveNodes: Record<string, number> = {}
       myceliumRef.current.nodes.forEach((node) => {
@@ -319,6 +369,20 @@ export function StarryBackground({ shootingStarCount = 3, isDarkMode = false }: 
   const lineColor = isDarkMode ? "rgba(103, 232, 249, 1)" : "rgba(8, 126, 164, 1)"
   const glowColor = isDarkMode ? "rgba(20, 184, 166, 0.16)" : "rgba(8, 145, 178, 0.13)"
 
+  // Lerp a color channel value from green zone → sky-blue zone based on pointer Y
+  // pointerYNorm: 0 = top header area, 1 = bottom of page
+  // mycelium zone = top 0–30%, constellation zone = 30%+
+  const morphT = Math.min(1, Math.max(0, (pointerYNorm - 0.15) / 0.45))
+  // Green electron: rgb(34, 197, 94) → Sky-blue electron: rgb(56, 189, 248)
+  const electronR = Math.round(34 + (56 - 34) * morphT)
+  const electronG = Math.round(197 + (189 - 197) * morphT)
+  const electronB = Math.round(94 + (248 - 94) * morphT)
+  const electronColor = `rgb(${electronR}, ${electronG}, ${electronB})`
+  // Dimmer version for mycelium strands
+  const electronColorLight = isDarkMode
+    ? `rgba(${electronR}, ${electronG}, ${electronB}, 0.75)`
+    : `rgba(${Math.round(electronR * 0.7)}, ${Math.round(electronG * 0.7)}, ${Math.round(electronB * 0.5)}, 0.8)`
+
   return (
     <>
       <div
@@ -361,7 +425,8 @@ export function StarryBackground({ shootingStarCount = 3, isDarkMode = false }: 
           const baseOpacity = isDarkMode ? 0.16 : 0.10
           const activeOpacity = activity * 0.85
           const totalOpacity = Math.min(1, baseOpacity + activeOpacity)
-          const nodeColor = isDarkMode ? "rgba(45, 212, 191, 0.9)" : "rgba(13, 148, 136, 0.75)"
+          const palette = isDarkMode ? GREEN_SHADES_DARK : GREEN_SHADES_LIGHT
+          const nodeColor = palette[Math.min(node.depth, palette.length - 1)]
           
           return (
             <span
@@ -370,7 +435,7 @@ export function StarryBackground({ shootingStarCount = 3, isDarkMode = false }: 
               style={{
                 backgroundColor: nodeColor,
                 boxShadow: activity > 0
-                  ? `0 0 ${node.size * (4 + activity * 6)}px ${nodeColor}, 0 0 ${node.size * (2 + activity * 3)}px #ffffff`
+                  ? `0 0 ${node.size * (4 + activity * 6)}px ${nodeColor}, 0 0 ${node.size * (2 + activity * 3)}px #fff`
                   : `0 0 ${node.size * 2.5}px ${nodeColor}`,
                 height: `${node.size + activity * 1.8}px`,
                 left: `${node.x}%`,
@@ -403,49 +468,57 @@ export function StarryBackground({ shootingStarCount = 3, isDarkMode = false }: 
             </filter>
           </defs>
 
-          {/* Render mycelium network paths */}
+          {/* Render mycelium network paths as curved bezier strands */}
           {mycelium.paths.map((path) => {
             const activity = activeMyceliumPaths[path.id] || 0
-            const baseOpacity = isDarkMode ? 0.10 : 0.06
+            const palette = isDarkMode ? GREEN_SHADES_DARK : GREEN_SHADES_LIGHT
+            const strandColor = palette[Math.min(path.depth, palette.length - 1)]
+            const baseOpacity = isDarkMode ? 0.10 : 0.065
             const activeOpacity = activity * 0.58
             const totalOpacity = baseOpacity + activeOpacity
             
-            // Traveling electron pulse properties
             const showPulse = activity > 0.05
-            const distance = Math.hypot(
+
+            // Build the cubic bezier path string using percentage-based coords
+            // SVG percentage coordinates work on viewBox but we use absolute pixel
+            // percentages as attributes directly (they resolve at render time).
+            const d = [
+              `M ${path.startX}% ${path.startY}%`,
+              `C ${path.cp1X}% ${path.cp1Y}%`,
+              `  ${path.cp2X}% ${path.cp2Y}%`,
+              `  ${path.endX}% ${path.endY}%`,
+            ].join(" ")
+
+            // Approximate arc length for speed calculation (rough but sufficient)
+            const approxDist = Math.hypot(
               ((path.endX - path.startX) / 100) * (typeof window !== "undefined" ? window.innerWidth : 1000),
               ((path.endY - path.startY) / 100) * (typeof window !== "undefined" ? window.innerHeight : 800)
-            )
-            const speed = 150 // pixels per second (balanced for a gentle, organic flow)
-            const duration = Math.max(0.3, distance / speed)
+            ) * 1.35  // bezier is ~35% longer than straight chord
+            const duration = Math.max(0.3, approxDist / 150)
 
             return (
               <g key={path.id}>
-                {/* Base mycelium strand */}
-                <line
-                  x1={`${path.startX}%`}
-                  y1={`${path.startY}%`}
-                  x2={`${path.endX}%`}
-                  y2={`${path.endY}%`}
-                  stroke={lineColor}
+                {/* Base curved mycelium strand */}
+                <path
+                  d={d}
+                  stroke={strandColor}
                   strokeLinecap="round"
                   strokeOpacity={totalOpacity}
                   strokeWidth={1.0 + activity * 2.0}
+                  fill="none"
                   filter="url(#mycelium-biolume)"
                   className="transition-all duration-300"
                 />
 
-                {/* Traveling electron pulse along the mycelium strand */}
+                {/* Traveling morphing electron pulse */}
                 {showPulse && (
-                  <motion.line
-                    x1={`${path.startX}%`}
-                    y1={`${path.startY}%`}
-                    x2={`${path.endX}%`}
-                    y2={`${path.endY}%`}
-                    stroke={isDarkMode ? "#2dd4bf" : "#0f766e"}
+                  <motion.path
+                    d={d}
+                    stroke={electronColorLight}
                     strokeLinecap="round"
                     strokeOpacity={activity}
                     strokeWidth={1.8 + activity * 1.8}
+                    fill="none"
                     strokeDasharray="6, 14"
                     animate={{
                       strokeDashoffset: [0, -20],
@@ -454,7 +527,7 @@ export function StarryBackground({ shootingStarCount = 3, isDarkMode = false }: 
                       strokeDashoffset: {
                         repeat: Infinity,
                         ease: "linear",
-                        duration: duration,
+                        duration,
                       },
                     }}
                     filter="url(#constellation-glow)"
@@ -464,7 +537,7 @@ export function StarryBackground({ shootingStarCount = 3, isDarkMode = false }: 
             )
           })}
 
-          {/* Render normal constellation connections with electron pulses */}
+          {/* Render normal constellation connections with morphing electron pulses */}
           {connections.map((connection) => {
             const distance = Math.hypot(connection.x2 - connection.x1, connection.y2 - connection.y1)
             const speed = 175 // pixels per second (balanced for a gentle, organic flow)
@@ -484,13 +557,13 @@ export function StarryBackground({ shootingStarCount = 3, isDarkMode = false }: 
                   strokeWidth={1.1 + connection.opacity * 1.7}
                   filter="url(#constellation-glow)"
                 />
-                {/* Traveling electron pulse */}
+                {/* Traveling morphing electron pulse */}
                 <motion.line
                   x1={connection.x1}
                   y1={connection.y1}
                   x2={connection.x2}
                   y2={connection.y2}
-                  stroke={isDarkMode ? "#38bdf8" : "#0284c7"}
+                  stroke={electronColor}
                   strokeLinecap="round"
                   strokeOpacity={connection.opacity}
                   strokeWidth={1.8 + connection.opacity * 1.8}
@@ -502,7 +575,7 @@ export function StarryBackground({ shootingStarCount = 3, isDarkMode = false }: 
                     strokeDashoffset: {
                       repeat: Infinity,
                       ease: "linear",
-                      duration: duration,
+                      duration,
                     },
                   }}
                   filter="url(#constellation-glow)"
