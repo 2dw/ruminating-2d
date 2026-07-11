@@ -38,7 +38,7 @@ export default function ProfessionalMePage() {
 
             <div>
               <h1 className="text-4xl font-serif font-bold text-slate-900 dark:text-white">
-                Me Until Now
+                Professional Repertoire
               </h1>
               <p className="mt-2 max-w-2xl text-sm text-slate-600 dark:text-slate-400">
                 Two decades at the intersection of engineering, distributed energy, and the
@@ -65,11 +65,12 @@ export default function ProfessionalMePage() {
                       Stanford University
                     </h2>
                     <p className="mt-1 text-sm text-gray-700 dark:text-gray-300 leading-relaxed">
-                      Ph.D. and M.S., Mechanical Engineering — doctoral research focused on
-                      dynamically integrating and optimizing distributed energy resources into
-                      the power grid using model predictive control and distributed optimization
-                      (MPC, ADMM), laying algorithmic foundations for proactive microgrids
-                      and virtual power plants.
+                      I earned my PhD and MS in Mechanical Engineering at Stanford University.
+                      My doctoral research focused on the dynamic integration and optimization
+                      of distributed energy resources within the power grid using model
+                      predictive control and distributed optimization. This work established
+                      algorithmic foundations for proactive microgrids and virtual power plants
+                      and shaped the trajectory of my career in distributed energy systems.
                     </p>
                   </div>
 
@@ -87,11 +88,11 @@ export default function ProfessionalMePage() {
                       Core Expertise
                     </h2>
                     <p className="mt-1 text-sm text-gray-700 dark:text-gray-300 leading-relaxed">
-                      Distributed optimization and control · microgrids · VPPs · DERMS ·
-                      transactive energy · forecasting and predictive modeling · product
-                      strategy and roadmapping · systems‑level design across the nexus of
-                      energy, water, food, and waste · equitable clean energy deployment ·
-                      ISO/RTO markets (CAISO, PJM, ERCOT)
+                      Distributed optimization and control. Microgrids. Virtual power plants.
+                      DERMS. Transactive energy. Forecasting and predictive modeling. Product
+                      strategy and roadmapping. Systems level design across the nexus of
+                      energy, water, food, and waste. Equitable clean energy deployment.
+                      ISO and RTO markets including CAISO, PJM, and ERCOT.
                     </p>
                   </div>
 
@@ -114,16 +115,17 @@ export default function ProfessionalMePage() {
                       Heila Technologies <span className="font-normal text-gray-500 dark:text-gray-400 text-xs">(Acquired)</span>
                     </h2>
                     <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">
-                      VP of Innovation · VP of Product · Product Strategy Lead · 2020–2024
+                      Vice President of Innovation · Vice President of Product · Product Strategy Lead · 2020–2024
                     </p>
                     <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed">
-                      Led innovation, product strategy, and distributed optimization for an
-                      MIT‑born microgrid and DER control platform. Played a decisive role in
-                      Heila's acquisition by Kohler — defining the product roadmap, presenting
-                      the long‑term technical vision, and providing domain expertise through
-                      due diligence. Directed algorithm and product teams to significantly
-                      improve optimization performance across all production sites, enabling
-                      value stacking, resilience services, and market participation globally.
+                      As Vice President of Innovation, Vice President of Product, and Product
+                      Strategy Lead from 2020 to 2024, I guided innovation, product strategy,
+                      and distributed optimization for an MIT born microgrid and distributed
+                      energy control platform. I defined the long term technical vision and
+                      product roadmap and supported acquisition due diligence. I led algorithm
+                      and product teams to deliver significant improvements in optimization
+                      performance across global deployments and enabled value stacking,
+                      resilience services, and market participation.
                     </p>
                   </div>
 
@@ -135,10 +137,11 @@ export default function ProfessionalMePage() {
                       Staff / Senior Analytics Engineer · 2015–2020
                     </p>
                     <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed">
-                      Developed forecasting, optimization, and aggregation algorithms for early
-                      VPP architectures and DER control systems. Contributed to GELI's
+                      From 2015 to 2020, I developed forecasting, optimization, and
+                      aggregation algorithms for early virtual power plant architectures and
+                      distributed energy control systems. I contributed to the company's
                       acquisition through technical leadership and international deployments
-                      including ARPA‑E NODES pilots in the US and New Zealand.
+                      including ARPA E NODES pilots in the United States and New Zealand.
                     </p>
                   </div>
 
@@ -150,9 +153,12 @@ export default function ProfessionalMePage() {
                       Power Systems Engineer · Graduate Research Intern · 2010–2015
                     </p>
                     <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed">
-                      Managed DER integration pilots at SolarCity and developed dynamic
-                      distributed control algorithms for DERs at EPRI using MPC and ADMM,
-                      quantifying load‑balancing potential with real‑world utility data.
+                      Between 2010 and 2015, I advanced distributed control strategies for
+                      distributed energy resource integration. I managed integration pilots
+                      at SolarCity and developed dynamic distributed control algorithms at
+                      EPRI using model predictive control and distributed optimization.
+                      I quantified load balancing potential using real utility data and helped
+                      shape early approaches to distributed control.
                     </p>
                   </div>
 
@@ -169,27 +175,31 @@ export default function ProfessionalMePage() {
               </CardHeader>
               <CardContent className="space-y-4">
                 <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed">
-                  My mission is to build energy systems that are intelligent, resilient, and
-                  equitable — and to do it with the urgency this moment demands. The energy
-                  transition is not just a technological challenge. It is a systems‑level
-                  opportunity to redesign how resources are generated, shared, and governed
-                  so that the benefits reach every community.
+                  My work has always been guided by two north stars. Humanity must learn to
+                  live sustainably with the planet, and resource equity must be treated as a
+                  core design principle rather than an afterthought. I believe the energy
+                  transition will only succeed if end users, communities, and grid operators
+                  are empowered participants in the systems that shape their lives.
                 </p>
                 <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed">
-                  Across three startups and two acquisitions, I have led the architecture and
-                  deployment of distributed optimization platforms for microgrids, VPPs, and
-                  community resilience hubs — from the Oakland EcoBlock and Red Cross
-                  resilience sites to California's first microgrid‑enabled wastewater treatment
-                  facility. I have represented this work at Distributech, RE+, Stanford, Wood
-                  Mackenzie, IEEE, and NY Climate Week, and I have served as a technical
-                  lead on NSF and ARPA‑E programs advancing distributed control and
-                  transactive energy.
+                  Throughout my career I have focused on building distributed energy platforms,
+                  microgrids, virtual power plants, and optimization systems that support this
+                  vision. I have worked across algorithms, engineering, product architecture,
+                  commercial strategy, and industry leadership. This range allows me to connect
+                  technical and executive domains, translate across disciplines, and design
+                  systems that scale in real environments. My deployments have spanned climate
+                  resilience hubs, community microgrids, wastewater treatment facilities, and
+                  international pilots, each grounded in the belief that technology, economics,
+                  and human impact must move together.
                 </p>
                 <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed">
-                  I lead with infectious enthusiasm and a do‑more‑with‑less mindset. I believe
-                  electrons are the network through which our resources communicate — and
-                  that designing intelligent, circular systems across the nexus of energy, water,
-                  food, and waste is how we build a future worth living in.
+                  What motivates me is the opportunity to take everything I have built and
+                  learned and scale it with intention. I want to help shape the next generation
+                  of this industry and contribute to a future where sustainable infrastructure
+                  is accessible to all. My goal is to work in environments where communities
+                  and grid stakeholders are treated as partners, where transparency and aligned
+                  incentives guide the work, and where systems are designed to be resilient,
+                  equitable, and future ready.
                 </p>
               </CardContent>
             </Card>
