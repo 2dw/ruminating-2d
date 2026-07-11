@@ -65,12 +65,12 @@ export default function ProfessionalMePage() {
                       Stanford University
                     </h2>
                     <p className="mt-1 text-sm text-gray-700 dark:text-gray-300 leading-relaxed">
-                      I earned my PhD and MS in Mechanical Engineering at Stanford University.
-                      My doctoral research focused on the dynamic integration and optimization
-                      of distributed energy resources within the power grid using model
-                      predictive control and distributed optimization. This work established
-                      algorithmic foundations for proactive microgrids and virtual power plants
-                      and shaped the trajectory of my career in distributed energy systems.
+                      PhD and MS in Mechanical Engineering from Stanford University. Doctoral
+                      research focused on the dynamic integration and optimization of
+                      distributed energy resources within the power grid using model predictive
+                      control and distributed optimization. This work established algorithmic
+                      foundations for proactive microgrids and virtual power plants and set
+                      the trajectory for my career in distributed energy systems.
                     </p>
                   </div>
 
@@ -79,7 +79,7 @@ export default function ProfessionalMePage() {
                       UC Berkeley
                     </h2>
                     <p className="mt-1 text-sm text-gray-700 dark:text-gray-300">
-                      B.S., Mechanical Engineering (Honors)
+                      BS in Mechanical Engineering with Honors from the University of California, Berkeley.
                     </p>
                   </div>
 
@@ -91,7 +91,7 @@ export default function ProfessionalMePage() {
                       Distributed optimization and control. Microgrids. Virtual power plants.
                       DERMS. Transactive energy. Forecasting and predictive modeling. Product
                       strategy and roadmapping. Systems level design across the nexus of
-                      energy, water, food, and waste. Equitable clean energy deployment.
+                      energy, water, food, water, and waste. Equitable clean energy deployment.
                       ISO and RTO markets including CAISO, PJM, and ERCOT.
                     </p>
                   </div>
@@ -114,18 +114,14 @@ export default function ProfessionalMePage() {
                     <h2 className="font-semibold text-green-600 dark:text-green-400">
                       Heila Technologies <span className="font-normal text-gray-500 dark:text-gray-400 text-xs">(Acquired)</span>
                     </h2>
-                    <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">
-                      Vice President of Innovation · Vice President of Product · Product Strategy Lead · 2020–2024
-                    </p>
                     <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed">
-                      As Vice President of Innovation, Vice President of Product, and Product
-                      Strategy Lead from 2020 to 2024, I guided innovation, product strategy,
-                      and distributed optimization for an MIT born microgrid and distributed
-                      energy control platform. I defined the long term technical vision and
-                      product roadmap and supported acquisition due diligence. I led algorithm
-                      and product teams to deliver significant improvements in optimization
-                      performance across global deployments and enabled value stacking,
-                      resilience services, and market participation.
+                      Work focused on innovation, product strategy, and distributed optimization
+                      for an MIT born microgrid and distributed energy control platform.
+                      Responsibilities included defining the long term technical vision and
+                      product roadmap and supporting acquisition due diligence. Algorithm and
+                      product teams were guided to deliver significant improvements in
+                      optimization performance across global deployments and to enable value
+                      stacking, resilience services, and market participation.
                     </p>
                   </div>
 
@@ -133,15 +129,12 @@ export default function ProfessionalMePage() {
                     <h2 className="font-semibold text-green-600 dark:text-green-400">
                       Growing Energy Labs <span className="font-normal text-gray-500 dark:text-gray-400 text-xs">(Acquired)</span>
                     </h2>
-                    <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">
-                      Staff / Senior Analytics Engineer · 2015–2020
-                    </p>
                     <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed">
-                      From 2015 to 2020, I developed forecasting, optimization, and
-                      aggregation algorithms for early virtual power plant architectures and
-                      distributed energy control systems. I contributed to the company's
-                      acquisition through technical leadership and international deployments
-                      including ARPA E NODES pilots in the United States and New Zealand.
+                      Work centered on forecasting, optimization, and aggregation algorithms
+                      for early virtual power plant architectures and distributed energy control
+                      systems. Technical leadership contributed to the company's acquisition and
+                      supported international deployments including ARPA E NODES pilots in the
+                      United States and New Zealand.
                     </p>
                   </div>
 
@@ -149,16 +142,13 @@ export default function ProfessionalMePage() {
                     <h2 className="font-semibold text-green-600 dark:text-green-400">
                       SolarCity · EPRI
                     </h2>
-                    <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">
-                      Power Systems Engineer · Graduate Research Intern · 2010–2015
-                    </p>
                     <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed">
-                      Between 2010 and 2015, I advanced distributed control strategies for
-                      distributed energy resource integration. I managed integration pilots
-                      at SolarCity and developed dynamic distributed control algorithms at
-                      EPRI using model predictive control and distributed optimization.
-                      I quantified load balancing potential using real utility data and helped
-                      shape early approaches to distributed control.
+                      Work advanced distributed control strategies for distributed energy
+                      resource integration. Responsibilities included managing integration
+                      pilots and developing dynamic distributed control algorithms using
+                      model predictive control and distributed optimization. Real utility
+                      data was used to quantify load balancing potential and to inform early
+                      approaches to distributed control.
                     </p>
                   </div>
 
@@ -184,10 +174,10 @@ export default function ProfessionalMePage() {
                 <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed">
                   Throughout my career I have focused on building distributed energy platforms,
                   microgrids, virtual power plants, and optimization systems that support this
-                  vision. I have worked across algorithms, engineering, product architecture,
+                  vision. My work has spanned algorithms, engineering, product architecture,
                   commercial strategy, and industry leadership. This range allows me to connect
                   technical and executive domains, translate across disciplines, and design
-                  systems that scale in real environments. My deployments have spanned climate
+                  systems that scale in real environments. Deployments have included climate
                   resilience hubs, community microgrids, wastewater treatment facilities, and
                   international pilots, each grounded in the belief that technology, economics,
                   and human impact must move together.
