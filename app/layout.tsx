@@ -3,6 +3,7 @@ import type { Metadata } from "next"
 import { Inter } from "next/font/google"
 import "./globals.css"
 import { AccessibilityProvider } from "@/contexts/accessibility-context"
+import { StarryBackground } from "@/components/starry-background"
 
 const inter = Inter({ subsets: ["latin"] })
 
@@ -24,6 +25,7 @@ export default function RootLayout({
       </head>
       <body className={inter.className} suppressHydrationWarning>
         <AccessibilityProvider>
+          <StarryBackground />
           {children}
 
           {/* Screen reader announcer */}

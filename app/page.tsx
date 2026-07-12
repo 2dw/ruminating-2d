@@ -5,7 +5,6 @@ import { useRouter } from "next/navigation"
 import { motion } from "framer-motion"
 import { AccessibilityControls } from "@/components/accessibility-controls"
 import { useAccessibility } from "@/contexts/accessibility-context"
-import { StarryBackground } from "@/components/starry-background"
 import { ArrowRight, BookOpen, Sparkles, Lightbulb, Camera, Palette, PenTool } from "lucide-react"
 import { Button } from "@/components/ui/button"
 
@@ -46,9 +45,6 @@ export default function PortalPage() {
         isDarkMode ? "dark bg-[#0a1015] text-white" : "bg-[#f8fcff] text-[#0e0f11]"
       } ${highContrast ? "high-contrast" : ""} overflow-hidden`}
     >
-      {/* Shooting Stars */}
-      <StarryBackground shootingStarCount={3} />
-
       {/* Accessibility Controls */}
       <AccessibilityControls isDarkMode={isDarkMode} toggleDarkMode={toggleDarkMode} />
 

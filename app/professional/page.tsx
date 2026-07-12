@@ -3,8 +3,6 @@
 import { motion } from "framer-motion"
 import { BookOpen, Sparkles, Lightbulb } from "lucide-react"
 import { useRouter } from "next/navigation"
-import { StarryBackground } from "@/components/starry-background"
-
 const sections = [
   {
     title: "Me Until Now",
@@ -34,7 +32,6 @@ export default function ProfessionalPage() {
 
   return (
     <div className="min-h-screen w-full bg-[#f8fcff] text-[#0e0f11] dark:bg-[#0a1015] dark:text-white transition-colors duration-500 pt-24">
-      <StarryBackground shootingStarCount={2} />
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
 
         <motion.div

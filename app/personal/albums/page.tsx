@@ -8,8 +8,6 @@ import { Moon, Sun } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { AccessibilityControls } from "@/components/accessibility-controls"
 import { useAccessibility } from "@/contexts/accessibility-context"
-import { StarryBackground } from "@/components/starry-background"
-
 interface PhotoAlbum {
   id: string
   title: string
@@ -101,8 +99,6 @@ export default function PhotoAlbumsPage() {
         isDarkMode ? "dark bg-[#0a1015] text-white" : "bg-[#f8fcff] text-[#0e0f11]"
       } ${highContrast ? "high-contrast" : ""}`}
     >
-      <StarryBackground shootingStarCount={3} />
-
       <AccessibilityControls isDarkMode={isDarkMode} toggleDarkMode={toggleDarkMode} />
 
       <header className="sticky top-0 z-10 backdrop-blur-md bg-white/80 dark:bg-[#0a1015]/80 border-b border-gray-200 dark:border-gray-800">
