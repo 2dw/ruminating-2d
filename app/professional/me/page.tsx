@@ -1,12 +1,51 @@
 "use client"
 
 import { motion } from "framer-motion"
-import { ArrowLeft, BookOpen, FileText } from "lucide-react"
+import { ArrowLeft, BookOpen, FileText, CheckCircle2 } from "lucide-react"
 import { useRouter } from "next/navigation"
+import { useState } from "react"
 
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { DocumentCard } from "@/components/document-card"
+
+const expertiseItems = [
+  "Distributed optimization and control",
+  "Microgrids",
+  "Virtual power plants",
+  "DERMS",
+  "Transactive energy",
+  "Forecasting and predictive modeling",
+  "Product strategy and roadmapping",
+  "Systems level design across the nexus of energy, water, food, water, and waste",
+  "Equitable clean energy deployment",
+  "ISO and RTO markets including CAISO, PJM, and ERCOT",
+]
+
+function HoverCard({
+  children,
+  className,
+}: {
+  children: React.ReactNode
+  className?: string
+}) {
+  const [hovered, setHovered] = useState(false)
+
+  return (
+    <motion.div
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      whileHover={{ y: -4 }}
+      transition={{ type: "spring", stiffness: 300, damping: 20 }}
+    >
+      <div
+        className={`transition-all duration-300 ${hovered ? "shadow-xl shadow-green-900/10 dark:shadow-green-400/10 ring-2 ring-green-400/40 dark:ring-green-400/30" : "shadow-sm"} ${className ?? ""}`}
+      >
+        {children}
+      </div>
+    </motion.div>
+  )
+}
 
 export default function ProfessionalMePage() {
   const router = useRouter()
@@ -40,7 +79,7 @@ export default function ProfessionalMePage() {
               <h1 className="text-4xl font-serif font-bold text-slate-900 dark:text-white">
                 Professional Repertoire
               </h1>
-              <p className="mt-2 max-w-2xl text-sm text-slate-600 dark:text-slate-400">
+              <p className="mt-2 max-w-2xl text-base text-slate-600 dark:text-slate-400">
                 Two decades at the intersection of engineering, distributed energy, and the
                 conviction that a sustainable future must also be an equitable one.
               </p>
@@ -51,148 +90,155 @@ export default function ProfessionalMePage() {
           <section className="grid gap-8 lg:grid-cols-3">
 
             {/* Background & Education */}
-            <Card className="border-green-200 dark:border-green-800">
-              <CardHeader>
-                <CardTitle className="text-green-700 dark:text-green-400">
-                  Background and Education
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-5">
+            <HoverCard>
+              <Card className="h-full border-green-200 dark:border-green-800">
+                <CardHeader>
+                  <CardTitle className="text-green-700 dark:text-green-400">
+                    Background and Education
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-5">
 
-                  <div>
-                    <h2 className="font-semibold text-green-600 dark:text-green-400">
-                      Stanford University
-                    </h2>
-                    <p className="mt-1 text-sm text-gray-700 dark:text-gray-300 leading-relaxed">
-                      PhD and MS in Mechanical Engineering from Stanford University. Doctoral
-                      research focused on the dynamic integration and optimization of
-                      distributed energy resources within the power grid using model predictive
-                      control and distributed optimization. This work established algorithmic
-                      foundations for proactive microgrids and virtual power plants and set
-                      the trajectory for my career in distributed energy systems.
-                    </p>
+                    <div>
+                      <h2 className="font-semibold text-green-600 dark:text-green-400">
+                        Stanford University
+                      </h2>
+                      <p className="mt-1 text-[15px]/relaxed text-gray-700 dark:text-gray-300">
+                        PhD and MS in Mechanical Engineering from Stanford University. Doctoral
+                        research focused on the dynamic integration and optimization of
+                        distributed energy resources within the power grid using model predictive
+                        control and distributed optimization. This work established algorithmic
+                        foundations for proactive microgrids and virtual power plants and set
+                        the trajectory for my career in distributed energy systems.
+                      </p>
+                    </div>
+
+                    <div>
+                      <h2 className="font-semibold text-green-600 dark:text-green-400">
+                        UC Berkeley
+                      </h2>
+                      <p className="mt-1 text-[15px] text-gray-700 dark:text-gray-300">
+                        BS in Mechanical Engineering with Honors from the University of California, Berkeley.
+                      </p>
+                    </div>
+
+                    <div>
+                      <h2 className="font-semibold text-green-600 dark:text-green-400">
+                        Core Expertise
+                      </h2>
+                      <ul className="mt-1 space-y-1">
+                        {expertiseItems.map((item) => (
+                          <li key={item} className="flex items-start gap-2 text-[15px] text-gray-700 dark:text-gray-300">
+                            <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-green-500" />
+                            <span>{item}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+
                   </div>
-
-                  <div>
-                    <h2 className="font-semibold text-green-600 dark:text-green-400">
-                      UC Berkeley
-                    </h2>
-                    <p className="mt-1 text-sm text-gray-700 dark:text-gray-300">
-                      BS in Mechanical Engineering with Honors from the University of California, Berkeley.
-                    </p>
-                  </div>
-
-                  <div>
-                    <h2 className="font-semibold text-green-600 dark:text-green-400">
-                      Core Expertise
-                    </h2>
-                    <p className="mt-1 text-sm text-gray-700 dark:text-gray-300 leading-relaxed">
-                      Distributed optimization and control. Microgrids. Virtual power plants.
-                      DERMS. Transactive energy. Forecasting and predictive modeling. Product
-                      strategy and roadmapping. Systems level design across the nexus of
-                      energy, water, food, water, and waste. Equitable clean energy deployment.
-                      ISO and RTO markets including CAISO, PJM, and ERCOT.
-                    </p>
-                  </div>
-
-                </div>
-              </CardContent>
-            </Card>
+                </CardContent>
+              </Card>
+            </HoverCard>
 
             {/* Professional Experience */}
-            <Card className="border-green-200 dark:border-green-800">
-              <CardHeader>
-                <CardTitle className="text-green-700 dark:text-green-400">
-                  Professional Experience
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-5">
+            <HoverCard>
+              <Card className="h-full border-green-200 dark:border-green-800">
+                <CardHeader>
+                  <CardTitle className="text-green-700 dark:text-green-400">
+                    Professional Experience
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-5">
 
-                  <div>
-                    <h2 className="font-semibold text-green-600 dark:text-green-400">
-                      Heila Technologies <span className="font-normal text-gray-500 dark:text-gray-400 text-xs">(Acquired)</span>
-                    </h2>
-                    <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed">
-                      Work focused on innovation, product strategy, and distributed optimization
-                      for an MIT born microgrid and distributed energy control platform.
-                      Responsibilities included defining the long term technical vision and
-                      product roadmap and supporting acquisition due diligence. Algorithm and
-                      product teams were guided to deliver significant improvements in
-                      optimization performance across global deployments and to enable value
-                      stacking, resilience services, and market participation.
-                    </p>
+                    <div>
+                      <h2 className="font-semibold text-green-600 dark:text-green-400">
+                        Heila Technologies <span className="font-normal text-gray-500 dark:text-gray-400 text-xs">(Acquired)</span>
+                      </h2>
+                      <p className="mt-1 text-[15px]/relaxed text-gray-700 dark:text-gray-300">
+                        Work focused on innovation, product strategy, and distributed optimization
+                        for an MIT born microgrid and distributed energy control platform.
+                        Responsibilities included defining the long term technical vision and
+                        product roadmap and supporting acquisition due diligence. Algorithm and
+                        product teams were guided to deliver significant improvements in
+                        optimization performance across global deployments and to enable value
+                        stacking, resilience services, and market participation.
+                      </p>
+                    </div>
+
+                    <div>
+                      <h2 className="font-semibold text-green-600 dark:text-green-400">
+                        Growing Energy Labs <span className="font-normal text-gray-500 dark:text-gray-400 text-xs">(Acquired)</span>
+                      </h2>
+                      <p className="mt-1 text-[15px]/relaxed text-gray-700 dark:text-gray-300">
+                        Work centered on forecasting, optimization, and aggregation algorithms
+                        for early virtual power plant architectures and distributed energy control
+                        systems. Technical leadership contributed to the company's acquisition and
+                        supported international deployments including ARPA E NODES pilots in the
+                        United States and New Zealand.
+                      </p>
+                    </div>
+
+                    <div>
+                      <h2 className="font-semibold text-green-600 dark:text-green-400">
+                        SolarCity · EPRI
+                      </h2>
+                      <p className="mt-1 text-[15px]/relaxed text-gray-700 dark:text-gray-300">
+                        Work advanced distributed control strategies for distributed energy
+                        resource integration. Responsibilities included managing integration
+                        pilots and developing dynamic distributed control algorithms using
+                        model predictive control and distributed optimization. Real utility
+                        data was used to quantify load balancing potential and to inform early
+                        approaches to distributed control.
+                      </p>
+                    </div>
+
                   </div>
-
-                  <div>
-                    <h2 className="font-semibold text-green-600 dark:text-green-400">
-                      Growing Energy Labs <span className="font-normal text-gray-500 dark:text-gray-400 text-xs">(Acquired)</span>
-                    </h2>
-                    <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed">
-                      Work centered on forecasting, optimization, and aggregation algorithms
-                      for early virtual power plant architectures and distributed energy control
-                      systems. Technical leadership contributed to the company's acquisition and
-                      supported international deployments including ARPA E NODES pilots in the
-                      United States and New Zealand.
-                    </p>
-                  </div>
-
-                  <div>
-                    <h2 className="font-semibold text-green-600 dark:text-green-400">
-                      SolarCity · EPRI
-                    </h2>
-                    <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed">
-                      Work advanced distributed control strategies for distributed energy
-                      resource integration. Responsibilities included managing integration
-                      pilots and developing dynamic distributed control algorithms using
-                      model predictive control and distributed optimization. Real utility
-                      data was used to quantify load balancing potential and to inform early
-                      approaches to distributed control.
-                    </p>
-                  </div>
-
-                </div>
-              </CardContent>
-            </Card>
+                </CardContent>
+              </Card>
+            </HoverCard>
 
             {/* Mission */}
-            <Card className="border-green-200 dark:border-green-800">
-              <CardHeader>
-                <CardTitle className="text-green-700 dark:text-green-400">
-                  Mission
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed">
-                  My work has always been guided by two north stars. Humanity must learn to
-                  live sustainably with the planet, and resource equity must be treated as a
-                  core design principle rather than an afterthought. I believe the energy
-                  transition will only succeed if end users, communities, and grid operators
-                  are empowered participants in the systems that shape their lives.
-                </p>
-                <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed">
-                  Throughout my career I have focused on building distributed energy platforms,
-                  microgrids, virtual power plants, and optimization systems that support this
-                  vision. My work has spanned algorithms, engineering, product architecture,
-                  commercial strategy, and industry leadership. This range allows me to connect
-                  technical and executive domains, translate across disciplines, and design
-                  systems that scale in real environments. Deployments have included climate
-                  resilience hubs, community microgrids, wastewater treatment facilities, and
-                  international pilots, each grounded in the belief that technology, economics,
-                  and human impact must move together.
-                </p>
-                <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed">
-                  What motivates me is the opportunity to take everything I have built and
-                  learned and scale it with intention. I want to help shape the next generation
-                  of this industry and contribute to a future where sustainable infrastructure
-                  is accessible to all. My goal is to work in environments where communities
-                  and grid stakeholders are treated as partners, where transparency and aligned
-                  incentives guide the work, and where systems are designed to be resilient,
-                  equitable, and future ready.
-                </p>
-              </CardContent>
-            </Card>
+            <HoverCard>
+              <Card className="h-full border-green-200 dark:border-green-800">
+                <CardHeader>
+                  <CardTitle className="text-green-700 dark:text-green-400">
+                    Mission
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <p className="text-[15px]/relaxed text-gray-700 dark:text-gray-300">
+                    My work has always been guided by two north stars. Humanity must learn to
+                    live sustainably with the planet, and resource equity must be treated as a
+                    core design principle rather than an afterthought. I believe the energy
+                    transition will only succeed if end users, communities, and grid operators
+                    are empowered participants in the systems that shape their lives.
+                  </p>
+                  <p className="text-[15px]/relaxed text-gray-700 dark:text-gray-300">
+                    Throughout my career I have focused on building distributed energy platforms,
+                    microgrids, virtual power plants, and optimization systems that support this
+                    vision. My work has spanned algorithms, engineering, product architecture,
+                    commercial strategy, and industry leadership. This range allows me to connect
+                    technical and executive domains, translate across disciplines, and design
+                    systems that scale in real environments. Deployments have included climate
+                    resilience hubs, community microgrids, wastewater treatment facilities, and
+                    international pilots, each grounded in the belief that technology, economics,
+                    and human impact must move together.
+                  </p>
+                  <p className="text-[15px]/relaxed text-gray-700 dark:text-gray-300">
+                    What motivates me is the opportunity to take everything I have built and
+                    learned and scale it with intention. I want to help shape the next generation
+                    of this industry and contribute to a future where sustainable infrastructure
+                    is accessible to all. My goal is to work in environments where communities
+                    and grid stakeholders are treated as partners, where transparency and aligned
+                    incentives guide the work, and where systems are designed to be resilient,
+                    equitable, and future ready.
+                  </p>
+                </CardContent>
+              </Card>
+            </HoverCard>
 
           </section>
 

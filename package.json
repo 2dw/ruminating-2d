@@ -1,7 +1,7 @@
 {
   "name": "trudie-wang-portfolio",
   "version": "0.1.0",
-  "packageManager": "pnpm@10.0.0",
+  "packageManager": "pnpm@11.12.0",
   "private": true,
   "scripts": {
     "build": "next build",
