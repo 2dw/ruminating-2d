@@ -67,6 +67,9 @@
     "vaul": "^0.9.6",
     "zod": "^3.24.1"
   },
+  "pnpm": {
+    "onlyBuiltDependencies": ["es5-ext", "sharp", "unrs-resolver"]
+  },
   "devDependencies": {
     "@types/node": "^22",
     "@types/react": "^19",
