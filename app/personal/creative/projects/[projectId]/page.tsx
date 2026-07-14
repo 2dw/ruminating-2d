@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react"
 import { motion } from "framer-motion"
-import { ArrowLeft, FolderKanban, Sparkles, Target, Tags as TagsIcon, Star } from "lucide-react"
+import { ArrowLeft, FolderKanban, Sparkles, Target, Tags as TagsIcon, Star, MapPin, Building2 } from "lucide-react"
 import { useParams, useRouter } from "next/navigation"
 
 import { Button } from "@/components/ui/button"
@@ -185,9 +185,31 @@ export default function CreativeProjectPage() {
                     <div key={index} className="relative mb-10 last:mb-0">
                       <div className={`flex items-start ${isLeft ? "flex-row" : "flex-row-reverse"}`}>
                         <div className={`w-1/2 ${isLeft ? "pr-8 text-right" : "pl-8 text-left"}`}>
-                          <span className="inline-block text-xs font-medium tracking-wider text-blue-500 uppercase">
-                            {milestone.date}
-                          </span>
+                          {milestone.location ? (
+                            <span className="group/pin relative inline-flex items-center gap-1 text-xs font-medium tracking-wider text-blue-500">
+                              <Building2 className="h-3.5 w-3.5" />
+                              <svg className="h-3 w-4" viewBox="0 0 30 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <rect width="30" height="20" rx="1" fill="#DE2910" />
+                                <g transform="translate(15,10)">
+                                  <g fill="white">
+                                    <ellipse cx="0" cy="-5" rx="1.8" ry="4" transform="rotate(0)" />
+                                    <ellipse cx="0" cy="-5" rx="1.8" ry="4" transform="rotate(72)" />
+                                    <ellipse cx="0" cy="-5" rx="1.8" ry="4" transform="rotate(144)" />
+                                    <ellipse cx="0" cy="-5" rx="1.8" ry="4" transform="rotate(216)" />
+                                    <ellipse cx="0" cy="-5" rx="1.8" ry="4" transform="rotate(288)" />
+                                  </g>
+                                  <circle cx="0" cy="0" r="1.5" fill="#DE2910" />
+                                </g>
+                              </svg>
+                              <span className="pointer-events-none absolute -top-8 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-md bg-slate-800 px-2.5 py-1 text-[11px] text-white opacity-0 shadow-lg transition-opacity duration-150 group-hover/pin:opacity-100">
+                                {milestone.location}
+                              </span>
+                            </span>
+                          ) : (
+                            <span className="inline-flex items-center gap-1 text-xs font-medium tracking-wider text-blue-500">
+                              <MapPin className="h-3.5 w-3.5" />
+                            </span>
+                          )}
                           <h3 className="mt-1 font-serif text-lg font-semibold text-slate-900 dark:text-white">
                             {milestone.title}
                           </h3>

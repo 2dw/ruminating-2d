@@ -2,6 +2,7 @@ export interface ProjectMilestone {
   date: string
   title: string
   description: string
+  location?: string
 }
 
 export interface CreativeProjectConfig {
@@ -21,7 +22,7 @@ export interface CreativeProjectConfig {
 export const creativeProjectOverrides: Record<string, CreativeProjectConfig> = {
   "highschool-turbine": {
     title: "Catch the Wind",
-    tags: ["sustainability", "engineering", "DIY"],
+    tags: ["sustainability", "engineering", "DIY", "renewable energy"],
     description:
       "After witnessing the winds of Inner Mongolia and observing wind and solar technologies begin to gain traction around the world, I undertook my first endeavor: carving and assembling a wind turbine from carbon fiber.",
     inspiration: {
@@ -38,18 +39,21 @@ export const creativeProjectOverrides: Record<string, CreativeProjectConfig> = {
         title: "The Spark",
         description:
           "After witnessing the winds of Inner Mongolia and observing renewable energy technologies gain momentum globally, I embarked upon my first independent endeavor in sustainability.",
+        location: "High School, Hong Kong",
       },
       {
         date: "High School",
         title: "The Build",
         description:
           "Designed, carved and assembled a wind turbine from carbon fiber, undertaking the full engineering lifecycle from concept to fabrication.",
+        location: "High School, Hong Kong",
       },
       {
         date: "High School",
         title: "What It Meant",
         description:
           "Though limited by the resources available to a high school student, the experience proved foundational. It established the trajectory for a lifelong commitment to building technologies that democratize access to clean energy.",
+        location: "High School, Hong Kong",
       },
     ],
   },
