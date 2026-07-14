@@ -7,6 +7,7 @@ import { useParams, useRouter } from "next/navigation"
 
 import { Button } from "@/components/ui/button"
 import { ProjectConstellation } from "@/components/project-constellation"
+import { UnderConstruction } from "@/components/under-construction"
 import { getCreativeProjectConfig, type CreativeProjectConfig } from "@/config/creative-projects"
 
 interface R2Project {
@@ -242,6 +243,18 @@ export default function CreativeProjectPage() {
               <ProjectConstellation prefix={project.prefix} />
             </motion.div>
           )}
+
+          {/* PLACEHOLDER: Replace this UnderConstruction component with actual content when ready */}
+          {!projectConfig && !loading && (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.3 }}
+            >
+              <UnderConstruction />
+            </motion.div>
+          )}
+          {/* END PLACEHOLDER */}
         </motion.div>
       </main>
     </div>
