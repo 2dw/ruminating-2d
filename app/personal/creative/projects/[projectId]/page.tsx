@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react"
 import { motion } from "framer-motion"
-import { ArrowLeft, FolderKanban, Tags as TagsIcon } from "lucide-react"
+import { ArrowLeft, FolderKanban, Sparkles, Target, Tags as TagsIcon, Star } from "lucide-react"
 import { useParams, useRouter } from "next/navigation"
 
 import { Button } from "@/components/ui/button"
@@ -59,7 +59,10 @@ export default function CreativeProjectPage() {
 
   const title = projectConfig?.title ?? project?.title ?? "Project Not Found"
   const tags = projectConfig?.tags ?? []
-  const prefix = project?.prefix ?? `projects/${projectId}/`
+  const description = projectConfig?.description ?? ""
+  const inspiration = projectConfig?.inspiration
+  const mission = projectConfig?.mission
+  const milestones = projectConfig?.milestones ?? []
 
   return (
     <div
@@ -103,10 +106,120 @@ export default function CreativeProjectPage() {
                   ))}
                 </div>
               )}
+              {description && (
+                <p className="mt-4 max-w-2xl text-sm leading-relaxed text-slate-600 dark:text-slate-400">
+                  {description}
+                </p>
+              )}
             </div>
           </div>
 
-          <ProjectConstellation prefix={prefix} />
+          {inspiration && (
+            <motion.div
+              initial={{ opacity: 0, y: 16 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.1 }}
+              className="rounded-3xl border border-amber-200/60 bg-amber-50/50 p-8 dark:border-amber-800/40 dark:bg-amber-950/20"
+            >
+              <div className="flex items-start gap-4">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-amber-100 text-amber-700 dark:bg-amber-900/60 dark:text-amber-300">
+                  <Sparkles className="h-5 w-5" />
+                </div>
+                <div>
+                  <h2 className="font-serif text-xl font-semibold text-slate-900 dark:text-white">
+                    Inspiration
+                  </h2>
+                  <p className="mt-3 text-sm leading-relaxed text-slate-600 dark:text-slate-400">
+                    {inspiration.narrative}
+                  </p>
+                </div>
+              </div>
+            </motion.div>
+          )}
+
+          {mission && (
+            <motion.div
+              initial={{ opacity: 0, y: 16 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.2 }}
+              className="rounded-3xl border border-emerald-200/60 bg-emerald-50/50 p-8 dark:border-emerald-800/40 dark:bg-emerald-950/20"
+            >
+              <div className="flex items-start gap-4">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-emerald-100 text-emerald-700 dark:bg-emerald-900/60 dark:text-emerald-300">
+                  <Target className="h-5 w-5" />
+                </div>
+                <div>
+                  <h2 className="font-serif text-xl font-semibold text-slate-900 dark:text-white">
+                    Mission
+                  </h2>
+                  <p className="mt-3 text-sm leading-relaxed text-slate-600 dark:text-slate-400">
+                    {mission.narrative}
+                  </p>
+                </div>
+              </div>
+            </motion.div>
+          )}
+
+          {milestones.length > 0 && (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.3 }}
+              className="rounded-3xl border border-slate-200 bg-white/95 p-8 dark:border-slate-800 dark:bg-slate-950/80"
+            >
+              <div className="mb-8 text-center">
+                <span className="inline-flex items-center gap-2 rounded-full border border-blue-400/20 bg-blue-500/10 px-4 py-1.5 text-xs font-medium tracking-wider text-blue-700 uppercase dark:text-blue-300">
+                  <Star className="h-3 w-3" />
+                  The Journey
+                  <Star className="h-3 w-3" />
+                </span>
+              </div>
+
+              <div className="relative">
+                <div className="absolute left-1/2 top-0 h-full w-px -translate-x-1/2 bg-gradient-to-b from-blue-200 via-blue-400 to-blue-200 dark:from-blue-800 dark:via-blue-500 dark:to-blue-800" />
+
+                {milestones.map((milestone, index) => {
+                  const isLeft = index % 2 === 0
+
+                  return (
+                    <div key={index} className="relative mb-10 last:mb-0">
+                      <div className={`flex items-start ${isLeft ? "flex-row" : "flex-row-reverse"}`}>
+                        <div className={`w-1/2 ${isLeft ? "pr-8 text-right" : "pl-8 text-left"}`}>
+                          <span className="inline-block text-xs font-medium tracking-wider text-blue-500 uppercase">
+                            {milestone.date}
+                          </span>
+                          <h3 className="mt-1 font-serif text-lg font-semibold text-slate-900 dark:text-white">
+                            {milestone.title}
+                          </h3>
+                          <p className="mt-2 text-sm leading-relaxed text-slate-600 dark:text-slate-400">
+                            {milestone.description}
+                          </p>
+                        </div>
+
+                        <div className="flex shrink-0 items-start justify-center" style={{ width: "32px" }}>
+                          <div className="relative z-10 mt-1.5 flex h-6 w-6 items-center justify-center rounded-full bg-blue-500 shadow-[0_0_8px_rgba(59,130,246,0.3)]">
+                            <div className="h-2 w-2 rounded-full bg-white" />
+                          </div>
+                        </div>
+
+                        <div className="w-1/2" />
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+            </motion.div>
+          )}
+
+          {project && (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.4 }}
+            >
+              <ProjectConstellation prefix={project.prefix} />
+            </motion.div>
+          )}
         </motion.div>
       </main>
     </div>
