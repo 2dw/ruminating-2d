@@ -290,7 +290,12 @@ export default function CreativeProjectPage() {
                               {sub.journey}
                             </p>
                           )}
-                          <ProjectConstellation prefix={subPrefix} />
+                          <ProjectConstellation
+                            prefix={subPrefix}
+                            mediaPrefix={sub.mediaPrefix}
+                            mediaFilter={sub.mediaFilter}
+                            noMediaMessage={`No media in ${sub.title} yet`}
+                          />
                         </div>
                       </motion.div>
                     )}
@@ -300,8 +305,8 @@ export default function CreativeProjectPage() {
             </motion.div>
           )}
 
-          {/* Main project constellation */}
-          {project && (
+          {/* Main project constellation (only for projects without subprojects) */}
+          {project && subprojects.length === 0 && (
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}

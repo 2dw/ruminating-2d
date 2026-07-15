@@ -19,6 +19,9 @@ interface ProjectConstellationProps {
   prefix: string
   captions?: Record<string, string>
   className?: string
+  mediaPrefix?: string
+  mediaFilter?: string[]
+  noMediaMessage?: string
 }
 
 function generateStars(count: number) {
@@ -181,7 +184,7 @@ function buildConstellationLines(
   return lines
 }
 
-export function ProjectConstellation({ prefix, captions = {}, className }: ProjectConstellationProps) {
+export function ProjectConstellation({ prefix, captions = {}, className, mediaPrefix, mediaFilter, noMediaMessage }: ProjectConstellationProps) {
   const [photos, setPhotos] = useState<Photo[]>([])
   const [activeIndex, setActiveIndex] = useState<number | null>(null)
   const [isLoading, setIsLoading] = useState(true)
@@ -196,23 +199,33 @@ export function ProjectConstellation({ prefix, captions = {}, className }: Proje
     setError(null)
 
     try {
-      const response = await fetch(`/api/photos?prefix=${encodeURIComponent(prefix)}`, {
+      const requestPrefix = mediaPrefix || prefix
+      const response = await fetch(`/api/photos?prefix=${encodeURIComponent(requestPrefix)}`, {
         cache: "no-store",
       })
       if (!response.ok) throw new Error(`Failed to load (${response.status})`)
       const data = await response.json()
       if (!data.success) throw new Error(data.message || "Failed to load photos")
 
-      const loaded = (Array.isArray(data.photos) ? data.photos : []).sort(
+      let loaded = (Array.isArray(data.photos) ? data.photos : []).sort(
         (a: Photo, b: Photo) => (a.name || "").localeCompare(b.name || ""),
       )
+
+      if (mediaFilter && mediaFilter.length > 0) {
+        const lowerFilters = mediaFilter.map((f) => f.toLowerCase())
+        loaded = loaded.filter((photo: Photo) => {
+          const name = photo.name.toLowerCase()
+          return lowerFilters.some((f) => name.includes(f))
+        })
+      }
+
       setPhotos(orderByFilename(loaded))
     } catch (err) {
       setError(err instanceof Error ? err.message : "Could not load project media")
     } finally {
       setIsLoading(false)
     }
-  }, [prefix])
+  }, [prefix, mediaPrefix, mediaFilter])
 
   useEffect(() => {
     loadPhotos()
@@ -277,7 +290,7 @@ export function ProjectConstellation({ prefix, captions = {}, className }: Proje
             <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909M3.75 21h16.5A2.25 2.25 0 0022.5 18.75V5.25A2.25 2.25 0 0020.25 3H3.75A2.25 2.25 0 001.5 5.25v13.5A2.25 2.25 0 003.75 21z" />
           </svg>
         </div>
-        <p className="text-sm text-slate-500 dark:text-slate-400">No media yet</p>
+        <p className="text-sm text-slate-500 dark:text-slate-400">{noMediaMessage || "No media yet"}</p>
         <p className="text-xs text-slate-400 dark:text-slate-500">Media uploaded to this folder will appear here</p>
       </div>
     )

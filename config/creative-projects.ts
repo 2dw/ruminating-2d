@@ -10,6 +10,8 @@ export interface SubProject {
   title: string
   summary?: string
   journey?: string
+  mediaPrefix?: string
+  mediaFilter?: string[]
 }
 
 export interface CreativeProjectConfig {
@@ -82,12 +84,17 @@ export const creativeProjectOverrides: Record<string, CreativeProjectConfig> = {
       {
         id: "protein-cheese",
         title: "Protein Powered Melty Cheese",
-        summary: "The science of sodium citrate and melty cheese",
+        summary: "The science of sodium citrate and fat-free cheese sauces",
+        journey:
+          "Fat-free cheese refuses to melt smoothly — the casein proteins seize without fat's lubrication. Sodium citrate, made from vinegar and baking soda, changes everything: it emulsifies the proteins, turning a clumpy failure into a rich, creamy, thermoreversible sauce.",
+        mediaPrefix: "projects/edible science experiments/",
+        mediaFilter: ["cheese", "sodium", "melty", "protein", "DIY melty"],
       },
       {
         id: "cruciferous-homesteading",
         title: "Cruciferous Homesteading",
         summary: "Growing and cooking with cruciferous vegetables",
+        mediaPrefix: "projects/edible science experiments/cruciferous-homesteading/",
       },
     ],
   },
@@ -109,11 +116,15 @@ export const creativeProjectOverrides: Record<string, CreativeProjectConfig> = {
         id: "women-renewable-energy",
         title: "Women Empowering with Renewable Energy",
         summary: "Inspired by Barefoot Grandmothers",
+        mediaPrefix: "projects/tunneling visions into graphite, cellulose and lignin/",
+        mediaFilter: ["women and watts"],
       },
       {
         id: "feminine-revolution",
         title: "Feminine Revolution",
         summary: "Inspired by Sola-Afghanistan and the women who make up half the sky",
+        mediaPrefix: "projects/tunneling visions into graphite, cellulose and lignin/",
+        mediaFilter: ["women fight back"],
       },
     ],
   },
