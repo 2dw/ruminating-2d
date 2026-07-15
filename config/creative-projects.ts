@@ -5,6 +5,13 @@ export interface ProjectMilestone {
   location?: string
 }
 
+export interface SubProject {
+  id: string
+  title: string
+  summary?: string
+  journey?: string
+}
+
 export interface CreativeProjectConfig {
   title?: string
   subtitle?: string
@@ -17,6 +24,7 @@ export interface CreativeProjectConfig {
     narrative: string
   }
   milestones?: ProjectMilestone[]
+  subprojects?: SubProject[]
 }
 
 export const creativeProjectOverrides: Record<string, CreativeProjectConfig> = {
@@ -54,6 +62,56 @@ export const creativeProjectOverrides: Record<string, CreativeProjectConfig> = {
         description:
           "Though limited by the resources available to a high school student, the experience proved foundational. It established the trajectory for a lifelong commitment to building technologies that democratize access to clean energy.",
         location: "High School, Hong Kong",
+      },
+    ],
+  },
+  "edible-science-experiments": {
+    title: "Edible Science Experiments",
+    tags: ["food science", "nutrition", "gastronomy", "DIY"],
+    description:
+      "Optimizing the Venn diagram of nutrient density and gastronomical bliss points through hands-on kitchen experimentation.",
+    inspiration: {
+      narrative:
+        "Food is both sustenance and art. These experiments explore the intersection of nutritional science and culinary delight, pushing the boundaries of what healthy food can taste like.",
+    },
+    mission: {
+      narrative:
+        "Optimizing the Venn diagram of nutrient density and gastronomical bliss points. Every experiment is a step toward food that nourishes the body while delighting the palate.",
+    },
+    subprojects: [
+      {
+        id: "protein-cheese",
+        title: "Protein Powered Melty Cheese",
+      },
+      {
+        id: "cruciferous-homesteading",
+        title: "Cruciferous Homesteading",
+      },
+    ],
+  },
+  "tunneling-visions-into-graphite-cellulose-and-lignin": {
+    title: "Tunneling Visions",
+    tags: ["drawing", "art", "renewable energy", "women empowerment"],
+    description:
+      "Collecting the planet's inspirations and using my pencil to serve as their megaphone.",
+    inspiration: {
+      narrative:
+        "Drawing is a form of tunneling into the subconscious, extracting visions that words cannot capture. Each piece channels the stories of those who inspire change.",
+    },
+    mission: {
+      narrative:
+        "Collecting the planet's inspirations and using my pencil to serve as their megaphone. Through graphite, cellulose, and lignin, these drawings amplify voices of empowerment and revolution.",
+    },
+    subprojects: [
+      {
+        id: "women-renewable-energy",
+        title: "Women Empowering with Renewable Energy",
+        summary: "Inspired by Barefoot Grandmothers",
+      },
+      {
+        id: "feminine-revolution",
+        title: "Feminine Revolution",
+        summary: "Inspired by Sola-Afghanistan and the women who make up half the sky",
       },
     ],
   },

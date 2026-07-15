@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react"
 import { motion } from "framer-motion"
-import { ArrowLeft, FolderKanban, Sparkles, Target, Tags as TagsIcon, Star, MapPin, Building2 } from "lucide-react"
+import { ArrowLeft, FolderKanban, Sparkles, Target, Tags as TagsIcon, Star, MapPin, Building2, ChevronDown, ChevronRight } from "lucide-react"
 import { useParams, useRouter } from "next/navigation"
 
 import { Button } from "@/components/ui/button"
@@ -64,6 +64,8 @@ export default function CreativeProjectPage() {
   const inspiration = projectConfig?.inspiration
   const mission = projectConfig?.mission
   const milestones = projectConfig?.milestones ?? []
+  const subprojects = projectConfig?.subprojects ?? []
+  const [expandedSub, setExpandedSub] = useState<string | null>(null)
 
   return (
     <div
@@ -234,7 +236,72 @@ export default function CreativeProjectPage() {
             </motion.div>
           )}
 
-          {project && (
+          {/* Subprojects section */}
+          {subprojects.length > 0 && project && (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.4 }}
+              className="space-y-4"
+            >
+              <h2 className="font-serif text-2xl font-semibold text-slate-900 dark:text-white">
+                Collection
+              </h2>
+              {subprojects.map((sub) => {
+                const isExpanded = expandedSub === sub.id
+                const subPrefix = `${project.prefix}${sub.id}/`
+                return (
+                  <div
+                    key={sub.id}
+                    className="rounded-3xl border border-slate-200 bg-white/95 overflow-hidden dark:border-slate-800 dark:bg-slate-950/80"
+                  >
+                    <button
+                      type="button"
+                      onClick={() => setExpandedSub(isExpanded ? null : sub.id)}
+                      className="flex w-full items-center justify-between p-6 text-left transition-colors hover:bg-slate-50 dark:hover:bg-slate-900/50"
+                    >
+                      <div>
+                        <h3 className="font-serif text-lg font-semibold text-slate-900 dark:text-white">
+                          {sub.title}
+                        </h3>
+                        {sub.summary && (
+                          <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
+                            {sub.summary}
+                          </p>
+                        )}
+                      </div>
+                      {isExpanded ? (
+                        <ChevronDown className="h-5 w-5 shrink-0 text-slate-400" />
+                      ) : (
+                        <ChevronRight className="h-5 w-5 shrink-0 text-slate-400" />
+                      )}
+                    </button>
+                    {isExpanded && (
+                      <motion.div
+                        initial={{ height: 0, opacity: 0 }}
+                        animate={{ height: "auto", opacity: 1 }}
+                        exit={{ height: 0, opacity: 0 }}
+                        transition={{ duration: 0.3 }}
+                        className="border-t border-slate-100 dark:border-slate-800"
+                      >
+                        <div className="p-6">
+                          {sub.journey && (
+                            <p className="mb-4 text-sm leading-relaxed text-slate-600 dark:text-slate-400">
+                              {sub.journey}
+                            </p>
+                          )}
+                          <ProjectConstellation prefix={subPrefix} />
+                        </div>
+                      </motion.div>
+                    )}
+                  </div>
+                )
+              })}
+            </motion.div>
+          )}
+
+          {/* Main project constellation (for projects without subprojects) */}
+          {project && subprojects.length === 0 && (
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
