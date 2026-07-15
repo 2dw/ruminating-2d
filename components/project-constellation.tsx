@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import Image from "next/image"
 import { motion, AnimatePresence } from "framer-motion"
-import { X, ChevronLeft, ChevronRight, RefreshCw } from "lucide-react"
+import { X, ChevronLeft, ChevronRight, RefreshCw, FileText, Film, Presentation, File } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 
@@ -11,6 +11,7 @@ interface Photo {
   key: string
   name: string
   url: string
+  mediaType?: string
   lastModified?: string
 }
 
@@ -43,6 +44,21 @@ function getPhotoTitle(name: string) {
     .replace(/[-_]+/g, " ")
     .replace(/\s+/g, " ")
     .trim()
+}
+
+function getMediaIcon(mediaType?: string) {
+  switch (mediaType) {
+    case "animation":
+    case "video":
+      return Film
+    case "document":
+    case "text":
+      return FileText
+    case "slide":
+      return Presentation
+    default:
+      return File
+  }
 }
 
 function orderByFilename(photos: Photo[]): Photo[] {
@@ -349,14 +365,23 @@ export function ProjectConstellation({ prefix, captions = {}, className }: Proje
                         : "0 0 8px 0 rgba(96, 165, 250, 0.08)",
                     }}
                   >
-                    <Image
-                      src={getVersionedUrl(photo)}
-                      alt={getPhotoTitle(photo.name)}
-                      fill
-                      draggable={false}
-                      className="object-cover"
-                      sizes={`${starSize}px`}
-                    />
+                    {photo.mediaType === "image" || photo.mediaType === "animation" || !photo.mediaType ? (
+                      <Image
+                        src={getVersionedUrl(photo)}
+                        alt={getPhotoTitle(photo.name)}
+                        fill
+                        draggable={false}
+                        className="object-cover"
+                        sizes={`${starSize}px`}
+                      />
+                    ) : (
+                      <div className="flex h-full w-full items-center justify-center bg-slate-800/80">
+                        {(() => {
+                          const Icon = getMediaIcon(photo.mediaType)
+                          return <Icon className="h-1/2 w-1/2 text-blue-300/60" />
+                        })()}
+                      </div>
+                    )}
                     <div className="absolute inset-0 rounded-full ring-1 ring-inset ring-white/10" />
                     {highlighted && (
                       <div
@@ -457,16 +482,56 @@ export function ProjectConstellation({ prefix, captions = {}, className }: Proje
                 transition={{ duration: 0.25 }}
                 className="relative max-h-[85vh] max-w-[90vw]"
               >
-                <Image
-                  src={getVersionedUrl(activePhoto)}
-                  alt={getPhotoTitle(activePhoto.name)}
-                  width={1200}
-                  height={900}
-                  draggable={false}
-                  className="h-auto w-auto max-h-[85vh] max-w-[90vw] rounded-lg object-contain"
-                  sizes="90vw"
-                  priority
-                />
+                {activePhoto.mediaType === "video" ? (
+                  <video
+                    src={getVersionedUrl(activePhoto)}
+                    controls
+                    autoPlay
+                    className="max-h-[85vh] max-w-[90vw] rounded-lg"
+                  />
+                ) : activePhoto.mediaType === "animation" ? (
+                  <Image
+                    src={getVersionedUrl(activePhoto)}
+                    alt={getPhotoTitle(activePhoto.name)}
+                    width={1200}
+                    height={900}
+                    draggable={false}
+                    className="h-auto w-auto max-h-[85vh] max-w-[90vw] rounded-lg object-contain"
+                    sizes="90vw"
+                    priority
+                    unoptimized
+                  />
+                ) : activePhoto.mediaType === "document" || activePhoto.mediaType === "text" || activePhoto.mediaType === "slide" ? (
+                  <div className="flex flex-col items-center gap-4">
+                    <div className="flex h-48 w-64 flex-col items-center justify-center rounded-lg border border-slate-600 bg-slate-800/80 p-6 text-center">
+                      {(() => {
+                        const Icon = getMediaIcon(activePhoto.mediaType)
+                        return <Icon className="mb-4 h-16 w-16 text-blue-300/60" />
+                      })()}
+                      <p className="text-sm text-white/80">{getPhotoTitle(activePhoto.name)}</p>
+                      <p className="mt-1 text-xs text-white/40">{activePhoto.mediaType?.toUpperCase()}</p>
+                    </div>
+                    <a
+                      href={getVersionedUrl(activePhoto)}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-sm text-blue-400 hover:text-blue-300 underline underline-offset-4"
+                    >
+                      Open file in new tab
+                    </a>
+                  </div>
+                ) : (
+                  <Image
+                    src={getVersionedUrl(activePhoto)}
+                    alt={getPhotoTitle(activePhoto.name)}
+                    width={1200}
+                    height={900}
+                    draggable={false}
+                    className="h-auto w-auto max-h-[85vh] max-w-[90vw] rounded-lg object-contain"
+                    sizes="90vw"
+                    priority
+                  />
+                )}
                 <p className="mt-3 text-center text-sm text-white/60">
                   {getPhotoTitle(activePhoto.name)}
                 </p>

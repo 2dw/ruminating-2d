@@ -2,11 +2,12 @@
 
 import { useEffect, useMemo, useState } from "react"
 import { motion } from "framer-motion"
-import { ArrowLeft, FolderKanban, Sparkles, Target, Tags as TagsIcon, Star } from "lucide-react"
+import { ArrowLeft, FolderKanban, Sparkles, Target, Tags as TagsIcon, Star, MapPin, Building2, ChevronDown, ChevronRight } from "lucide-react"
 import { useParams, useRouter } from "next/navigation"
 
 import { Button } from "@/components/ui/button"
 import { ProjectConstellation } from "@/components/project-constellation"
+import { UnderConstruction } from "@/components/under-construction"
 import { getCreativeProjectConfig, type CreativeProjectConfig } from "@/config/creative-projects"
 
 interface R2Project {
@@ -63,6 +64,8 @@ export default function CreativeProjectPage() {
   const inspiration = projectConfig?.inspiration
   const mission = projectConfig?.mission
   const milestones = projectConfig?.milestones ?? []
+  const subprojects = projectConfig?.subprojects ?? []
+  const [expandedSub, setExpandedSub] = useState<string | null>(null)
 
   return (
     <div
@@ -185,9 +188,31 @@ export default function CreativeProjectPage() {
                     <div key={index} className="relative mb-10 last:mb-0">
                       <div className={`flex items-start ${isLeft ? "flex-row" : "flex-row-reverse"}`}>
                         <div className={`w-1/2 ${isLeft ? "pr-8 text-right" : "pl-8 text-left"}`}>
-                          <span className="inline-block text-xs font-medium tracking-wider text-blue-500 uppercase">
-                            {milestone.date}
-                          </span>
+                          {milestone.location ? (
+                            <span className="group/pin relative inline-flex items-center gap-1 text-xs font-medium tracking-wider text-blue-500">
+                              <Building2 className="h-3.5 w-3.5" />
+                              <svg className="h-3 w-4" viewBox="0 0 30 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <rect width="30" height="20" rx="1" fill="#DE2910" />
+                                <g transform="translate(15,10)">
+                                  <g fill="white">
+                                    <ellipse cx="0" cy="-5" rx="1.8" ry="4" transform="rotate(0)" />
+                                    <ellipse cx="0" cy="-5" rx="1.8" ry="4" transform="rotate(72)" />
+                                    <ellipse cx="0" cy="-5" rx="1.8" ry="4" transform="rotate(144)" />
+                                    <ellipse cx="0" cy="-5" rx="1.8" ry="4" transform="rotate(216)" />
+                                    <ellipse cx="0" cy="-5" rx="1.8" ry="4" transform="rotate(288)" />
+                                  </g>
+                                  <circle cx="0" cy="0" r="1.5" fill="#DE2910" />
+                                </g>
+                              </svg>
+                              <span className="pointer-events-none absolute -top-8 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-md bg-slate-800 px-2.5 py-1 text-[11px] text-white opacity-0 shadow-lg transition-opacity duration-150 group-hover/pin:opacity-100">
+                                {milestone.location}
+                              </span>
+                            </span>
+                          ) : (
+                            <span className="inline-flex items-center gap-1 text-xs font-medium tracking-wider text-blue-500">
+                              <MapPin className="h-3.5 w-3.5" />
+                            </span>
+                          )}
                           <h3 className="mt-1 font-serif text-lg font-semibold text-slate-900 dark:text-white">
                             {milestone.title}
                           </h3>
@@ -211,7 +236,72 @@ export default function CreativeProjectPage() {
             </motion.div>
           )}
 
-          {project && (
+          {/* Subprojects section */}
+          {subprojects.length > 0 && project && (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.4 }}
+              className="space-y-4"
+            >
+              <h2 className="font-serif text-2xl font-semibold text-slate-900 dark:text-white">
+                Collection
+              </h2>
+              {subprojects.map((sub) => {
+                const isExpanded = expandedSub === sub.id
+                const subPrefix = `${project.prefix}${sub.id}/`
+                return (
+                  <div
+                    key={sub.id}
+                    className="rounded-3xl border border-slate-200 bg-white/95 overflow-hidden dark:border-slate-800 dark:bg-slate-950/80"
+                  >
+                    <button
+                      type="button"
+                      onClick={() => setExpandedSub(isExpanded ? null : sub.id)}
+                      className="flex w-full items-center justify-between p-6 text-left transition-colors hover:bg-slate-50 dark:hover:bg-slate-900/50"
+                    >
+                      <div>
+                        <h3 className="font-serif text-lg font-semibold text-slate-900 dark:text-white">
+                          {sub.title}
+                        </h3>
+                        {sub.summary && (
+                          <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
+                            {sub.summary}
+                          </p>
+                        )}
+                      </div>
+                      {isExpanded ? (
+                        <ChevronDown className="h-5 w-5 shrink-0 text-slate-400" />
+                      ) : (
+                        <ChevronRight className="h-5 w-5 shrink-0 text-slate-400" />
+                      )}
+                    </button>
+                    {isExpanded && (
+                      <motion.div
+                        initial={{ height: 0, opacity: 0 }}
+                        animate={{ height: "auto", opacity: 1 }}
+                        exit={{ height: 0, opacity: 0 }}
+                        transition={{ duration: 0.3 }}
+                        className="border-t border-slate-100 dark:border-slate-800"
+                      >
+                        <div className="p-6">
+                          {sub.journey && (
+                            <p className="mb-4 text-sm leading-relaxed text-slate-600 dark:text-slate-400">
+                              {sub.journey}
+                            </p>
+                          )}
+                          <ProjectConstellation prefix={subPrefix} />
+                        </div>
+                      </motion.div>
+                    )}
+                  </div>
+                )
+              })}
+            </motion.div>
+          )}
+
+          {/* Main project constellation (for projects without subprojects) */}
+          {project && subprojects.length === 0 && (
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -220,6 +310,18 @@ export default function CreativeProjectPage() {
               <ProjectConstellation prefix={project.prefix} />
             </motion.div>
           )}
+
+          {/* PLACEHOLDER: Replace this UnderConstruction component with actual content when ready */}
+          {!projectConfig && !loading && (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.3 }}
+            >
+              <UnderConstruction />
+            </motion.div>
+          )}
+          {/* END PLACEHOLDER */}
         </motion.div>
       </main>
     </div>
