@@ -269,7 +269,19 @@ export function ProjectConstellation({ prefix, captions = {}, className }: Proje
     )
   }
 
-  if (photos.length === 0) return null
+  if (photos.length === 0) {
+    return (
+      <div className={cn("flex min-h-[16rem] flex-col items-center justify-center gap-3 rounded-3xl border border-dashed border-slate-200 bg-slate-50/40 p-8 text-center dark:border-slate-700 dark:bg-slate-900/30", className)}>
+        <div className="flex h-12 w-12 items-center justify-center rounded-full bg-slate-100 dark:bg-slate-800">
+          <svg className="h-6 w-6 text-slate-400 dark:text-slate-500" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909M3.75 21h16.5A2.25 2.25 0 0022.5 18.75V5.25A2.25 2.25 0 0020.25 3H3.75A2.25 2.25 0 001.5 5.25v13.5A2.25 2.25 0 003.75 21z" />
+          </svg>
+        </div>
+        <p className="text-sm text-slate-500 dark:text-slate-400">No media yet</p>
+        <p className="text-xs text-slate-400 dark:text-slate-500">Media uploaded to this folder will appear here</p>
+      </div>
+    )
+  }
 
   return (
     <>

@@ -300,8 +300,8 @@ export default function CreativeProjectPage() {
             </motion.div>
           )}
 
-          {/* Main project constellation (for projects without subprojects) */}
-          {project && subprojects.length === 0 && (
+          {/* Main project constellation */}
+          {project && (
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}

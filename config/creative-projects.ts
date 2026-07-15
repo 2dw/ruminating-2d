@@ -82,10 +82,12 @@ export const creativeProjectOverrides: Record<string, CreativeProjectConfig> = {
       {
         id: "protein-cheese",
         title: "Protein Powered Melty Cheese",
+        summary: "The science of sodium citrate and melty cheese",
       },
       {
         id: "cruciferous-homesteading",
         title: "Cruciferous Homesteading",
+        summary: "Growing and cooking with cruciferous vegetables",
       },
     ],
   },
