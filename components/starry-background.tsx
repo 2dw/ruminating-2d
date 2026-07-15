@@ -479,14 +479,13 @@ export function StarryBackground({ shootingStarCount = 3, isDarkMode = false }: 
             
             const showPulse = activity > 0.05
 
-            // Build the cubic bezier path string using percentage-based coords
-            // SVG percentage coordinates work on viewBox but we use absolute pixel
-            // percentages as attributes directly (they resolve at render time).
+            const w = typeof window !== "undefined" ? window.innerWidth : 1000
+            const h = typeof window !== "undefined" ? window.innerHeight : 800
             const d = [
-              `M ${path.startX}% ${path.startY}%`,
-              `C ${path.cp1X}% ${path.cp1Y}%`,
-              `  ${path.cp2X}% ${path.cp2Y}%`,
-              `  ${path.endX}% ${path.endY}%`,
+              `M ${(path.startX / 100) * w} ${(path.startY / 100) * h}`,
+              `C ${(path.cp1X / 100) * w} ${(path.cp1Y / 100) * h}`,
+              `  ${(path.cp2X / 100) * w} ${(path.cp2Y / 100) * h}`,
+              `  ${(path.endX / 100) * w} ${(path.endY / 100) * h}`,
             ].join(" ")
 
             // Approximate arc length for speed calculation (rough but sufficient)
