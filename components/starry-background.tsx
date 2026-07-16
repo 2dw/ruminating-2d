@@ -409,7 +409,7 @@ export function StarryBackground({ shootingStarCount = 3, isDarkMode = false }: 
             style={{
               animationDelay: `${star.delay}s`,
               backgroundColor: starColor,
-              boxShadow: `0 0 ${star.size * 3}px ${starColor}`,
+              boxShadow: `0 0 ${star.size * 2}px ${starColor}`,
               height: `${star.size}px`,
               left: `${star.x}%`,
               opacity: star.opacity,
@@ -422,8 +422,8 @@ export function StarryBackground({ shootingStarCount = 3, isDarkMode = false }: 
         {/* Render mycelium network nodes */}
         {mycelium.nodes.map((node) => {
           const activity = activeMyceliumNodes[node.id] || 0
-          const baseOpacity = isDarkMode ? 0.16 : 0.10
-          const activeOpacity = activity * 0.85
+          const baseOpacity = isDarkMode ? 0.08 : 0.05
+          const activeOpacity = activity * 0.45
           const totalOpacity = Math.min(1, baseOpacity + activeOpacity)
           const palette = isDarkMode ? GREEN_SHADES_DARK : GREEN_SHADES_LIGHT
           const nodeColor = palette[Math.min(node.depth, palette.length - 1)]
@@ -435,13 +435,13 @@ export function StarryBackground({ shootingStarCount = 3, isDarkMode = false }: 
               style={{
                 backgroundColor: nodeColor,
                 boxShadow: activity > 0
-                  ? `0 0 ${node.size * (4 + activity * 6)}px ${nodeColor}, 0 0 ${node.size * (2 + activity * 3)}px #fff`
-                  : `0 0 ${node.size * 2.5}px ${nodeColor}`,
-                height: `${node.size + activity * 1.8}px`,
+                  ? `0 0 ${node.size * (2.5 + activity * 3.5)}px ${nodeColor}`
+                  : `0 0 ${node.size * 1.8}px ${nodeColor}`,
+                height: `${node.size + activity * 0.8}px`,
                 left: `${node.x}%`,
                 opacity: totalOpacity,
                 top: `${node.y}%`,
-                width: `${node.size + activity * 1.8}px`,
+                width: `${node.size + activity * 0.8}px`,
                 transform: "translate(-50%, -50%)",
               }}
             />
@@ -451,15 +451,15 @@ export function StarryBackground({ shootingStarCount = 3, isDarkMode = false }: 
         <svg className="absolute inset-0 h-full w-full" role="presentation">
           <defs>
             <filter id="constellation-glow">
-              <feGaussianBlur stdDeviation="2.4" result="blur" />
+              <feGaussianBlur stdDeviation="1.8" result="blur" />
               <feMerge>
                 <feMergeNode in="blur" />
                 <feMergeNode in="SourceGraphic" />
               </feMerge>
             </filter>
             <filter id="mycelium-biolume">
-              <feGaussianBlur stdDeviation="3.2" result="blur1" />
-              <feGaussianBlur stdDeviation="1.2" result="blur2" />
+              <feGaussianBlur stdDeviation="2.0" result="blur1" />
+              <feGaussianBlur stdDeviation="0.8" result="blur2" />
               <feMerge>
                 <feMergeNode in="blur1" />
                 <feMergeNode in="blur2" />
@@ -473,8 +473,8 @@ export function StarryBackground({ shootingStarCount = 3, isDarkMode = false }: 
             const activity = activeMyceliumPaths[path.id] || 0
             const palette = isDarkMode ? GREEN_SHADES_DARK : GREEN_SHADES_LIGHT
             const strandColor = palette[Math.min(path.depth, palette.length - 1)]
-            const baseOpacity = isDarkMode ? 0.10 : 0.065
-            const activeOpacity = activity * 0.58
+            const baseOpacity = isDarkMode ? 0.05 : 0.03
+            const activeOpacity = activity * 0.3
             const totalOpacity = baseOpacity + activeOpacity
             
             const showPulse = activity > 0.05
@@ -503,7 +503,7 @@ export function StarryBackground({ shootingStarCount = 3, isDarkMode = false }: 
                   stroke={strandColor}
                   strokeLinecap="round"
                   strokeOpacity={totalOpacity}
-                  strokeWidth={1.0 + activity * 2.0}
+                  strokeWidth={0.8 + activity * 1.0}
                   fill="none"
                   filter="url(#mycelium-biolume)"
                   className="transition-all duration-300"
@@ -516,10 +516,10 @@ export function StarryBackground({ shootingStarCount = 3, isDarkMode = false }: 
                     stroke={electronColorLight}
                     strokeLinecap="round"
                     strokeOpacity={activity}
-                    strokeWidth={1.8 + activity * 1.8}
-                    fill="none"
-                    strokeDasharray="6, 14"
-                    animate={{
+                  strokeWidth={1.2 + activity * 1.0}
+                  fill="none"
+                  strokeDasharray="6, 14"
+                  animate={{
                       strokeDashoffset: [0, -20],
                     }}
                     transition={{
@@ -552,8 +552,8 @@ export function StarryBackground({ shootingStarCount = 3, isDarkMode = false }: 
                   y2={connection.y2}
                   stroke={lineColor}
                   strokeLinecap="round"
-                  strokeOpacity={connection.opacity * 0.48}
-                  strokeWidth={1.1 + connection.opacity * 1.7}
+                  strokeOpacity={connection.opacity * 0.3}
+                  strokeWidth={0.8 + connection.opacity * 1.0}
                   filter="url(#constellation-glow)"
                 />
                 {/* Traveling morphing electron pulse */}
@@ -564,8 +564,8 @@ export function StarryBackground({ shootingStarCount = 3, isDarkMode = false }: 
                   y2={connection.y2}
                   stroke={electronColor}
                   strokeLinecap="round"
-                  strokeOpacity={connection.opacity}
-                  strokeWidth={1.8 + connection.opacity * 1.8}
+                  strokeOpacity={connection.opacity * 0.5}
+                  strokeWidth={1.0 + connection.opacity * 1.0}
                   strokeDasharray="6, 18"
                   animate={{
                     strokeDashoffset: [0, -24],
@@ -589,12 +589,12 @@ export function StarryBackground({ shootingStarCount = 3, isDarkMode = false }: 
             className="absolute rounded-full transition-opacity duration-300"
             style={{
               background: `radial-gradient(circle, ${glowColor}, transparent 68%)`,
-              height: 300,
+              height: 220,
               left: pointerGlow.x,
               opacity: 1,
               top: pointerGlow.y,
               transform: "translate(-50%, -50%)",
-              width: 300,
+              width: 220,
             }}
           />
         ) : null}

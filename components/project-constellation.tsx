@@ -219,6 +219,12 @@ export function ProjectConstellation({ prefix, captions = {}, className, mediaPr
         })
       }
 
+      const EXCLUDED_EXTENSIONS = [".docx", ".doc", ".txt", ".md", ".rtf", ".pptx", ".ppt"]
+      loaded = loaded.filter((photo: Photo) => {
+        const lower = photo.name.toLowerCase()
+        return !EXCLUDED_EXTENSIONS.some((ext) => lower.endsWith(ext))
+      })
+
       setPhotos(orderByFilename(loaded))
     } catch (err) {
       setError(err instanceof Error ? err.message : "Could not load project media")
