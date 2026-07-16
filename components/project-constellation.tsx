@@ -532,6 +532,12 @@ export function ProjectConstellation({ prefix, captions = {}, className, mediaPr
                     priority
                     unoptimized
                   />
+                ) : activePhoto.mediaType === "document" && activePhoto.name.toLowerCase().endsWith(".pdf") ? (
+                  <iframe
+                    src={getVersionedUrl(activePhoto)}
+                    title={getPhotoTitle(activePhoto.name)}
+                    className="h-[85vh] w-[90vw] rounded-lg border-0 bg-white"
+                  />
                 ) : activePhoto.mediaType === "document" || activePhoto.mediaType === "text" || activePhoto.mediaType === "slide" ? (
                   <div className="flex flex-col items-center gap-4">
                     <div className="flex h-48 w-64 flex-col items-center justify-center rounded-lg border border-slate-600 bg-slate-800/80 p-6 text-center">

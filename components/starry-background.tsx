@@ -552,8 +552,8 @@ export function StarryBackground({ shootingStarCount = 3, isDarkMode = false }: 
                   y2={connection.y2}
                   stroke={lineColor}
                   strokeLinecap="round"
-                  strokeOpacity={connection.opacity * 0.3}
-                  strokeWidth={0.8 + connection.opacity * 1.0}
+                  strokeOpacity={connection.opacity * 0.42}
+                  strokeWidth={1.0 + connection.opacity * 1.3}
                   filter="url(#constellation-glow)"
                 />
                 {/* Traveling morphing electron pulse */}
@@ -564,8 +564,8 @@ export function StarryBackground({ shootingStarCount = 3, isDarkMode = false }: 
                   y2={connection.y2}
                   stroke={electronColor}
                   strokeLinecap="round"
-                  strokeOpacity={connection.opacity * 0.5}
-                  strokeWidth={1.0 + connection.opacity * 1.0}
+                  strokeOpacity={connection.opacity * 0.65}
+                  strokeWidth={1.2 + connection.opacity * 1.2}
                   strokeDasharray="6, 18"
                   animate={{
                     strokeDashoffset: [0, -24],
