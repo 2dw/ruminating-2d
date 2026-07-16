@@ -200,8 +200,8 @@ export function StarryBackground({ shootingStarCount = 3, isDarkMode = false }: 
     const createStars = () => {
       const width = window.innerWidth
       const height = window.innerHeight
-      const density = width < 640 ? 0.00018 : width < 1024 ? 0.00014 : 0.00011
-      const count = Math.min(280, Math.max(110, Math.floor(width * height * density)))
+      const density = width < 640 ? 0.00028 : width < 1024 ? 0.00022 : 0.00018
+      const count = Math.min(400, Math.max(160, Math.floor(width * height * density)))
       const nextStars = Array.from({ length: count }, (_, index) => {
         const seed = index + width * 0.131 + height * 0.173
 
@@ -233,8 +233,8 @@ export function StarryBackground({ shootingStarCount = 3, isDarkMode = false }: 
 
       const width = window.innerWidth
       const height = window.innerHeight
-      const radius = width < 640 ? 150 : 210
-      const maxConnectionDistance = width < 640 ? 98 : 128
+      const radius = width < 640 ? 180 : 250
+      const maxConnectionDistance = width < 640 ? 110 : 145
       const pointer = pointerRef.current
       const nearby = starsRef.current
         .map((star) => {
@@ -246,7 +246,7 @@ export function StarryBackground({ shootingStarCount = 3, isDarkMode = false }: 
         })
         .filter((star) => star.distance <= radius)
         .sort((a, b) => a.distance - b.distance)
-        .slice(0, 28)
+        .slice(0, 36)
 
       const nextConnections: Connection[] = []
 
@@ -269,15 +269,15 @@ export function StarryBackground({ shootingStarCount = 3, isDarkMode = false }: 
             y1: star.py,
             x2: nextStar.px,
             y2: nextStar.py,
-            opacity: Math.min(0.78, pointerStrength * lineStrength * 0.95),
+            opacity: Math.min(0.85, pointerStrength * lineStrength * 0.95),
           })
 
-          if (nextConnections.length >= 54) {
+          if (nextConnections.length >= 72) {
             break
           }
         }
 
-        if (nextConnections.length >= 54) {
+        if (nextConnections.length >= 72) {
           break
         }
       }
@@ -552,8 +552,8 @@ export function StarryBackground({ shootingStarCount = 3, isDarkMode = false }: 
                   y2={connection.y2}
                   stroke={lineColor}
                   strokeLinecap="round"
-                  strokeOpacity={connection.opacity * 0.42}
-                  strokeWidth={1.0 + connection.opacity * 1.3}
+                  strokeOpacity={connection.opacity * 0.55}
+                  strokeWidth={1.2 + connection.opacity * 1.5}
                   filter="url(#constellation-glow)"
                 />
                 {/* Traveling morphing electron pulse */}
@@ -564,8 +564,8 @@ export function StarryBackground({ shootingStarCount = 3, isDarkMode = false }: 
                   y2={connection.y2}
                   stroke={electronColor}
                   strokeLinecap="round"
-                  strokeOpacity={connection.opacity * 0.65}
-                  strokeWidth={1.2 + connection.opacity * 1.2}
+                  strokeOpacity={connection.opacity * 0.75}
+                  strokeWidth={1.4 + connection.opacity * 1.4}
                   strokeDasharray="6, 18"
                   animate={{
                     strokeDashoffset: [0, -24],
