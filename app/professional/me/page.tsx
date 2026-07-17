@@ -86,8 +86,67 @@ export default function ProfessionalMePage() {
             </div>
           </div>
 
-          {/* Three‑column section */}
-          <section className="grid gap-8 lg:grid-cols-3">
+          {/* Mission — standalone glowing section */}
+          <motion.section
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.15 }}
+            className="relative"
+          >
+            {/* Halo glow layer */}
+            <div
+              aria-hidden="true"
+              className="pointer-events-none absolute -inset-4 rounded-[2.5rem] opacity-60 blur-2xl transition-opacity duration-700 dark:opacity-40"
+              style={{
+                background:
+                  "radial-gradient(ellipse at 50% 50%, rgba(34,197,94,0.18), rgba(34,197,94,0.06) 55%, transparent 80%)",
+              }}
+            />
+            <div className="relative rounded-[2rem] border border-green-200/80 bg-white/95 p-8 sm:p-10 shadow-lg shadow-green-900/5 ring-1 ring-green-100/60 dark:border-green-800/60 dark:bg-slate-950/80 dark:shadow-green-400/5 dark:ring-green-800/30">
+              <div className="mb-6 flex items-center gap-3">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-green-100 text-green-700 dark:bg-green-900/60 dark:text-green-300">
+                  <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 21a9.004 9.004 0 0 0 8.716-6.747M12 21a9.004 9.004 0 0 1-8.716-6.747M12 21c2.485 0 4.5-4.03 4.5-9S14.485 3 12 3m0 18c-2.485 0-4.5-4.03-4.5-9S9.515 3 12 3m0 0a8.997 8.997 0 0 1 7.843 4.582M12 3a8.997 8.997 0 0 0-7.843 4.582m15.686 0A11.953 11.953 0 0 1 12 10.5c-2.998 0-5.74-1.1-7.843-2.918m15.686 0A8.959 8.959 0 0 1 21 12c0 .778-.099 1.533-.284 2.253m0 0A17.919 17.919 0 0 1 12 16.5a17.92 17.92 0 0 1-8.716-2.247m0 0A9.015 9.015 0 0 1 3 12c0-1.605.42-3.113 1.157-4.418" />
+                  </svg>
+                </div>
+                <h2 className="font-serif text-2xl font-semibold text-slate-900 dark:text-white">
+                  Mission
+                </h2>
+              </div>
+              <div className="space-y-4">
+                <p className="text-[15px]/relaxed text-gray-700 dark:text-gray-300">
+                  My work has always been guided by two north stars. Humanity must learn to
+                  live sustainably with the planet, and resource equity must be treated as a
+                  core design principle rather than an afterthought. I believe the energy
+                  transition will only succeed if end users, communities, and grid operators
+                  are empowered participants in the systems that shape their lives.
+                </p>
+                <p className="text-[15px]/relaxed text-gray-700 dark:text-gray-300">
+                  Throughout my career I have focused on building distributed energy platforms,
+                  microgrids, virtual power plants, and optimization systems that support this
+                  vision. My work has spanned algorithms, engineering, product architecture,
+                  commercial strategy, and industry leadership. This range allows me to connect
+                  technical and executive domains, translate across disciplines, and design
+                  systems that scale in real environments. Deployments have included climate
+                  resilience hubs, community microgrids, wastewater treatment facilities, and
+                  international pilots, each grounded in the belief that technology, economics,
+                  and human impact must move together.
+                </p>
+                <p className="text-[15px]/relaxed text-gray-700 dark:text-gray-300">
+                  What motivates me is the opportunity to take everything I have built and
+                  learned and scale it with intention. I want to help shape the next generation
+                  of this industry and contribute to a future where sustainable infrastructure
+                  is accessible to all. My goal is to work in environments where communities
+                  and grid stakeholders are treated as partners, where transparency and aligned
+                  incentives guide the work, and where systems are designed to be resilient,
+                  equitable, and future ready.
+                </p>
+              </div>
+            </div>
+          </motion.section>
+
+          {/* Two-column section */}
+          <section className="grid gap-8 lg:grid-cols-2">
 
             {/* Background & Education */}
             <HoverCard>
@@ -196,46 +255,6 @@ export default function ProfessionalMePage() {
                     </div>
 
                   </div>
-                </CardContent>
-              </Card>
-            </HoverCard>
-
-            {/* Mission */}
-            <HoverCard>
-              <Card className="h-full border-green-200 dark:border-green-800">
-                <CardHeader>
-                  <CardTitle className="text-green-700 dark:text-green-400">
-                    Mission
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <p className="text-[15px]/relaxed text-gray-700 dark:text-gray-300">
-                    My work has always been guided by two north stars. Humanity must learn to
-                    live sustainably with the planet, and resource equity must be treated as a
-                    core design principle rather than an afterthought. I believe the energy
-                    transition will only succeed if end users, communities, and grid operators
-                    are empowered participants in the systems that shape their lives.
-                  </p>
-                  <p className="text-[15px]/relaxed text-gray-700 dark:text-gray-300">
-                    Throughout my career I have focused on building distributed energy platforms,
-                    microgrids, virtual power plants, and optimization systems that support this
-                    vision. My work has spanned algorithms, engineering, product architecture,
-                    commercial strategy, and industry leadership. This range allows me to connect
-                    technical and executive domains, translate across disciplines, and design
-                    systems that scale in real environments. Deployments have included climate
-                    resilience hubs, community microgrids, wastewater treatment facilities, and
-                    international pilots, each grounded in the belief that technology, economics,
-                    and human impact must move together.
-                  </p>
-                  <p className="text-[15px]/relaxed text-gray-700 dark:text-gray-300">
-                    What motivates me is the opportunity to take everything I have built and
-                    learned and scale it with intention. I want to help shape the next generation
-                    of this industry and contribute to a future where sustainable infrastructure
-                    is accessible to all. My goal is to work in environments where communities
-                    and grid stakeholders are treated as partners, where transparency and aligned
-                    incentives guide the work, and where systems are designed to be resilient,
-                    equitable, and future ready.
-                  </p>
                 </CardContent>
               </Card>
             </HoverCard>
