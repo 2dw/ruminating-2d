@@ -7,6 +7,7 @@ import { motion } from "framer-motion"
 import { Brush, FolderKanban, Palette, PenTool, type LucideIcon } from "lucide-react"
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { useProjects } from "@/contexts/projects-context"
 
 interface CreativeProjectCard {
   id: string
@@ -18,15 +19,6 @@ interface CreativeProjectCard {
   icon: LucideIcon
   prefix?: string
   previewFit?: "cover" | "contain"
-}
-
-interface R2Project {
-  id: string
-  title: string
-  subtitle: string
-  description: string
-  prefix: string
-  cover?: string
 }
 
 const baseCreativeProjects: CreativeProjectCard[] = [
@@ -56,18 +48,29 @@ const baseCreativeProjects: CreativeProjectCard[] = [
 async function loadFirstImage(prefix: string) {
   const response = await fetch(`/api/photos?prefix=${encodeURIComponent(prefix)}`, { cache: "no-store" })
   if (!response.ok) return null
-
   const data = await response.json()
   if (!data.success || !Array.isArray(data.photos) || data.photos.length === 0) return null
-
   return data.photos[0]?.url ?? null
 }
 
 export default function PersonalCreativePage() {
   const router = useRouter()
-  const [dynamicProjects, setDynamicProjects] = useState<CreativeProjectCard[]>([])
+  const { projects: r2Projects, loading: projectsLoading } = useProjects()
   const [previews, setPreviews] = useState<Record<string, string>>({})
-  const [loadingProjects, setLoadingProjects] = useState(true)
+
+  const dynamicProjects: CreativeProjectCard[] = useMemo(
+    () => r2Projects.map((project) => ({
+      id: `r2-${project.id}`,
+      title: project.title,
+      subtitle: project.subtitle,
+      description: project.description,
+      href: `/personal/creative/projects/${project.id}`,
+      image: "/creative-project-fallback.svg",
+      icon: FolderKanban,
+      prefix: project.prefix,
+    })),
+    [r2Projects],
+  )
 
   const creativeProjects = useMemo(
     () => [...baseCreativeProjects, ...dynamicProjects],
@@ -76,59 +79,21 @@ export default function PersonalCreativePage() {
 
   useEffect(() => {
     let active = true
-
-    const loadCreativeProjects = async () => {
-      setLoadingProjects(true)
-
-      try {
-        const [artPreview, projectsResponse] = await Promise.all([
-          loadFirstImage("art/").catch(() => null),
-          fetch("/api/projects", { cache: "no-store" }),
-        ])
-
-        const nextPreviews: Record<string, string> = {}
-        if (artPreview) nextPreviews["digital-art"] = artPreview
-
-        const projectsData = await projectsResponse.json()
-        const discoveredProjects: CreativeProjectCard[] =
-          projectsData.success && Array.isArray(projectsData.projects)
-            ? projectsData.projects.map((project: R2Project) => ({
-                id: `r2-${project.id}`,
-                title: project.title,
-                subtitle: project.subtitle,
-                description: project.description,
-                href: `/personal/creative/projects/${project.id}`,
-                image: project.cover ?? "/creative-project-fallback.svg",
-                icon: FolderKanban,
-                prefix: project.prefix,
-                previewFit: "contain",
-              }))
-            : []
-
-        await Promise.all(
-          discoveredProjects.map(async (project) => {
-            if (!project.prefix) return
-            const preview = await loadFirstImage(project.prefix).catch(() => null)
-            if (preview) nextPreviews[project.id] = preview
-          }),
-        )
-
-        if (active) {
-          setDynamicProjects(discoveredProjects)
-          setPreviews(nextPreviews)
+    const loadPreviews = async () => {
+      const nextPreviews: Record<string, string> = {}
+      const artPreview = await loadFirstImage("art/").catch(() => null)
+      if (artPreview) nextPreviews["digital-art"] = artPreview
+      for (const project of dynamicProjects) {
+        if (project.prefix) {
+          const url = await loadFirstImage(project.prefix).catch(() => null)
+          if (url) nextPreviews[project.id] = url
         }
-      } catch (error) {
-        console.warn("Failed to load creative project previews:", error)
-      } finally {
-        if (active) setLoadingProjects(false)
       }
+      if (active) setPreviews(nextPreviews)
     }
-
-    loadCreativeProjects()
-    return () => {
-      active = false
-    }
-  }, [])
+    loadPreviews()
+    return () => { active = false }
+  }, [dynamicProjects])
 
   return (
     <div
@@ -155,7 +120,7 @@ export default function PersonalCreativePage() {
               </div>
             </div>
             <p className="text-sm text-slate-500 dark:text-slate-400">
-              {loadingProjects ? "Loading creative projects..." : `${creativeProjects.length} project${creativeProjects.length !== 1 ? "s" : ""} available`}
+              {projectsLoading ? "Loading creative projects..." : `${creativeProjects.length} project${creativeProjects.length !== 1 ? "s" : ""} available`}
             </p>
           </div>
 

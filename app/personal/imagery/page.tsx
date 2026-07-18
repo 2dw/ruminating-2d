@@ -7,81 +7,50 @@ import { motion } from "framer-motion"
 import { Camera } from "lucide-react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { DynamicFrame } from "@/components/dynamic-frame"
-
-interface PhotoAlbum {
-  id: string
-  title: string
-  subtitle: string
-  description: string
-  prefix: string
-  cover?: string
-}
+import { useAlbums } from "@/contexts/albums-context"
 
 export default function PersonalImageryPage() {
   const router = useRouter()
-  const [albums, setAlbums] = useState<PhotoAlbum[]>([])
+  const { albums } = useAlbums()
   const [albumPreviews, setAlbumPreviews] = useState<Record<string, string>>({})
   const [loadingPreviews, setLoadingPreviews] = useState(true)
 
   useEffect(() => {
+    if (albums.length === 0) return
     let active = true
 
-    const loadAlbumsAndPreviews = async () => {
+    const loadPreviews = async () => {
       setLoadingPreviews(true)
+      const previews: Record<string, string> = {}
 
-      try {
-        // First load albums
-        const albumsResponse = await fetch('/api/albums')
-        const albumsData = await albumsResponse.json()
-
-        if (!albumsData.success || !Array.isArray(albumsData.albums)) {
-          console.warn('Failed to load albums')
-          if (active) setLoadingPreviews(false)
-          return
-        }
-
-        const discoveredAlbums = albumsData.albums
-        if (active) setAlbums(discoveredAlbums)
-
-        // Then load previews
-        const previews: Record<string, string> = {}
-
-        await Promise.all(
-          discoveredAlbums.map(async (album: PhotoAlbum) => {
-            if (album.cover && album.cover !== "/placeholder.jpg") {
-              previews[album.id] = album.cover
-              return
+      await Promise.all(
+        albums.map(async (album) => {
+          if (album.cover && album.cover !== "/placeholder.jpg") {
+            previews[album.id] = album.cover
+            return
+          }
+          try {
+            const response = await fetch(`/api/photos?prefix=${encodeURIComponent(album.prefix)}`)
+            if (!response.ok) return
+            const data = await response.json()
+            if (data.success && Array.isArray(data.photos) && data.photos.length > 0) {
+              previews[album.id] = data.photos[0].url
             }
+          } catch (error) {
+            console.warn(`Failed to load preview for ${album.id}:`, error)
+          }
+        })
+      )
 
-            try {
-              const response = await fetch(`/api/photos?prefix=${encodeURIComponent(album.prefix)}`)
-              if (!response.ok) return
-
-              const data = await response.json()
-              if (data.success && Array.isArray(data.photos) && data.photos.length > 0) {
-                previews[album.id] = data.photos[0].url
-              }
-            } catch (error) {
-              console.warn(`Failed to load preview for ${album.id}:`, error)
-            }
-          })
-        )
-
-        if (active) {
-          setAlbumPreviews(previews)
-          setLoadingPreviews(false)
-        }
-      } catch (error) {
-        console.warn('Failed to load albums and previews:', error)
-        if (active) setLoadingPreviews(false)
+      if (active) {
+        setAlbumPreviews(previews)
+        setLoadingPreviews(false)
       }
     }
 
-    loadAlbumsAndPreviews()
-    return () => {
-      active = false
-    }
-  }, [])
+    loadPreviews()
+    return () => { active = false }
+  }, [albums])
 
   return (
     <div

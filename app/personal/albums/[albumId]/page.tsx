@@ -18,14 +18,7 @@ import {
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 
-interface PhotoAlbum {
-  id: string
-  title: string
-  subtitle: string
-  description: string
-  prefix: string
-  cover?: string
-}
+import { useAlbums } from "@/contexts/albums-context"
 
 interface Photo {
   key: string
@@ -49,9 +42,8 @@ function getPhotoCaption(
 export default function AlbumDetailPage() {
   const router = useRouter()
   const routeParams = useParams()
-  const albumId = Array.isArray(routeParams?.albumId) ? routeParams.albumId[0] : routeParams?.albumId
-  const [albums, setAlbums] = useState<PhotoAlbum[]>([])
-  const [albumLoading, setAlbumLoading] = useState(true)
+  const albumId = Array.isArray(routeParams?.albumId) ? routeParams.albumId[0] :routeParams?.albumId
+  const { albums, loading: albumLoading } = useAlbums()
 
   const album = useMemo(
     () => (albumId ? albums.find((item) => item.id === albumId) : undefined),
@@ -92,24 +84,6 @@ export default function AlbumDetailPage() {
 
   const zoomIn = useCallback(() => setZoom((z) => clampZoom(z * 1.3)), [clampZoom])
   const zoomOut = useCallback(() => setZoom((z) => clampZoom(z / 1.3)), [clampZoom])
-
-  // Load albums
-  useEffect(() => {
-    const loadAlbums = async () => {
-      try {
-        const response = await fetch("/api/albums")
-        const data = await response.json()
-        if (data.success && Array.isArray(data.albums)) {
-          setAlbums(data.albums)
-        }
-      } catch (error) {
-        console.warn("Failed to load albums:", error)
-      } finally {
-        setAlbumLoading(false)
-      }
-    }
-    loadAlbums()
-  }, [])
 
   // Load photos
   useEffect(() => {

@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { memo, useState, useEffect } from "react"
 import Image from "next/image"
 import { motion } from "framer-motion"
 import { DynamicFrame } from "@/components/dynamic-frame"
@@ -20,7 +20,7 @@ interface PhotoGallerySectionProps {
   maxPhotos?: number
 }
 
-export function PhotoGallerySection({
+export const PhotoGallerySection = memo(function PhotoGallerySection({
   title,
   description,
   prefix,
@@ -168,4 +168,4 @@ export function PhotoGallerySection({
       )}
     </div>
   )
-}
+})

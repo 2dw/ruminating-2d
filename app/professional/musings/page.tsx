@@ -1,23 +1,23 @@
-"use client"
-
-import { motion } from "framer-motion"
-import { ArrowLeft, Lightbulb } from "lucide-react"
-import { useRouter } from "next/navigation"
-
-import { Button } from "@/components/ui/button"
+import Link from "next/link"
+import { Lightbulb } from "lucide-react"
+import { FadeIn } from "@/components/fade-in"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 
 export default function ProfessionalMusingsPage() {
-  const router = useRouter()
-
   return (
     <div className="min-h-screen bg-[#f8fcff] pt-24 text-[#0e0f11] transition-colors duration-500 dark:bg-[#0a1015] dark:text-white">
       <main className="mx-auto max-w-6xl px-4 py-16 sm:px-6 lg:px-8">
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }} className="space-y-8">
+        <FadeIn className="space-y-8">
           <div className="flex items-start gap-4">
-            <Button variant="ghost" size="icon" onClick={() => router.push("/professional")} className="mt-1 text-green-700 hover:bg-green-50 dark:text-green-300 dark:hover:bg-green-950/40" aria-label="Back to professional sections">
-              <ArrowLeft className="h-5 w-5" />
-            </Button>
+            <Link
+              href="/professional"
+              className="mt-1 inline-flex h-10 w-10 items-center justify-center rounded-md text-green-700 hover:bg-green-50 dark:text-green-300 dark:hover:bg-green-950/40"
+              aria-label="Back to professional sections"
+            >
+              <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18" />
+              </svg>
+            </Link>
             <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-3xl bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-200">
               <Lightbulb className="h-7 w-7" />
             </div>
@@ -63,7 +63,7 @@ export default function ProfessionalMusingsPage() {
               </CardContent>
             </Card>
           </section>
-        </motion.div>
+        </FadeIn>
       </main>
     </div>
   )

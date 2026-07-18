@@ -1,9 +1,11 @@
 import type React from "react"
 import type { Metadata } from "next"
 import { Inter } from "next/font/google"
+import dynamic from "next/dynamic"
 import "./globals.css"
 import { AccessibilityProvider } from "@/contexts/accessibility-context"
-import { StarryBackground } from "@/components/starry-background"
+
+const StarryBackground = dynamic(() => import("@/components/starry-background").then((m) => m.StarryBackground), { ssr: false })
 
 const inter = Inter({ subsets: ["latin"] })
 

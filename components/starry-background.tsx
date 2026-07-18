@@ -1,7 +1,6 @@
 "use client"
 
-import type React from "react"
-import { useEffect, useRef, useState } from "react"
+import { useEffect, useMemo, useRef, useState } from "react"
 import { motion } from "framer-motion"
 import { ShootingStar } from "./shooting-star"
 
@@ -158,7 +157,6 @@ function randomFrom(seed: number) {
 }
 
 export function StarryBackground({ shootingStarCount = 3, isDarkMode = false }: StarryBackgroundProps) {
-  const [shootingStars, setShootingStars] = useState<React.ReactNode[]>([])
   const [stars, setStars] = useState<Star[]>([])
   const [connections, setConnections] = useState<Connection[]>([])
   const [pointerGlow, setPointerGlow] = useState<PointerGlow>({ x: 0, y: 0, active: false })
@@ -166,8 +164,7 @@ export function StarryBackground({ shootingStarCount = 3, isDarkMode = false }: 
   const [mycelium, setMycelium] = useState<{ paths: MyceliumPath[]; nodes: MyceliumNode[] }>({ paths: [], nodes: [] })
   const [activeMyceliumNodes, setActiveMyceliumNodes] = useState<Record<string, number>>({})
   const [activeMyceliumPaths, setActiveMyceliumPaths] = useState<Record<string, number>>({})
-  // Normalised 0-1 position of pointer within viewport height (0 = top, 1 = bottom)
-  const [pointerYNorm, setPointerYNorm] = useState(0)
+  const pointerYNormRef = useRef(0)
   
   const starsRef = useRef<Star[]>([])
   const myceliumRef = useRef<{ paths: MyceliumPath[]; nodes: MyceliumNode[] }>({ paths: [], nodes: [] })
@@ -181,19 +178,15 @@ export function StarryBackground({ shootingStarCount = 3, isDarkMode = false }: 
     setMycelium(grid)
   }, [])
 
-  useEffect(() => {
-    // Create multiple shooting stars with different delays and properties.
-    const stars = Array.from({ length: shootingStarCount }).map((_, index) => {
+  const shootingStars = useMemo(() => {
+    return Array.from({ length: shootingStarCount }).map((_, index) => {
       const delay = index * 5 + Math.random() * 10
       const duration = 1 + Math.random() * 1.5
       const size = 1 + Math.random() * 2
       const colors = ["rgba(255, 255, 255, 0.8)", "rgba(220, 240, 255, 0.8)", "rgba(255, 250, 220, 0.8)"]
       const color = colors[Math.floor(Math.random() * colors.length)]
-
       return <ShootingStar key={`shooting-star-${index}`} delay={delay} duration={duration} size={size} color={color} />
     })
-
-    setShootingStars(stars)
   }, [shootingStarCount])
 
   useEffect(() => {
@@ -286,7 +279,7 @@ export function StarryBackground({ shootingStarCount = 3, isDarkMode = false }: 
       setPointerGlow({ x: pointer.x, y: pointer.y, active: true })
 
       // Track vertical position for colour morphing (0 = top, 1 = bottom)
-      setPointerYNorm(Math.min(1, Math.max(0, pointer.y / window.innerHeight)))
+      pointerYNormRef.current = Math.min(1, Math.max(0, pointer.y / window.innerHeight))
 
       // Calculate distances for mycelium nodes
       const nextActiveNodes: Record<string, number> = {}
@@ -372,7 +365,7 @@ export function StarryBackground({ shootingStarCount = 3, isDarkMode = false }: 
   // Lerp a color channel value from green zone → sky-blue zone based on pointer Y
   // pointerYNorm: 0 = top header area, 1 = bottom of page
   // mycelium zone = top 0–30%, constellation zone = 30%+
-  const morphT = Math.min(1, Math.max(0, (pointerYNorm - 0.15) / 0.45))
+  const morphT = Math.min(1, Math.max(0, (pointerYNormRef.current - 0.15) / 0.45))
   // Green electron: rgb(34, 197, 94) → Sky-blue electron: rgb(56, 189, 248)
   const electronR = Math.round(34 + (56 - 34) * morphT)
   const electronG = Math.round(197 + (189 - 197) * morphT)

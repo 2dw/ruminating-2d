@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { memo, useCallback, useEffect, useState } from "react"
 import { motion } from "framer-motion"
 
 interface ShootingStarProps {
@@ -10,7 +10,7 @@ interface ShootingStarProps {
   color?: string
 }
 
-export function ShootingStar({
+export const ShootingStar = memo(function ShootingStar({
   delay = 0,
   duration = 1.5,
   size = 2,
@@ -19,58 +19,42 @@ export function ShootingStar({
   const [position, setPosition] = useState({ x: 0, y: 0, angle: -45 })
   const [isVisible, setIsVisible] = useState(false)
 
-  // Generate a random position for the shooting star
-  const generateRandomPosition = () => {
-    // Random starting position in the top half of the viewport
-    const x = Math.random() * 100 // percentage across viewport width
-    const y = Math.random() * 30 // percentage from top (keeping it in upper portion)
-
-    // Random angle between -30 and -60 degrees (downward trajectory)
+  const generateRandomPosition = useCallback(() => {
+    const x = Math.random() * 100
+    const y = Math.random() * 30
     const angle = -30 - Math.random() * 30
-
     setPosition({ x, y, angle })
-  }
+  }, [])
 
   useEffect(() => {
-    // Initial position
     generateRandomPosition()
 
-    // Set up interval for periodic shooting stars
     const intervalId = setInterval(
       () => {
         setIsVisible(false)
-
-        // Generate new position before showing
         setTimeout(() => {
           generateRandomPosition()
           setIsVisible(true)
-
-          // Hide after animation completes
-          setTimeout(() => {
-            setIsVisible(false)
-          }, duration * 1000)
+          setTimeout(() => { setIsVisible(false) }, duration * 1000)
         }, 300)
       },
       (30 + Math.random() * 20) * 1000,
-    ) // Random interval between 30-50 seconds
+    )
 
-    // Initial delay before first appearance
-    setTimeout(() => {
+    const initialTimeout = setTimeout(() => {
       setIsVisible(true)
-
-      // Hide after animation completes
-      setTimeout(() => {
-        setIsVisible(false)
-      }, duration * 1000)
+      setTimeout(() => { setIsVisible(false) }, duration * 1000)
     }, delay * 1000)
 
-    return () => clearInterval(intervalId)
-  }, [delay, duration])
+    return () => {
+      clearInterval(intervalId)
+      clearTimeout(initialTimeout)
+    }
+  }, [delay, duration, generateRandomPosition])
 
-  // Calculate end position based on angle and a distance that ensures it goes off-screen
-  const distance = 150 // percentage of viewport
+  const distance = 150
   const endX = position.x + distance * Math.cos((position.angle * Math.PI) / 180)
-  const endY = position.y + distance * Math.sin((position.angle * Math.PI) / 180) * -1 // Invert Y for CSS coordinates
+  const endY = position.y + distance * Math.sin((position.angle * Math.PI) / 180) * -1
 
   return (
     <div
@@ -111,4 +95,4 @@ export function ShootingStar({
       />
     </div>
   )
-}
+})

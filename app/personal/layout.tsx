@@ -7,6 +7,8 @@ import { useEffect, useRef, useState } from "react"
 import { motion } from "framer-motion"
 import { Camera, Home, Palette, PenTool, Sun, Moon } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { AlbumsProvider } from "@/contexts/albums-context"
+import { ProjectsProvider } from "@/contexts/projects-context"
 
 const tabs = [
   { title: "Creative Endeavors", href: "/personal/creative", icon: <Palette className="h-4 w-4" /> },
@@ -143,7 +145,7 @@ export default function PersonalLayout({ children }: { children: ReactNode }) {
         </div>
       </header>
 
-      <main>{children}</main>
+      <main><AlbumsProvider><ProjectsProvider>{children}</ProjectsProvider></AlbumsProvider></main>
     </div>
   )
 }

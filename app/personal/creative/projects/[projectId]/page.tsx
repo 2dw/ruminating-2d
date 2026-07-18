@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useMemo, useState } from "react"
+import { useMemo, useState } from "react"
 import { motion } from "framer-motion"
 import { ArrowLeft, FolderKanban, Sparkles, Target, Tags as TagsIcon, Star, MapPin, Building2, ChevronDown, ChevronRight } from "lucide-react"
 import { useParams, useRouter } from "next/navigation"
@@ -9,44 +9,13 @@ import { Button } from "@/components/ui/button"
 import { ProjectConstellation } from "@/components/project-constellation"
 import { UnderConstruction } from "@/components/under-construction"
 import { getCreativeProjectConfig, type CreativeProjectConfig } from "@/config/creative-projects"
-
-interface R2Project {
-  id: string
-  title: string
-  subtitle: string
-  description: string
-  prefix: string
-}
+import { useProjects } from "@/contexts/projects-context"
 
 export default function CreativeProjectPage() {
   const router = useRouter()
   const params = useParams()
   const projectId = Array.isArray(params?.projectId) ? params.projectId[0] : params?.projectId
-  const [projects, setProjects] = useState<R2Project[]>([])
-  const [loading, setLoading] = useState(true)
-
-  useEffect(() => {
-    let active = true
-
-    const loadProjects = async () => {
-      try {
-        const response = await fetch("/api/projects", { cache: "no-store" })
-        const data = await response.json()
-        if (active && data.success && Array.isArray(data.projects)) {
-          setProjects(data.projects)
-        }
-      } catch (error) {
-        console.warn("Failed to load creative projects:", error)
-      } finally {
-        if (active) setLoading(false)
-      }
-    }
-
-    loadProjects()
-    return () => {
-      active = false
-    }
-  }, [])
+  const { projects, loading } = useProjects()
 
   const project = useMemo(
     () => (projectId ? projects.find((item) => item.id === projectId) : undefined),
