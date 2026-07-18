@@ -23,14 +23,14 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import dynamic from "next/dynamic"
 
 // ── Plotly dynamic import — MUST be at module level, outside any component ───
-const Plot = dynamic(() => import("react-plotly.js"), {
-  ssr: false,
-  loading: () => (
+const Plot = dynamic(
+  () => import("react-plotly.js").then(mod => mod.default ?? mod),
+  { ssr: false, loading: () => (
     <div className="h-48 flex items-center justify-center">
       <p className="text-xs text-slate-400 font-mono animate-pulse">loading chart...</p>
     </div>
-  ),
-})
+  )}
+)
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
