@@ -464,38 +464,26 @@ export default function EnergyDashboardPage() {
 
   // Fetch today's daily file from R2 for richer history
   const fetchDaily = useCallback(async () => {
-    try {
-      const today = new Date().toISOString().slice(0, 10)
-      const [y, m, d] = today.split("-")
-      const key = `telemetry/daily/${y}/${m}/${d}.jsonl`
-      const res = await fetch(
-        `/api/ecoflow/admin?action=download&key=${encodeURIComponent(key)}`,
-        { headers: { Authorization: `Bearer ${process.env.NEXT_PUBLIC_ECOFLOW_VIEWER_TOKEN || ""}` } }
-      )
-      if (!res.ok) return
-      const text = await res.text()
-      const pts: HistoryPoint[] = text.trim().split("\n")
+  try {
+    const res = await fetch("/api/ecoflow/history?days=1", { cache: "no-store" })
+    if (!res.ok) return
+    const json = await res.json()
+    const pts: HistoryPoint[] = (json.data || [])
         .filter(Boolean)
-        .map(l => {
-          try {
-            const d = JSON.parse(l)
-            return {
-              timestamp_iso: d.timestamp_iso,
-              soc:       d.soc,
-              solar_in:  d.solar_in,
-              power_out: Math.abs(d.power_out || d.ac_out || 0),
-              power_in:  d.power_in,
-              temp_c:    d.temp_c,
-            }
-          } catch { return null }
-        })
-        .filter(Boolean) as HistoryPoint[]
-      if (pts.length > 0) {
-        setHistory(pts)
-        setChartKey(k => k + 1)
-      }
-    } catch (_) {}
-  }, [])
+        .map((d: any) => ({
+        timestamp_iso: d.timestamp_iso,
+        soc:       d.soc,
+        solar_in:  d.solar_in,
+        power_out: Math.abs(d.power_out || d.ac_out || 0),
+        power_in:  d.power_in,
+        temp_c:    d.temp_c,
+      }))
+    if (pts.length > 0) {
+      setHistory(pts)
+      setChartKey(k => k + 1)
+    }
+  } catch (_) {}
+
 
   useEffect(() => {
     fetchLive()
