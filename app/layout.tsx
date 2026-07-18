@@ -1,11 +1,9 @@
 import type React from "react"
 import type { Metadata } from "next"
 import { Inter } from "next/font/google"
-import dynamic from "next/dynamic"
 import "./globals.css"
 import { AccessibilityProvider } from "@/contexts/accessibility-context"
-
-const StarryBackground = dynamic(() => import("@/components/starry-background").then((m) => m.StarryBackground), { ssr: false })
+import { LazyStarryBackground } from "@/components/lazy-starry-background"
 
 const inter = Inter({ subsets: ["latin"] })
 
@@ -27,7 +25,7 @@ export default function RootLayout({
       </head>
       <body className={inter.className} suppressHydrationWarning>
         <AccessibilityProvider>
-          <StarryBackground />
+          <LazyStarryBackground />
           {children}
 
           {/* Screen reader announcer */}
