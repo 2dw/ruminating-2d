@@ -643,7 +643,7 @@ export default function EnergyDashboardPage() {
                 </div>
               </CardHeader>
               <CardContent>
-                {history.length>1?(
+                {history.length>=1?(
                   <Plot key={`bat-${chartKey}-${dark}`}
                     data={bt} layout={batLayout} config={{
                       displayModeBar:true,
