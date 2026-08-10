@@ -1,10 +1,7 @@
 /**
  * app/api/ecoflow/history/route.ts
- * Public API — serves battery telemetry history from R2.
- * No auth required. Place at app/api/ecoflow/history/route.ts
- *
- * GET /api/ecoflow/history        → today only
- * GET /api/ecoflow/history?days=3 → last N days (max 30)
+ * Serves battery telemetry history from R2.
+ * Uses Pacific time to match Worker key format.
  */
 
 import { S3Client, GetObjectCommand } from "@aws-sdk/client-s3"
@@ -25,19 +22,32 @@ function getR2() {
   })
 }
 
-async function fetchDay(r2: S3Client, date: Date): Promise<any[]> {
-  const y = date.getFullYear()
-  const m = String(date.getMonth() + 1).padStart(2, "0")
-  const d = String(date.getDate()).padStart(2, "0")
+function getPacificDateParts(offsetDays = 0): { y: string; m: string; d: string } {
+  const ts = Date.now() - offsetDays * 86_400_000
+  const parts = new Intl.DateTimeFormat("en-US", {
+    timeZone: "America/Los_Angeles",
+    year: "numeric", month: "2-digit", day: "2-digit",
+  }).formatToParts(new Date(ts))
+  return {
+    y: parts.find(p => p.type === "year")!.value,
+    m: parts.find(p => p.type === "month")!.value,
+    d: parts.find(p => p.type === "day")!.value,
+  }
+}
+
+async function fetchDay(r2: S3Client, y: string, m: string, d: string): Promise<any[]> {
+  const key = `telemetry/daily/${y}/${m}/${d}.jsonl`
   try {
     const resp = await r2.send(new GetObjectCommand({
       Bucket: "ecoflow-history",
-      Key: `telemetry/daily/${y}/${m}/${d}.jsonl`,
+      Key: key,
     }))
     const text = await resp.Body!.transformToString()
-    return text.trim().split("\n").filter(Boolean).map(l => {
-      try { return JSON.parse(l) } catch { return null }
-    }).filter(Boolean)
+    if (!text.trim()) return []
+    return text.trim().split("\n")
+      .filter(l => l.trim())
+      .map(l => { try { return JSON.parse(l) } catch { return null } })
+      .filter(Boolean)
   } catch {
     return []
   }
@@ -47,42 +57,32 @@ export async function OPTIONS() {
   return new Response(null, { status: 204, headers: CORS })
 }
 
-async function fetchDayByParts(r2: S3Client, y: string, m: string, d: string): Promise<any[]> {
-  try {
-    const resp = await r2.send(new GetObjectCommand({
-      Bucket: "ecoflow-history",
-      Key: `telemetry/daily/${y}/${m}/${d}.jsonl`,
-    }))
-    const text = await resp.Body!.transformToString()
-    return text.trim().split("\n").filter(Boolean).map(l => {
-      try { return JSON.parse(l) } catch { return null }
-    }).filter(Boolean)
-  } catch {
-    return []
-  }
-}
-
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url)
   const days = Math.min(30, Math.max(1, parseInt(searchParams.get("days") ?? "1")))
 
   try {
-    const r2 = getR2()
+    const r2  = getR2()
     const all: any[] = []
+
     for (let i = 0; i < days; i++) {
-      // Use Pacific time to match the Worker's key format
-      const utcNow = Date.now() - i * 86_400_000
-      const pacific = new Intl.DateTimeFormat("en-US", {
-        timeZone: "America/Los_Angeles",
-        year: "numeric", month: "2-digit", day: "2-digit",
-      }).formatToParts(new Date(utcNow))
-      const y = pacific.find(p => p.type === "year")!.value
-      const m = pacific.find(p => p.type === "month")!.value
-      const d2 = pacific.find(p => p.type === "day")!.value
-      all.push(...await fetchDayByParts(r2, y, m, d2))
+      const { y, m, d } = getPacificDateParts(i)
+      const pts = await fetchDay(r2, y, m, d)
+      all.push(...pts)
     }
+
     all.sort((a, b) => a.timestamp_iso.localeCompare(b.timestamp_iso))
-    return Response.json({ count: all.length, days, data: all }, { headers: CORS })
+
+    // Debug info to help diagnose issues
+    const { y, m, d } = getPacificDateParts(0)
+    return Response.json({
+      count: all.length,
+      days,
+      pacific_date: `${y}/${m}/${d}`,
+      key_checked: `telemetry/daily/${y}/${m}/${d}.jsonl`,
+      data: all,
+    }, { headers: CORS })
+
   } catch (err) {
     return Response.json(
       { error: String(err), count: 0, data: [] },
