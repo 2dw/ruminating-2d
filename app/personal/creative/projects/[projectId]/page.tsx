@@ -6,8 +6,8 @@ import { ArrowLeft, FolderKanban, Sparkles, Target, Tags as TagsIcon, Star, MapP
 import { useParams, useRouter } from "next/navigation"
 
 import { Button } from "@/components/ui/button"
-import { ProjectConstellation } from "@/components/project-constellation"
-import { UnderConstruction } from "@/components/under-construction"
+import { LazyProjectConstellation } from "@/components/lazy-project-constellation"
+import { LazyUnderConstruction } from "@/components/lazy-under-construction"
 import { getCreativeProjectConfig, type CreativeProjectConfig } from "@/config/creative-projects"
 import { useProjects } from "@/contexts/projects-context"
 
@@ -259,7 +259,7 @@ export default function CreativeProjectPage() {
                               {sub.journey}
                             </p>
                           )}
-                          <ProjectConstellation
+                          <LazyProjectConstellation
                             prefix={subPrefix}
                             mediaPrefix={sub.mediaPrefix}
                             mediaFilter={sub.mediaFilter}
@@ -292,7 +292,7 @@ export default function CreativeProjectPage() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.3 }}
             >
-              <UnderConstruction />
+              <LazyUnderConstruction />
             </motion.div>
           )}
           {/* END PLACEHOLDER */}

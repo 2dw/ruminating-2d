@@ -158,12 +158,20 @@ function randomFrom(seed: number) {
 
 export function StarryBackground({ shootingStarCount = 3, isDarkMode = false }: StarryBackgroundProps) {
   const [stars, setStars] = useState<Star[]>([])
-  const [connections, setConnections] = useState<Connection[]>([])
-  const [pointerGlow, setPointerGlow] = useState<PointerGlow>({ x: 0, y: 0, active: false })
-  
   const [mycelium, setMycelium] = useState<{ paths: MyceliumPath[]; nodes: MyceliumNode[] }>({ paths: [], nodes: [] })
-  const [activeMyceliumNodes, setActiveMyceliumNodes] = useState<Record<string, number>>({})
-  const [activeMyceliumPaths, setActiveMyceliumPaths] = useState<Record<string, number>>({})
+
+  // Combined interactive state — single setState per frame instead of 4
+  const [interactive, setInteractive] = useState<{
+    connections: Connection[]
+    pointerGlow: PointerGlow
+    activeMyceliumNodes: Record<string, number>
+    activeMyceliumPaths: Record<string, number>
+  }>({
+    connections: [],
+    pointerGlow: { x: 0, y: 0, active: false },
+    activeMyceliumNodes: {},
+    activeMyceliumPaths: {},
+  })
   const pointerYNormRef = useRef(0)
   
   const starsRef = useRef<Star[]>([])
@@ -275,9 +283,6 @@ export function StarryBackground({ shootingStarCount = 3, isDarkMode = false }: 
         }
       }
 
-      setConnections(nextConnections)
-      setPointerGlow({ x: pointer.x, y: pointer.y, active: true })
-
       // Track vertical position for colour morphing (0 = top, 1 = bottom)
       pointerYNormRef.current = Math.min(1, Math.max(0, pointer.y / window.innerHeight))
 
@@ -288,11 +293,9 @@ export function StarryBackground({ shootingStarCount = 3, isDarkMode = false }: 
         const py = (node.y / 100) * height
         const distance = Math.hypot(px - pointer.x, py - pointer.y)
         if (distance <= radius) {
-          const strength = 1 - distance / radius
-          nextActiveNodes[node.id] = strength
+          nextActiveNodes[node.id] = 1 - distance / radius
         }
       })
-      setActiveMyceliumNodes(nextActiveNodes)
 
       // Calculate activity for mycelium paths
       const nextActivePaths: Record<string, number> = {}
@@ -302,8 +305,7 @@ export function StarryBackground({ shootingStarCount = 3, isDarkMode = false }: 
           s1 = nextActiveNodes[path.startNodeId] || 0
         } else {
           const startPx = (path.startX / 100) * width
-          const startPy = 0
-          const dist = Math.hypot(startPx - pointer.x, startPy - pointer.y)
+          const dist = Math.hypot(startPx - pointer.x, 0 - pointer.y)
           s1 = dist < radius ? 1 - dist / radius : 0
         }
         const s2 = nextActiveNodes[path.endNodeId] || 0
@@ -312,7 +314,14 @@ export function StarryBackground({ shootingStarCount = 3, isDarkMode = false }: 
           nextActivePaths[path.id] = activity
         }
       })
-      setActiveMyceliumPaths(nextActivePaths)
+
+      // Single setState — halves re-renders per pointer move
+      setInteractive({
+        connections: nextConnections,
+        pointerGlow: { x: pointer.x, y: pointer.y, active: true },
+        activeMyceliumNodes: nextActiveNodes,
+        activeMyceliumPaths: nextActivePaths,
+      })
     }
 
     const handlePointerMove = (event: PointerEvent) => {
@@ -327,18 +336,22 @@ export function StarryBackground({ shootingStarCount = 3, isDarkMode = false }: 
       }
 
       clearRef.current = window.setTimeout(() => {
-        setConnections([])
-        setActiveMyceliumNodes({})
-        setActiveMyceliumPaths({})
-        setPointerGlow((current) => ({ ...current, active: false }))
+        setInteractive((prev) => ({
+          connections: [],
+          pointerGlow: { ...prev.pointerGlow, active: false },
+          activeMyceliumNodes: {},
+          activeMyceliumPaths: {},
+        }))
       }, 1400)
     }
 
     const handlePointerLeave = () => {
-      setConnections([])
-      setActiveMyceliumNodes({})
-      setActiveMyceliumPaths({})
-      setPointerGlow((current) => ({ ...current, active: false }))
+      setInteractive((prev) => ({
+        connections: [],
+        pointerGlow: { ...prev.pointerGlow, active: false },
+        activeMyceliumNodes: {},
+        activeMyceliumPaths: {},
+      }))
     }
 
     window.addEventListener("pointermove", handlePointerMove, { passive: true })
@@ -375,6 +388,8 @@ export function StarryBackground({ shootingStarCount = 3, isDarkMode = false }: 
   const electronColorLight = isDarkMode
     ? `rgba(${electronR}, ${electronG}, ${electronB}, 0.75)`
     : `rgba(${Math.round(electronR * 0.7)}, ${Math.round(electronG * 0.7)}, ${Math.round(electronB * 0.5)}, 0.8)`
+
+  const { connections, pointerGlow, activeMyceliumNodes, activeMyceliumPaths } = interactive
 
   return (
     <>
