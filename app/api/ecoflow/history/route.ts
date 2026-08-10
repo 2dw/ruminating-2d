@@ -47,6 +47,21 @@ export async function OPTIONS() {
   return new Response(null, { status: 204, headers: CORS })
 }
 
+async function fetchDayByParts(r2: S3Client, y: string, m: string, d: string): Promise<any[]> {
+  try {
+    const resp = await r2.send(new GetObjectCommand({
+      Bucket: "ecoflow-history",
+      Key: `telemetry/daily/${y}/${m}/${d}.jsonl`,
+    }))
+    const text = await resp.Body!.transformToString()
+    return text.trim().split("\n").filter(Boolean).map(l => {
+      try { return JSON.parse(l) } catch { return null }
+    }).filter(Boolean)
+  } catch {
+    return []
+  }
+}
+
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url)
   const days = Math.min(30, Math.max(1, parseInt(searchParams.get("days") ?? "1")))
@@ -55,9 +70,16 @@ export async function GET(request: Request) {
     const r2 = getR2()
     const all: any[] = []
     for (let i = 0; i < days; i++) {
-      const d = new Date()
-      d.setDate(d.getDate() - i)
-      all.push(...await fetchDay(r2, d))
+      // Use Pacific time to match the Worker's key format
+      const utcNow = Date.now() - i * 86_400_000
+      const pacific = new Intl.DateTimeFormat("en-US", {
+        timeZone: "America/Los_Angeles",
+        year: "numeric", month: "2-digit", day: "2-digit",
+      }).formatToParts(new Date(utcNow))
+      const y = pacific.find(p => p.type === "year")!.value
+      const m = pacific.find(p => p.type === "month")!.value
+      const d2 = pacific.find(p => p.type === "day")!.value
+      all.push(...await fetchDayByParts(r2, y, m, d2))
     }
     all.sort((a, b) => a.timestamp_iso.localeCompare(b.timestamp_iso))
     return Response.json({ count: all.length, days, data: all }, { headers: CORS })
