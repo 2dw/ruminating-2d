@@ -35,6 +35,16 @@ export default function RootLayout({
           dangerouslySetInnerHTML={{
             __html: `
               (() => {
+                // Restore dark mode from localStorage before paint
+                try {
+                  const mode = localStorage.getItem("theme-mode");
+                  if (mode === "dark") {
+                    document.documentElement.classList.add("dark");
+                  } else if (mode === "light") {
+                    document.documentElement.classList.remove("dark");
+                  }
+                } catch (_) {}
+
                 const stripBisAttributes = (root = document) => {
                   root.querySelectorAll?.("[bis_skin_checked]").forEach((node) => {
                     node.removeAttribute("bis_skin_checked")

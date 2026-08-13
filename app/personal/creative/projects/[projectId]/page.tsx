@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button"
 import { LazyProjectConstellation } from "@/components/lazy-project-constellation"
 import { LazyUnderConstruction } from "@/components/lazy-under-construction"
 import { getCreativeProjectConfig, type CreativeProjectConfig } from "@/config/creative-projects"
+import { UNDER_CONSTRUCTION_PROJECTS } from "@/config/under-construction"
 import { useProjects } from "@/contexts/projects-context"
 
 export default function CreativeProjectPage() {
@@ -35,6 +36,31 @@ export default function CreativeProjectPage() {
   const milestones = projectConfig?.milestones ?? []
   const subprojects = projectConfig?.subprojects ?? []
   const [expandedSub, setExpandedSub] = useState<string | null>(null)
+
+  // If this project is flagged as under construction, show placeholder and stop
+  if (projectId && UNDER_CONSTRUCTION_PROJECTS.has(projectId)) {
+    return (
+      <div
+        suppressHydrationWarning
+        className="min-h-screen bg-[#f8fcff] pb-16 pt-24 text-[#0e0f11] transition-colors duration-500 dark:bg-[#0a1015] dark:text-white"
+      >
+        <main className="mx-auto max-w-6xl px-4 py-16 sm:px-6 lg:px-8">
+          <div className="mb-8">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => router.push("/personal/creative")}
+              className="text-blue-700 hover:bg-blue-50 dark:text-blue-300 dark:hover:bg-blue-950/40"
+              aria-label="Back to creative projects"
+            >
+              <ArrowLeft className="h-5 w-5" />
+            </Button>
+          </div>
+          <LazyUnderConstruction />
+        </main>
+      </div>
+    )
+  }
 
   return (
     <div

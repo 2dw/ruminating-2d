@@ -61,6 +61,7 @@ export default function ProfessionalLayout({ children }: { children: ReactNode }
     const nextDarkMode = !isDarkMode
     setIsDarkMode(nextDarkMode)
     document.documentElement.classList.toggle("dark")
+    try { localStorage.setItem("theme-mode", nextDarkMode ? "dark" : "light") } catch (_) {}
   }
 
   return (

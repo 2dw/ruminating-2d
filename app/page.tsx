@@ -16,20 +16,22 @@ export default function PortalPage() {
 
   // Initialize dark mode from localStorage after component mounts
   useEffect(() => {
-    const isDarkFromStorage = localStorage.getItem("isDarkMode") === "true"
+    const isDarkFromStorage = localStorage.getItem("theme-mode") === "dark"
     const isDarkFromSystem = window.matchMedia("(prefers-color-scheme: dark)").matches
     const shouldBeDark = isDarkFromStorage || isDarkFromSystem
 
     setIsDarkMode(shouldBeDark)
     if (shouldBeDark) {
       document.documentElement.classList.add("dark")
+    } else {
+      document.documentElement.classList.remove("dark")
     }
   }, [])
 
   const toggleDarkMode = () => {
     const newDarkMode = !isDarkMode
     setIsDarkMode(newDarkMode)
-    localStorage.setItem("isDarkMode", String(newDarkMode))
+    try { localStorage.setItem("theme-mode", newDarkMode ? "dark" : "light") } catch (_) {}
     document.documentElement.classList.toggle("dark")
   }
 

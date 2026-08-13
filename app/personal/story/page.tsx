@@ -3,10 +3,12 @@
 import { motion } from "framer-motion"
 import { PenTool } from "lucide-react"
 import { DynamicFrame } from "@/components/dynamic-frame"
+import { SectionGate } from "@/components/section-gate"
 
 export default function PersonalStoryPage() {
   return (
-    <div
+    <SectionGate path="/personal/story">
+      <div
       suppressHydrationWarning
       className="min-h-screen bg-[#f8fcff] text-[#0e0f11] dark:bg-[#0a1015] dark:text-white transition-colors duration-500 pt-24"
     >
@@ -172,5 +174,6 @@ export default function PersonalStoryPage() {
         </motion.div>
       </main>
     </div>
+    </SectionGate>
   )
 }

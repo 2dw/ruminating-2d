@@ -68,8 +68,10 @@ export default function PersonalLayout({ children }: { children: ReactNode }) {
   }, [])
 
   const toggleDarkMode = () => {
-    setIsDarkMode(!isDarkMode)
+    const next = !isDarkMode
+    setIsDarkMode(next)
     document.documentElement.classList.toggle("dark")
+    try { localStorage.setItem("theme-mode", next ? "dark" : "light") } catch (_) {}
   }
 
   return (
