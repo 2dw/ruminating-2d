@@ -262,9 +262,23 @@ function SyncedCharts({ history, dark, show, live, minS, maxS, socMin, socMax, w
   minS: number; maxS: number; socMin: number; socMax: number
   wMin: number; wMax: number | undefined; zoomLevel: number
 }) {
-  const [brushStart, setBrushStart] = useState(Math.max(0, history.length - 96))
-  const [brushEnd, setBrushEnd] = useState(history.length)
+  const len = history.length
+  const initEnd = Math.min(len, 96)
+  const [brushStart, setBrushStart] = useState(Math.max(0, len - initEnd))
+  const [brushEnd, setBrushEnd] = useState(initEnd)
   const containerRef = useRef<HTMLDivElement>(null)
+
+  // Clamp brush indices whenever history length changes
+  useEffect(() => {
+    setBrushStart(prev => {
+      const clamped = Math.max(0, Math.min(prev, len - 1))
+      return clamped
+    })
+    setBrushEnd(prev => {
+      const clamped = Math.max(1, Math.min(prev, len))
+      return clamped
+    })
+  }, [len])
 
   const grid = dark ? "rgba(55,65,81,0.35)" : "rgba(203,213,222,0.6)"
   const fc   = dark ? "#9ca3af" : "#475569"
@@ -273,14 +287,18 @@ function SyncedCharts({ history, dark, show, live, minS, maxS, socMin, socMax, w
   const inputText = dark ? "text-slate-300" : "text-slate-700"
 
   // Current visible range dates
-  const rangeStart = history[brushStart]?.timestamp_iso ?? history[0]?.timestamp_iso ?? ""
-  const rangeEnd   = history[Math.min(brushEnd - 1, history.length - 1)]?.timestamp_iso ?? history[history.length - 1]?.timestamp_iso ?? ""
+  const safeStart = Math.max(0, Math.min(brushStart, len - 1))
+  const safeEnd   = Math.max(0, Math.min(brushEnd - 1, len - 1))
+  const rangeStart = history[safeStart]?.timestamp_iso ?? ""
+  const rangeEnd   = history[safeEnd]?.timestamp_iso ?? ""
 
-  // Synced Brush handler
+  // Synced Brush handler — clamp to valid range
   const handleBrushChange = (range: any) => {
     if (range && typeof range.startIndex === "number" && typeof range.endIndex === "number") {
-      setBrushStart(range.startIndex)
-      setBrushEnd(range.endIndex)
+      const s = Math.max(0, Math.min(range.startIndex, len - 1))
+      const e = Math.max(s + 3, Math.min(range.endIndex, len))
+      setBrushStart(s)
+      setBrushEnd(e)
     }
   }
 
@@ -357,17 +375,7 @@ function SyncedCharts({ history, dark, show, live, minS, maxS, socMin, socMax, w
     stroke: dark ? "#374151" : "#cbd5e1",
     fill: dark ? "rgba(15,23,32,0.8)" : "rgba(241,245,249,0.9)",
     travellerWidth: 6,
-    startIndex: brushStart,
-    endIndex: brushEnd,
     onChange: handleBrushChange,
-    tickFormatter: (val: string) => {
-      // Show abbreviated labels in the brush minimap
-      if (visibleDays > 1.5) {
-        const parts = val.split(", ")
-        return parts.length > 1 ? parts[1] : val
-      }
-      return val
-    },
   }
 
   const brushWrap = (children: React.ReactNode, chartHeight: number) => (
