@@ -1,27 +1,29 @@
 "use client"
 /**
  * app/professional/endeavors/energy/page.tsx
- *
- * Replaces react-plotly.js with custom SVG charts — eliminates all
- * dynamic import / SSR / hydration issues that were preventing render.
- *
- * Charts implemented:
- *  - SOC history line chart with peak shading and envelope bands
- *  - Power flow bar/line chart (solar, power in, power out)
+ * Uses recharts (already in project) for interactive charts:
+ *  - Stock-market style time series with zoom/pan brush
+ *  - Metric toggles, crosshair tooltip, SOC envelope bands
+ *  - Animated SVG electron flow
  *  - Solar forecast vs actual
- *  - Value stacking bar chart
- *  - Animated electron flow diagram
+ *  - Value stacking savings chart
  */
 
-import { useState, useEffect, useCallback, useRef } from "react"
+import { useState, useEffect, useCallback } from "react"
 import { motion } from "framer-motion"
 import {
   ArrowLeft, Zap, Eye, Lock, Sun, Battery, Activity,
-  Thermometer, DollarSign, TrendingUp, Cloud, AlertCircle, RefreshCw,
+  Thermometer, DollarSign, TrendingUp, Cloud,
+  AlertCircle, RefreshCw, ToggleLeft, ToggleRight,
 } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import {
+  ComposedChart, Line, Bar, Area, XAxis, YAxis, CartesianGrid,
+  Tooltip, Legend, Brush, ReferenceLine, ReferenceArea,
+  ResponsiveContainer, BarChart,
+} from "recharts"
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -34,9 +36,10 @@ interface Live {
   min_dsg_soc: number; max_chg_soc: number
 }
 interface Pt {
-  timestamp_iso: string
+  timestamp_iso: string; label: string
   soc: number; solar_in: number
   power_out: number; power_in: number; temp_c: number
+  isPeak: boolean
 }
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -58,258 +61,57 @@ const getRate = (d = new Date()) => {
   const su = d.getMonth() >= 5 && d.getMonth() <= 8
   return su ? (isPeak(d) ? 0.52 : 0.28) : (isPeak(d) ? 0.43 : 0.26)
 }
+const fmtTime = (iso: string) =>
+  new Date(iso).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
 
-// ── SVG Chart primitives ──────────────────────────────────────────────────────
+// ── Custom crosshair tooltip ──────────────────────────────────────────────────
 
-function useDims(ref: React.RefObject<HTMLDivElement>) {
-  const [w, setW] = useState(600)
-  useEffect(() => {
-    if (!ref.current) return
-    const ro = new ResizeObserver(entries => setW(entries[0].contentRect.width))
-    ro.observe(ref.current)
-    setW(ref.current.offsetWidth)
-    return () => ro.disconnect()
-  }, [ref])
-  return w
+function ChartTooltip({ active, payload, label, dark }: any) {
+  if (!active || !payload?.length) return null
+  const bg   = dark ? "#0a0f14" : "#f8fafc"
+  const bord = dark ? "#374151" : "#cbd5e1"
+  const fc   = dark ? "#e5e7eb" : "#1e293b"
+  return (
+    <div style={{
+      background: bg, border: `1px solid ${bord}`, borderRadius: 8,
+      padding: "8px 12px", fontSize: 11, fontFamily: "JetBrains Mono, monospace",
+      color: fc, boxShadow: "0 4px 16px rgba(0,0,0,0.2)",
+    }}>
+      <p style={{ marginBottom: 4, opacity: 0.6, fontSize: 10 }}>{label}</p>
+      {payload.map((p: any) => (
+        <div key={p.dataKey} style={{ display: "flex", justifyContent: "space-between", gap: 16 }}>
+          <span style={{ color: p.color }}>{p.name}</span>
+          <span style={{ fontWeight: 700 }}>
+            {typeof p.value === "number" ? p.value.toFixed(1) : p.value}
+            {p.unit ?? ""}
+          </span>
+        </div>
+      ))}
+    </div>
+  )
 }
 
-interface ChartProps {
-  data: Pt[]
-  height?: number
-  minSoc?: number
-  maxSoc?: number
-  showEnv?: boolean
-  dark?: boolean
-}
+// ── Peak shading component ────────────────────────────────────────────────────
 
-function SocChart({ data, height = 200, minSoc = 12, maxSoc = 100, showEnv = true, dark = false }: ChartProps) {
-  const ref  = useRef<HTMLDivElement>(null)
-  const W    = useDims(ref)
-  const H    = height
-  const pad  = { l: 38, r: 12, t: 16, b: 28 }
-  const cw   = W - pad.l - pad.r
-  const ch   = H - pad.t - pad.b
-
-  if (data.length < 1) return <div ref={ref} style={{ height }} className="flex items-center justify-center"><p className="text-xs text-slate-400">No data yet</p></div>
-
-  const socs  = data.map(d => d.soc)
-  const minY  = 0, maxY = 105
-  const scaleX = (i: number) => (i / Math.max(data.length - 1, 1)) * cw
-  const scaleY = (v: number) => ch - ((v - minY) / (maxY - minY)) * ch
-
-  const linePts = data.map((d, i) => `${scaleX(i)},${scaleY(d.soc)}`).join(" ")
-  const areaPts = `${scaleX(0)},${ch} ` + linePts + ` ${scaleX(data.length - 1)},${ch}`
-
-  // Peak hour shading
-  const peakBands: { x: number; w: number }[] = []
+function PeakAreas({ data, yMin, yMax }: { data: Pt[]; yMin: number; yMax: number }) {
+  const areas: { start: string; end: string }[] = []
+  let inPeak = false, startLabel = ""
   data.forEach((d, i) => {
-    const hr = new Date(d.timestamp_iso).getHours()
-    if (hr >= 16 && hr < 21 && i < data.length - 1) {
-      peakBands.push({ x: scaleX(i), w: scaleX(i + 1) - scaleX(i) })
-    }
+    if (d.isPeak && !inPeak) { inPeak = true; startLabel = d.label }
+    if (!d.isPeak && inPeak) { inPeak = false; areas.push({ start: startLabel, end: data[i-1].label }) }
   })
-
-  const col = socCol(socs[socs.length - 1] ?? 50)
-  const grid = dark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.08)"
-  const fc   = dark ? "#9ca3af" : "#64748b"
-  const labelY = [0, 25, 50, 75, 100]
-
-  // Time labels
-  const timeLabels = [0, Math.floor(data.length / 2), data.length - 1].filter(i => i < data.length)
-
+  if (inPeak) areas.push({ start: startLabel, end: data[data.length-1].label })
   return (
-    <div ref={ref} style={{ height }}>
-      <svg width={W} height={H}>
-        <g transform={`translate(${pad.l},${pad.t})`}>
-          {/* Grid */}
-          {labelY.map(v => (
-            <g key={v}>
-              <line x1={0} y1={scaleY(v)} x2={cw} y2={scaleY(v)} stroke={grid} strokeWidth="1" />
-              <text x={-4} y={scaleY(v) + 4} textAnchor="end" fontSize="9" fill={fc}>{v}%</text>
-            </g>
-          ))}
-
-          {/* Peak shading */}
-          {peakBands.map((b, i) => (
-            <rect key={i} x={b.x} y={0} width={b.w} height={ch}
-              fill="rgba(239,68,68,0.08)" />
-          ))}
-
-          {/* Envelope bands */}
-          {showEnv && (
-            <>
-              <line x1={0} y1={scaleY(maxSoc)} x2={cw} y2={scaleY(maxSoc)}
-                stroke="#f87171" strokeWidth="1" strokeDasharray="4 3" />
-              <line x1={0} y1={scaleY(minSoc)} x2={cw} y2={scaleY(minSoc)}
-                stroke="#fbbf24" strokeWidth="1" strokeDasharray="4 3" />
-              <text x={cw - 2} y={scaleY(maxSoc) - 3} textAnchor="end" fontSize="8" fill="#f87171">max {maxSoc}%</text>
-              <text x={cw - 2} y={scaleY(minSoc) - 3} textAnchor="end" fontSize="8" fill="#fbbf24">min {minSoc}%</text>
-            </>
-          )}
-
-          {/* Area fill */}
-          <polygon points={areaPts} fill={col} fillOpacity="0.12" />
-
-          {/* Line */}
-          <polyline points={linePts} fill="none" stroke={col} strokeWidth="2" strokeLinejoin="round" />
-
-          {/* Current value dot */}
-          <circle cx={scaleX(data.length - 1)} cy={scaleY(socs[socs.length - 1])}
-            r="3.5" fill={col} />
-
-          {/* Time labels */}
-          {timeLabels.map(i => (
-            <text key={i} x={scaleX(i)} y={ch + 18} textAnchor="middle" fontSize="8" fill={fc}>
-              {new Date(data[i].timestamp_iso).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
-            </text>
-          ))}
-        </g>
-      </svg>
-    </div>
+    <>
+      {areas.map((a, i) => (
+        <ReferenceArea key={i} x1={a.start} x2={a.end}
+          fill="rgba(239,68,68,0.07)" strokeOpacity={0} />
+      ))}
+    </>
   )
 }
 
-function PowerChart({ data, height = 160, dark = false }: ChartProps) {
-  const ref = useRef<HTMLDivElement>(null)
-  const W   = useDims(ref)
-  const H   = height
-  const pad = { l: 42, r: 12, t: 8, b: 24 }
-  const cw  = W - pad.l - pad.r
-  const ch  = H - pad.t - pad.b
-
-  if (data.length < 1) return <div ref={ref} style={{ height }} />
-
-  const maxW = Math.max(...data.map(d => Math.max(d.power_in, d.power_out, d.solar_in)), 100)
-  const scaleX = (i: number) => (i / Math.max(data.length - 1, 1)) * cw
-  const scaleY = (v: number) => ch - (v / maxW) * ch
-  const grid = dark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.08)"
-  const fc   = dark ? "#9ca3af" : "#64748b"
-
-  const line = (vals: number[], color: string) =>
-    vals.map((v, i) => `${scaleX(i)},${scaleY(v)}`).join(" ")
-
-  return (
-    <div ref={ref} style={{ height }}>
-      <svg width={W} height={H}>
-        <g transform={`translate(${pad.l},${pad.t})`}>
-          {[0, maxW / 2, maxW].map(v => (
-            <g key={v}>
-              <line x1={0} y1={scaleY(v)} x2={cw} y2={scaleY(v)} stroke={grid} strokeWidth="1" />
-              <text x={-4} y={scaleY(v) + 4} textAnchor="end" fontSize="8" fill={fc}>
-                {v >= 1000 ? `${(v/1000).toFixed(1)}k` : Math.round(v)}
-              </text>
-            </g>
-          ))}
-
-          {/* Solar bars */}
-          {data.map((d, i) => {
-            const bw = Math.max(1, cw / data.length - 1)
-            return d.solar_in > 0 ? (
-              <rect key={i} x={scaleX(i) - bw / 2} y={scaleY(d.solar_in)}
-                width={bw} height={ch - scaleY(d.solar_in)}
-                fill="rgba(251,191,36,0.5)" />
-            ) : null
-          })}
-
-          {/* Power in line */}
-          <polyline points={line(data.map(d => d.power_in), "#60a5fa")}
-            fill="none" stroke="#60a5fa" strokeWidth="1.5" strokeLinejoin="round" />
-
-          {/* Power out line */}
-          <polyline points={line(data.map(d => d.power_out), "#f87171")}
-            fill="none" stroke="#f87171" strokeWidth="1.5" strokeLinejoin="round" />
-
-          {/* Legend */}
-          {[["#fbbf24","Solar"],["#60a5fa","In"],["#f87171","Out"]].map(([c,l],i) => (
-            <g key={l} transform={`translate(${i * 48},${ch + 14})`}>
-              <line x1={0} y1={0} x2={12} y2={0} stroke={c} strokeWidth="2" />
-              <text x={15} y={4} fontSize="8" fill={fc}>{l}</text>
-            </g>
-          ))}
-        </g>
-      </svg>
-    </div>
-  )
-}
-
-function ForecastChart({ actual, dark = false }: { actual: Pt[]; dark?: boolean }) {
-  const ref = useRef<HTMLDivElement>(null)
-  const W   = useDims(ref)
-  const H   = 160
-  const pad = { l: 38, r: 12, t: 8, b: 24 }
-  const cw  = W - pad.l - pad.r
-  const ch  = H - pad.t - pad.b
-
-  const now = new Date()
-  const forecast = Array.from({ length: 24 }, (_, h) => {
-    const t = new Date(now); t.setHours(now.getHours() + h, 0, 0, 0)
-    const hr = t.getHours()
-    return { t: t.toISOString(), w: hr >= 6 && hr <= 19 ? Math.max(0, Math.round(460 * Math.sin(((hr - 6) / 13) * Math.PI))) : 0 }
-  })
-
-  const maxW = Math.max(...forecast.map(f => f.w), 100)
-  const scaleX = (i: number, total: number) => (i / Math.max(total - 1, 1)) * cw
-  const scaleY = (v: number) => ch - (v / maxW) * ch
-  const grid = dark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.08)"
-  const fc   = dark ? "#9ca3af" : "#64748b"
-
-  const fPts = forecast.map((f, i) => `${scaleX(i, forecast.length)},${scaleY(f.w)}`).join(" ")
-  const fArea = `${scaleX(0, forecast.length)},${ch} ${fPts} ${scaleX(forecast.length-1, forecast.length)},${ch}`
-
-  return (
-    <div ref={ref} style={{ height: H }}>
-      <svg width={W} height={H}>
-        <g transform={`translate(${pad.l},${pad.t})`}>
-          {[0, maxW/2, maxW].map(v => (
-            <g key={v}>
-              <line x1={0} y1={scaleY(v)} x2={cw} y2={scaleY(v)} stroke={grid} strokeWidth="1"/>
-              <text x={-4} y={scaleY(v)+4} textAnchor="end" fontSize="8" fill={fc}>{Math.round(v)}W</text>
-            </g>
-          ))}
-          <polygon points={fArea} fill="rgba(251,191,36,0.12)"/>
-          <polyline points={fPts} fill="none" stroke="#d97706" strokeWidth="1.5" strokeDasharray="4 2"/>
-          {actual.length > 0 && (
-            <polyline
-              points={actual.map((d,i)=>`${scaleX(i,actual.length)},${scaleY(d.solar_in)}`).join(" ")}
-              fill="none" stroke="#f97316" strokeWidth="2" strokeLinejoin="round"/>
-          )}
-          <g transform={`translate(0,${ch+14})`}>
-            <line x1={0} y1={0} x2={12} y2={0} stroke="#d97706" strokeWidth="1.5" strokeDasharray="4 2"/>
-            <text x={15} y={4} fontSize="8" fill={fc}>Forecast</text>
-            <line x1={55} y1={0} x2={67} y2={0} stroke="#f97316" strokeWidth="2"/>
-            <text x={70} y={4} fontSize="8" fill={fc}>Actual</text>
-          </g>
-        </g>
-      </svg>
-    </div>
-  )
-}
-
-function ValueChart({ solarOff, peakAv, dark = false }: { solarOff: number; peakAv: number; dark?: boolean }) {
-  const total = solarOff + peakAv || 0.01
-  const W = 200, H = 32
-  const fc = dark ? "#9ca3af" : "#64748b"
-  return (
-    <div>
-      <div className="flex justify-between text-xs font-mono mb-1">
-        <span className="text-amber-600 dark:text-amber-400">☀ solar ${solarOff.toFixed(3)}</span>
-        <span className="text-green-600 dark:text-green-400">⚡ peak ${peakAv.toFixed(3)}</span>
-      </div>
-      <div className="h-4 rounded-full overflow-hidden bg-slate-200 dark:bg-slate-800 flex">
-        <div className="h-full bg-amber-500 transition-all duration-700"
-          style={{ width: `${(solarOff / total) * 100}%` }} />
-        <div className="h-full bg-green-500 transition-all duration-700"
-          style={{ width: `${(peakAv / total) * 100}%` }} />
-      </div>
-      <div className="flex justify-between text-xs text-slate-400 mt-1">
-        <span>solar offset</span>
-        <span>peak avoidance</span>
-      </div>
-    </div>
-  )
-}
-
-// ── Electron flow ─────────────────────────────────────────────────────────────
+// ── Electron flow diagram ─────────────────────────────────────────────────────
 
 function Flow({ live, dark }: { live: Live | null; dark: boolean }) {
   const soc  = live?.soc ?? 50
@@ -322,7 +124,6 @@ function Flow({ live, dark }: { live: Live | null; dark: boolean }) {
   const dim = dark ? "#1f2937" : "#e2e8f0"
   const mu  = dark ? "rgba(255,255,255,0.3)" : "rgba(0,0,0,0.4)"
   const spd = (w: number, b = 400) => Math.max(0.6, 2.8 - w / b)
-
   return (
     <div className="w-full">
       <style>{`
@@ -330,7 +131,7 @@ function Flow({ live, dark }: { live: Live | null; dark: boolean }) {
         @keyframes efp{0%,100%{opacity:1}50%{opacity:0.5}}
       `}</style>
       <svg viewBox="0 0 640 300" className="w-full" style={{ maxHeight: 260 }}>
-        {/* Lines */}
+        {/* Connections */}
         <path d="M 120 78 Q 200 78 262 140" fill="none" stroke={hs?"#fbbf24":dim} strokeWidth="2.5" strokeDasharray="10 6"
           style={hs?{animation:`efd ${spd(sol,500)}s linear infinite`}:{}}/>
         {hs&&<text x="178" y="97" fill="#d97706" fontSize="9" fontFamily="monospace" textAnchor="middle">{sol.toFixed(0)}W →</text>}
@@ -341,17 +142,16 @@ function Flow({ live, dark }: { live: Live | null; dark: boolean }) {
           style={hl?{animation:`efd ${spd(aout,1800)}s linear infinite`}:{}}/>
         {hl&&<text x="338" y="216" fill={col} fontSize="9" fontFamily="monospace">{aout.toFixed(0)}W</text>}
         <path d="M 348 250 Q 480 260 510 96" fill="none" stroke="rgba(167,139,250,0.15)" strokeWidth="1.5" strokeDasharray="5 10"/>
-
-        {/* Solar */}
-        <g>{hs&&<circle cx="80" cy="70" r="46" fill="none" stroke="#fbbf24" strokeWidth="1" strokeOpacity=".3" style={{animation:"efp 2s ease-in-out infinite"}}/>}
+        {/* Solar node */}
+        <g>
+          {hs&&<circle cx="80" cy="70" r="46" fill="none" stroke="#fbbf24" strokeWidth="1" strokeOpacity=".3" style={{animation:"efp 2s ease-in-out infinite"}}/>}
           <circle cx="80" cy="70" r="38" fill={dark?"#0f0a00":"#fefce8"} stroke="#fbbf24" strokeWidth={hs?2:1} strokeOpacity={hs?1:0.3}/>
           {hs&&[0,45,90,135,180,225,270,315].map(a=><line key={a} x1={80+32*Math.cos(a*Math.PI/180)} y1={70+32*Math.sin(a*Math.PI/180)} x2={80+42*Math.cos(a*Math.PI/180)} y2={70+42*Math.sin(a*Math.PI/180)} stroke="#fbbf24" strokeWidth="1.5" strokeOpacity=".5"/>)}
           <circle cx="80" cy="70" r="17" fill="#fbbf24" fillOpacity={hs?.9:.15}/>
           <text x="80" y="123" textAnchor="middle" fill="#d97706" fontSize="10" fontFamily="monospace" opacity={hs?1:.35}>☀ Solar</text>
           <text x="80" y="136" textAnchor="middle" fill="#d97706" fontSize="9" fontFamily="monospace" opacity={hs?.8:.25}>{sol.toFixed(0)} W</text>
         </g>
-
-        {/* Battery */}
+        {/* Battery node */}
         <g>
           <circle cx="320" cy="150" r="52" fill="none" stroke={col} strokeWidth="1" strokeOpacity=".2" style={{animation:"efp 3s ease-in-out infinite"}}/>
           <circle cx="320" cy="150" r="44" fill={dark?"#080d10":"#f0fdf4"} stroke={col} strokeWidth="2.5"/>
@@ -370,17 +170,15 @@ function Flow({ live, dark }: { live: Live | null; dark: boolean }) {
           <text x="320" y="160" textAnchor="middle" fill={mu} fontSize="8" fontFamily="monospace">SOC · SOH {live?.soh??100}%</text>
           <text x="320" y="205" textAnchor="middle" fill={mu} fontSize="9" fontFamily="monospace">⚡ Delta Pro 3 · 4096 Wh</text>
         </g>
-
-        {/* Grid */}
-        <g>{hg&&<circle cx="560" cy="70" r="46" fill="none" stroke="#60a5fa" strokeWidth="1" strokeOpacity=".25" style={{animation:"efp 2.5s ease-in-out infinite"}}/>}
+        {/* Grid node */}
+        <g>
+          {hg&&<circle cx="560" cy="70" r="46" fill="none" stroke="#60a5fa" strokeWidth="1" strokeOpacity=".25" style={{animation:"efp 2.5s ease-in-out infinite"}}/>}
           <circle cx="560" cy="70" r="38" fill={dark?"#00081a":"#eff6ff"} stroke={hg?"#60a5fa":dim} strokeWidth={hg?2:1} strokeOpacity={hg?1:.3}/>
-          {[-8,0,8].map((dx,i)=><g key={i}><line x1={560+dx} y1="55" x2={560+dx} y2="85" stroke="#3b82f6" strokeWidth="1.5" strokeOpacity={hg?.8:.2}/>
-            {i===1&&<><line x1="548" y1="63" x2="572" y2="63" stroke="#3b82f6" strokeWidth="1" strokeOpacity={hg?.5:.1}/><line x1="551" y1="73" x2="569" y2="73" stroke="#3b82f6" strokeWidth="1" strokeOpacity={hg?.5:.1}/></>}</g>)}
+          {[-8,0,8].map((dx,i)=><g key={i}><line x1={560+dx} y1="55" x2={560+dx} y2="85" stroke="#3b82f6" strokeWidth="1.5" strokeOpacity={hg?.8:.2}/>{i===1&&<><line x1="548" y1="63" x2="572" y2="63" stroke="#3b82f6" strokeWidth="1" strokeOpacity={hg?.5:.1}/><line x1="551" y1="73" x2="569" y2="73" stroke="#3b82f6" strokeWidth="1" strokeOpacity={hg?.5:.1}/></>}</g>)}
           <text x="560" y="123" textAnchor="middle" fill="#2563eb" fontSize="10" fontFamily="monospace" opacity={hg?1:.3}>⚡ Grid</text>
           <text x="560" y="136" textAnchor="middle" fill="#2563eb" fontSize="9" fontFamily="monospace" opacity={hg?.8:.22}>{hg?`${gin.toFixed(0)} W`:"standby"}</text>
         </g>
-
-        {/* House */}
+        {/* House node */}
         <g>
           <circle cx="320" cy="263" r="28" fill={dark?"#0a0010":"#faf5ff"} stroke="#7c3aed" strokeWidth="2" strokeOpacity={hl?1:.3}/>
           <polygon points="320,248 308,260 332,260" fill="none" stroke="#7c3aed" strokeWidth="1.5" strokeOpacity={hl?.9:.3}/>
@@ -388,8 +186,7 @@ function Flow({ live, dark }: { live: Live | null; dark: boolean }) {
           {hl&&<rect x="317" y="262" width="6" height="5" fill="#7c3aed" fillOpacity=".35"/>}
           <text x="320" y="302" textAnchor="middle" fill="#7c3aed" fontSize="9" fontFamily="monospace">🏠 {aout.toFixed(0)} W</text>
         </g>
-
-        {/* Status */}
+        {/* Status strips */}
         <rect x="8" y="282" width="220" height="14" rx="7" fill="rgba(148,163,184,.08)"/>
         <text x="118" y="293" textAnchor="middle" fill={mu} fontSize="8" fontFamily="monospace">
           {net>0?"↑ charging":"↓ discharging"} · {live?ago(live.timestamp_iso):"—"}
@@ -426,10 +223,25 @@ function SC({ icon: Icon, label, value, unit="", color="", sub="" }: any) {
   )
 }
 
+// ── Metric toggle button ──────────────────────────────────────────────────────
+
+function TT({ label, color, active, onToggle }: any) {
+  return (
+    <button onClick={onToggle}
+      className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-mono border transition-all
+        ${active?"border-current bg-current/10":"border-slate-300 dark:border-slate-700 text-slate-400 dark:text-slate-600 opacity-50"}`}
+      style={{color:active?color:undefined}}>
+      <span className="h-2 w-2 rounded-full inline-block" style={{background:active?color:"#94a3b8"}}/>
+      {label}
+    </button>
+  )
+}
+
 // ── Main ──────────────────────────────────────────────────────────────────────
 
 export default function EnergyDashboardPage() {
   const router = useRouter()
+
   const [dark, setDark] = useState(false)
   useEffect(() => {
     const check = () => setDark(document.documentElement.classList.contains("dark"))
@@ -444,35 +256,57 @@ export default function EnergyDashboardPage() {
   const [history, setHistory]   = useState<Pt[]>([])
   const [loading, setLoading]   = useState(true)
   const [showHint, setShowHint] = useState(false)
-  const [showEnv, setShowEnv]   = useState(true)
   const [tab, setTab]           = useState<"battery"|"pge">("battery")
 
+  // Metric visibility toggles
+  const [show, setShow] = useState({
+    soc: true, solar: true, pIn: true, pOut: true, temp: false,
+    envelope: true,
+  })
+  const tog = (k: keyof typeof show) => setShow(p => ({...p, [k]: !p[k]}))
+
+  // Y-axis range controls
+  const [socMin, setSocMin] = useState(0)
+  const [socMax, setSocMax] = useState(105)
+  const [wMin,   setWMin]   = useState(0)
+  const [wMax,   setWMax]   = useState<number|undefined>(undefined)
+
+  const grid = dark ? "rgba(55,65,81,0.35)" : "rgba(203,213,225,0.6)"
+  const fc   = dark ? "#9ca3af" : "#475569"
+
+  // Fetch live
   const fetchLive = useCallback(async () => {
     const ctrl = new AbortController()
     const t = setTimeout(() => ctrl.abort(), 8000)
     try {
       const res  = await fetch("/api/ecoflow/latest", { cache:"no-store", signal:ctrl.signal })
       const data = await res.json()
-      if (data.error) { setApiError(data.error) }
+      if (data.error) setApiError(data.error)
       else { setLive(data); setApiError(null) }
     } catch (e: any) {
-      setApiError(e.name === "AbortError" ? "Request timed out" : e.message)
+      setApiError(e.name==="AbortError"?"Request timed out":e.message)
     } finally { clearTimeout(t); setLoading(false) }
   }, [])
 
+  // Fetch history
   const fetchHistory = useCallback(async () => {
     try {
       const res = await fetch("/api/ecoflow/history?days=2", { cache:"no-store" })
       if (!res.ok) return
       const json = await res.json()
-      const pts: Pt[] = (json.data ?? []).map((d: any) => ({
-        timestamp_iso: d.timestamp_iso,
-        soc:       d.soc,
-        solar_in:  d.solar_in,
-        power_out: Math.abs(d.power_out || d.ac_out || 0),
-        power_in:  d.power_in,
-        temp_c:    d.temp_c,
-      }))
+      const pts: Pt[] = (json.data ?? []).map((d: any) => {
+        const dt = new Date(d.timestamp_iso)
+        return {
+          timestamp_iso: d.timestamp_iso,
+          label: fmtTime(d.timestamp_iso),
+          soc:       d.soc,
+          solar_in:  d.solar_in,
+          power_out: Math.abs(d.power_out || d.ac_out || 0),
+          power_in:  d.power_in,
+          temp_c:    d.temp_c,
+          isPeak:    dt.getHours() >= 16 && dt.getHours() < 21,
+        }
+      })
       if (pts.length > 0) setHistory(pts)
     } catch (_) {}
   }, [])
@@ -483,6 +317,12 @@ export default function EnergyDashboardPage() {
     return () => clearInterval(iv)
   }, [fetchLive, fetchHistory])
 
+  // Derived
+  const isC  = (live?.power_in??0) > (live?.power_out??0)
+  const net  = (live?.power_in??0) - (live?.power_out??0)
+  const minS = live?.min_dsg_soc ?? 12
+  const maxS = live?.max_chg_soc ?? 100
+
   // Savings
   let solOff=0, pkAv=0
   for (let i=1;i<history.length;i++){
@@ -492,11 +332,28 @@ export default function EnergyDashboardPage() {
     solOff+=Math.min(history[i].solar_in,history[i].power_out)*dh/1000*r
     if(isPeak(dt)) pkAv+=Math.max(0,history[i].power_out-history[i].solar_in)*dh/1000*(r-0.28)
   }
+  const saved = Math.max(0,solOff)+Math.max(0,pkAv)
 
-  const isC  = (live?.power_in??0)>(live?.power_out??0)
-  const net  = (live?.power_in??0)-(live?.power_out??0)
-  const minS = live?.min_dsg_soc??12
-  const maxS = live?.max_chg_soc??100
+  // Solar forecast data
+  const forecast = Array.from({ length: 24 }, (_, h) => {
+    const t = new Date(); t.setHours(new Date().getHours() + h, 0, 0, 0)
+    const hr = t.getHours()
+    return {
+      label: fmtTime(t.toISOString()),
+      forecast: hr >= 6 && hr <= 19 ? Math.max(0, Math.round(460 * Math.sin(((hr-6)/13)*Math.PI))) : 0,
+    }
+  })
+  // Merge actual solar into forecast data
+  const forecastWithActual = forecast.map(f => {
+    const match = history.find(h => fmtTime(h.timestamp_iso) === f.label)
+    return { ...f, actual: match?.solar_in }
+  })
+
+  // Value stacking data
+  const valueData = [
+    { name: "Solar offset", value: Math.max(0, solOff), fill: "#d97706" },
+    { name: "Peak avoidance", value: Math.max(0, pkAv), fill: "#16a34a" },
+  ]
 
   if (loading) return (
     <div className="min-h-screen bg-white dark:bg-[#080d10] flex items-center justify-center">
@@ -552,7 +409,7 @@ export default function EnergyDashboardPage() {
             </div>
           )}
 
-          {/* Admin */}
+          {/* Admin hint */}
           <div>
             <button onClick={()=>setShowHint(v=>!v)}
               className="inline-flex items-center gap-1.5 text-xs text-slate-400 hover:text-green-600 dark:hover:text-green-400 transition-colors">
@@ -561,7 +418,7 @@ export default function EnergyDashboardPage() {
             {showHint&&<p className="text-xs text-slate-400 mt-1">Full controls via local Python dashboard.</p>}
           </div>
 
-          {/* Stats */}
+          {/* Stat cards */}
           {live&&!apiError&&(
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
               <SC icon={Battery} label="SOC" value={live.soc.toFixed(1)} unit="%" color={socCol(live.soc)} sub={`SOH ${live.soh}%`}/>
@@ -569,7 +426,7 @@ export default function EnergyDashboardPage() {
               <SC icon={Activity} label={isC?"Charging":"Output"} value={Math.abs(net).toFixed(0)} unit="W" color={isC?"#16a34a":"#dc2626"} sub={isC?`full in ${hhmm(live.remain_chg_min)}`:`${hhmm(live.remain_dsg_min)} left`}/>
               <SC icon={Thermometer} label="Temp" value={live.temp_c} unit="°C" color="#2563eb"/>
               <SC icon={DollarSign} label="Rate Now" value={`$${getRate().toFixed(3)}`} unit="/kWh" color={isPeak()?"#dc2626":"#16a34a"} sub={isPeak()?"⚠ peak":"✓ off-peak"}/>
-              <SC icon={TrendingUp} label="Saved Today" value={`$${(Math.max(0,solOff)+Math.max(0,pkAv)).toFixed(2)}`} color="#7c3aed" sub="vs grid-only"/>
+              <SC icon={TrendingUp} label="Saved Today" value={`$${saved.toFixed(2)}`} color="#7c3aed" sub="vs grid-only"/>
             </div>
           )}
 
@@ -583,11 +440,11 @@ export default function EnergyDashboardPage() {
               <CardHeader className="pb-2"><CardTitle className="text-xs text-green-600 dark:text-green-500 uppercase tracking-widest">System State</CardTitle></CardHeader>
               <CardContent className="space-y-3">
                 {live&&!apiError?[
-                  {label:"Solar In",v:live.solar_in,max:500,color:"#d97706",unit:"W"},
-                  {label:"Grid / AC In",v:live.ac_in,max:1800,color:"#2563eb",unit:"W"},
-                  {label:"AC Out",v:Math.abs(live.ac_out),max:1800,color:"#dc2626",unit:"W"},
-                  {label:"Net Flow",v:net,max:1800,color:net>=0?"#16a34a":"#dc2626",unit:"W"},
-                  {label:"SOC",v:live.soc,max:100,color:socCol(live.soc),unit:"%"},
+                  {label:"Solar In",   v:live.solar_in,         max:500,  color:"#d97706",unit:"W"},
+                  {label:"Grid / AC In",v:live.ac_in,           max:1800, color:"#2563eb",unit:"W"},
+                  {label:"AC Out",     v:Math.abs(live.ac_out), max:1800, color:"#dc2626",unit:"W"},
+                  {label:"Net Flow",   v:net,                    max:1800, color:net>=0?"#16a34a":"#dc2626",unit:"W"},
+                  {label:"SOC",        v:live.soc,               max:100,  color:socCol(live.soc),unit:"%"},
                 ].map(r=>(
                   <div key={r.label}>
                     <div className="flex justify-between text-xs mb-1">
@@ -637,39 +494,120 @@ export default function EnergyDashboardPage() {
             ))}
           </div>
 
-          {/* Battery charts */}
+          {/* ── INTERACTIVE BATTERY TIME SERIES ── */}
           {tab==="battery"&&(
-            <div className="space-y-4">
-              <Card className="border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950/40">
-                <CardHeader className="pb-2">
-                  <div className="flex items-center justify-between flex-wrap gap-2">
-                    <div>
-                      <CardTitle className="text-xs text-green-600 dark:text-green-500 uppercase tracking-widest mb-1">SOC History</CardTitle>
-                      <p className="text-xs text-slate-400">red bands = peak hours (4–9 PM)</p>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <span className="text-xs text-slate-400">limits</span>
-                      <button onClick={()=>setShowEnv(v=>!v)}
-                        className="text-xs px-2 py-0.5 rounded-full border border-green-300 dark:border-green-700 text-green-600 dark:text-green-400">
-                        {showEnv?"hide":"show"}
-                      </button>
-                    </div>
+            <Card className="border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950/40">
+              <CardHeader className="pb-3">
+                <div className="flex items-start justify-between flex-wrap gap-3">
+                  <div>
+                    <CardTitle className="text-xs text-green-600 dark:text-green-500 uppercase tracking-widest mb-1">
+                      Battery Time Series
+                    </CardTitle>
+                    <p className="text-xs text-slate-400">
+                      drag brush to zoom · hover for crosshair · red bands = peak hours (4–9 PM)
+                    </p>
                   </div>
-                </CardHeader>
-                <CardContent>
-                  <SocChart data={history} minSoc={minS} maxSoc={maxS} showEnv={showEnv} dark={dark}/>
-                </CardContent>
-              </Card>
+                  {/* Envelope toggle */}
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs text-slate-400">SOC limits</span>
+                    <button onClick={()=>tog("envelope")} className="text-green-600 dark:text-green-500">
+                      {show.envelope?<ToggleRight className="h-5 w-5"/>:<ToggleLeft className="h-5 w-5"/>}
+                    </button>
+                  </div>
+                </div>
 
-              <Card className="border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950/40">
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-xs text-green-600 dark:text-green-500 uppercase tracking-widest">Power Flow</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <PowerChart data={history} dark={dark}/>
-                </CardContent>
-              </Card>
-            </div>
+                {/* Metric toggles */}
+                <div className="flex flex-wrap gap-2 pt-2">
+                  <TT label="SOC %" color={socCol(live?.soc??50)} active={show.soc} onToggle={()=>tog("soc")}/>
+                  <TT label="Solar W" color="#d97706" active={show.solar} onToggle={()=>tog("solar")}/>
+                  <TT label="Power In" color="#2563eb" active={show.pIn} onToggle={()=>tog("pIn")}/>
+                  <TT label="Power Out" color="#dc2626" active={show.pOut} onToggle={()=>tog("pOut")}/>
+                  <TT label="Temp °C" color="#7c3aed" active={show.temp} onToggle={()=>tog("temp")}/>
+                </div>
+
+                {/* Y-axis range controls */}
+                <div className="flex flex-wrap gap-4 pt-2 text-xs text-slate-400">
+                  <div className="flex items-center gap-2">
+                    <span>SOC Y:</span>
+                    <input type="number" value={socMin} onChange={e=>setSocMin(+e.target.value)}
+                      className="w-14 px-2 py-0.5 rounded border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 font-mono text-xs"/>
+                    <span>–</span>
+                    <input type="number" value={socMax} onChange={e=>setSocMax(+e.target.value)}
+                      className="w-14 px-2 py-0.5 rounded border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 font-mono text-xs"/>
+                    <span>%</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span>Power Y:</span>
+                    <input type="number" value={wMin} onChange={e=>setWMin(+e.target.value)}
+                      className="w-14 px-2 py-0.5 rounded border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 font-mono text-xs"/>
+                    <span>–</span>
+                    <input type="number" placeholder="auto" value={wMax??""} onChange={e=>setWMax(e.target.value?+e.target.value:undefined)}
+                      className="w-16 px-2 py-0.5 rounded border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 font-mono text-xs"/>
+                    <span>W</span>
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent>
+                {history.length >= 1 ? (
+                  <>
+                    {/* SOC chart */}
+                    <p className="text-xs text-slate-400 mb-1 font-mono">State of Charge (%)</p>
+                    <ResponsiveContainer width="100%" height={220}>
+                      <ComposedChart data={history} margin={{left:0,right:8,top:4,bottom:4}}>
+                        <CartesianGrid stroke={grid} strokeDasharray="3 3"/>
+                        <XAxis dataKey="label" tick={{fontSize:9,fill:fc}} interval="preserveStartEnd" minTickGap={40}/>
+                        <YAxis domain={[socMin, socMax]} tick={{fontSize:9,fill:fc}} width={32} unit="%"/>
+                        <Tooltip content={<ChartTooltip dark={dark}/>}
+                          cursor={{stroke: dark?"rgba(255,255,255,0.15)":"rgba(0,0,0,0.1)", strokeWidth:1, strokeDasharray:"4 2"}}/>
+                        <Legend wrapperStyle={{fontSize:10,fontFamily:"JetBrains Mono, monospace"}}/>
+                        {/* Peak shading */}
+                        <PeakAreas data={history} yMin={socMin} yMax={socMax}/>
+                        {/* Envelope reference lines */}
+                        {show.envelope&&<>
+                          <ReferenceLine y={maxS} stroke="#f87171" strokeDasharray="4 3" strokeWidth={1}
+                            label={{value:`max ${maxS}%`,position:"insideTopRight",fontSize:9,fill:"#f87171"}}/>
+                          <ReferenceLine y={minS} stroke="#f59e0b" strokeDasharray="4 3" strokeWidth={1}
+                            label={{value:`min ${minS}%`,position:"insideBottomRight",fontSize:9,fill:"#f59e0b"}}/>
+                        </>}
+                        {show.soc&&<Area type="monotone" dataKey="soc" name="SOC %" unit="%" stroke={socCol(live?.soc??50)} strokeWidth={2} fill={socCol(live?.soc??50)} fillOpacity={0.1} dot={false} activeDot={{r:4}}/>}
+                        {show.temp&&<Line type="monotone" dataKey="temp_c" name="Temp" unit="°C" stroke="#7c3aed" strokeWidth={1.5} strokeDasharray="4 2" dot={false} yAxisId={0}/>}
+                        <Brush dataKey="label" height={20} stroke={dark?"#374151":"#cbd5e1"}
+                          fill={dark?"rgba(15,23,32,0.8)":"rgba(241,245,249,0.9)"}
+                          travellerWidth={6} startIndex={Math.max(0,history.length-24)}/>
+                      </ComposedChart>
+                    </ResponsiveContainer>
+
+                    {/* Power chart */}
+                    <p className="text-xs text-slate-400 mt-4 mb-1 font-mono">Power Flow (W)</p>
+                    <ResponsiveContainer width="100%" height={180}>
+                      <ComposedChart data={history} margin={{left:0,right:8,top:4,bottom:4}}>
+                        <CartesianGrid stroke={grid} strokeDasharray="3 3"/>
+                        <XAxis dataKey="label" tick={{fontSize:9,fill:fc}} interval="preserveStartEnd" minTickGap={40}/>
+                        <YAxis domain={[wMin, wMax??'auto']} tick={{fontSize:9,fill:fc}} width={38} unit="W"/>
+                        <Tooltip content={<ChartTooltip dark={dark}/>}
+                          cursor={{stroke: dark?"rgba(255,255,255,0.15)":"rgba(0,0,0,0.1)", strokeWidth:1, strokeDasharray:"4 2"}}/>
+                        <Legend wrapperStyle={{fontSize:10,fontFamily:"JetBrains Mono, monospace"}}/>
+                        <PeakAreas data={history} yMin={0} yMax={2000}/>
+                        {show.solar&&<Bar dataKey="solar_in" name="Solar" unit="W" fill="rgba(251,191,36,0.6)" maxBarSize={12}/>}
+                        {show.pIn&&<Area type="monotone" dataKey="power_in" name="Power In" unit="W" stroke="#2563eb" strokeWidth={1.5} fill="rgba(37,99,235,0.1)" dot={false} activeDot={{r:4}}/>}
+                        {show.pOut&&<Area type="monotone" dataKey="power_out" name="Power Out" unit="W" stroke="#dc2626" strokeWidth={1.5} fill="rgba(220,38,38,0.1)" dot={false} activeDot={{r:4}}/>}
+                        <Brush dataKey="label" height={20} stroke={dark?"#374151":"#cbd5e1"}
+                          fill={dark?"rgba(15,23,32,0.8)":"rgba(241,245,249,0.9)"}
+                          travellerWidth={6} startIndex={Math.max(0,history.length-24)}/>
+                      </ComposedChart>
+                    </ResponsiveContainer>
+                  </>
+                ) : (
+                  <div className="h-64 flex flex-col items-center justify-center gap-3">
+                    <p className="text-sm text-slate-500">No history data yet.</p>
+                    <a href="https://ecoflow-poller.argo2d.workers.dev/health" target="_blank" rel="noopener noreferrer"
+                      className="text-xs text-green-600 dark:text-green-400 underline">
+                      Check Worker health →
+                    </a>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
           )}
 
           {/* PG&E tab */}
@@ -692,25 +630,65 @@ export default function EnergyDashboardPage() {
 
           {/* Solar forecast + savings */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+            {/* Solar forecast */}
             <Card className="border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950/40">
               <CardHeader className="pb-2">
                 <div className="flex items-center gap-2">
                   <Cloud className="h-4 w-4 text-green-600 dark:text-green-500"/>
-                  <CardTitle className="text-xs text-green-600 dark:text-green-500 uppercase tracking-widest">24h Solar Forecast vs Actual</CardTitle>
+                  <CardTitle className="text-xs text-green-600 dark:text-green-500 uppercase tracking-widest">
+                    24h Solar Forecast vs Actual
+                  </CardTitle>
                 </div>
+                <p className="text-xs text-slate-400 mt-1">Solar position model · drag brush to zoom · hover for values</p>
               </CardHeader>
-              <CardContent><ForecastChart actual={history} dark={dark}/></CardContent>
+              <CardContent>
+                <ResponsiveContainer width="100%" height={200}>
+                  <ComposedChart data={forecastWithActual} margin={{left:0,right:8,top:4,bottom:4}}>
+                    <CartesianGrid stroke={grid} strokeDasharray="3 3"/>
+                    <XAxis dataKey="label" tick={{fontSize:9,fill:fc}} interval={3}/>
+                    <YAxis tick={{fontSize:9,fill:fc}} width={38} unit="W"/>
+                    <Tooltip content={<ChartTooltip dark={dark}/>}
+                      cursor={{stroke: dark?"rgba(255,255,255,0.15)":"rgba(0,0,0,0.1)", strokeWidth:1}}/>
+                    <Legend wrapperStyle={{fontSize:10,fontFamily:"JetBrains Mono, monospace"}}/>
+                    <Area type="monotone" dataKey="forecast" name="Forecast" unit="W"
+                      stroke="#d97706" strokeWidth={2} strokeDasharray="5 3"
+                      fill="rgba(217,119,6,0.1)" dot={false}/>
+                    <Line type="monotone" dataKey="actual" name="Actual" unit="W"
+                      stroke="#f97316" strokeWidth={2} dot={false} connectNulls/>
+                    <Brush dataKey="label" height={16} stroke={dark?"#374151":"#cbd5e1"}
+                      fill={dark?"rgba(15,23,32,0.8)":"rgba(241,245,249,0.9)"} travellerWidth={6}/>
+                  </ComposedChart>
+                </ResponsiveContainer>
+              </CardContent>
             </Card>
 
+            {/* Value stacking */}
             <Card className="border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950/40">
               <CardHeader className="pb-2">
                 <div className="flex items-center gap-2">
                   <DollarSign className="h-4 w-4 text-green-600 dark:text-green-500"/>
-                  <CardTitle className="text-xs text-green-600 dark:text-green-500 uppercase tracking-widest">Value Stacking · Today</CardTitle>
+                  <CardTitle className="text-xs text-green-600 dark:text-green-500 uppercase tracking-widest">
+                    Value Stacking · Today
+                  </CardTitle>
                 </div>
               </CardHeader>
               <CardContent className="space-y-4">
-                <ValueChart solarOff={Math.max(0,solOff)} peakAv={Math.max(0,pkAv)} dark={dark}/>
+                <ResponsiveContainer width="100%" height={100}>
+                  <BarChart data={valueData} layout="vertical" margin={{left:8,right:16,top:4,bottom:4}}>
+                    <CartesianGrid stroke={grid} strokeDasharray="3 3" horizontal={false}/>
+                    <XAxis type="number" tick={{fontSize:9,fill:fc}} unit="$" tickFormatter={v=>v.toFixed(3)}/>
+                    <YAxis type="category" dataKey="name" tick={{fontSize:9,fill:fc}} width={90}/>
+                    <Tooltip content={<ChartTooltip dark={dark}/>}
+                      cursor={{fill: dark?"rgba(255,255,255,0.05)":"rgba(0,0,0,0.04)"}}
+                      formatter={(v:any)=>[`$${Number(v).toFixed(4)}`,"value"]}/>
+                    <Bar dataKey="value" radius={[0,4,4,0]}>
+                      {valueData.map((d,i)=>(
+                        <rect key={i} fill={d.fill}/>
+                      ))}
+                    </Bar>
+                  </BarChart>
+                </ResponsiveContainer>
+
                 <div className={`rounded-xl p-3 border ${isPeak()
                   ?"border-red-200 dark:border-red-900/40 bg-red-50 dark:bg-red-950/20"
                   :"border-green-200 dark:border-green-900/40 bg-green-50 dark:bg-green-950/15"}`}>
@@ -725,8 +703,10 @@ export default function EnergyDashboardPage() {
                   </p>
                 </div>
                 <div className="grid grid-cols-2 gap-1.5 text-xs font-mono">
-                  {[["Summer peak","$0.52","text-red-600 dark:text-red-400"],["Summer off","$0.28","text-green-600 dark:text-green-400"],
-                    ["Winter peak","$0.43","text-amber-600 dark:text-amber-400"],["Winter off","$0.26","text-green-600 dark:text-green-400"]].map(([l,v,c])=>(
+                  {[["Summer peak","$0.52","text-red-600 dark:text-red-400"],
+                    ["Summer off","$0.28","text-green-600 dark:text-green-400"],
+                    ["Winter peak","$0.43","text-amber-600 dark:text-amber-400"],
+                    ["Winter off","$0.26","text-green-600 dark:text-green-400"]].map(([l,v,c])=>(
                     <div key={l} className="flex justify-between">
                       <span className="text-slate-400">{l}</span><span className={c}>{v}</span>
                     </div>
