@@ -9,7 +9,7 @@
  *  - Value stacking savings chart
  */
 
-import { useState, useEffect, useCallback } from "react"
+import { useState, useEffect, useCallback, useRef } from "react"
 import { motion } from "framer-motion"
 import {
   ArrowLeft, Zap, Eye, Lock, Sun, Battery, Activity,
@@ -237,6 +237,158 @@ function TT({ label, color, active, onToggle }: any) {
   )
 }
 
+// ── Synchronized charts (SOC + Power + Solar) ───────────────────────────────
+
+function SyncedCharts({ history, dark, show, live, minS, maxS, socMin, socMax, wMin, wMax, zoomLevel }: {
+  history: Pt[]; dark: boolean; show: any; live: Live | null
+  minS: number; maxS: number; socMin: number; socMax: number
+  wMin: number; wMax: number | undefined; zoomLevel: number
+}) {
+  const [brushStart, setBrushStart] = useState(Math.max(0, history.length - 24))
+  const [brushEnd, setBrushEnd] = useState(history.length)
+  const containerRef = useRef<HTMLDivElement>(null)
+
+  // Visible slice
+  const visible = history.slice(brushStart, brushEnd)
+
+  const grid = dark ? "rgba(55,65,81,0.35)" : "rgba(203,213,222,0.6)"
+  const fc   = dark ? "#9ca3af" : "#475569"
+
+  // Synced Brush handler
+  const handleBrushChange = (range: any) => {
+    if (range && typeof range.startIndex === "number" && typeof range.endIndex === "number") {
+      setBrushStart(range.startIndex)
+      setBrushEnd(range.endIndex)
+    }
+  }
+
+  // Zoom via scroll wheel
+  const handleWheel = useCallback((e: React.WheelEvent) => {
+    if (!e.ctrlKey && !e.metaKey) return
+    e.preventDefault()
+    const total = history.length
+    const currentRange = brushEnd - brushStart
+    const mid = (brushStart + brushEnd) / 2
+    const factor = e.deltaY > 0 ? 1.3 : 0.7
+    const newRange = Math.max(6, Math.min(total, Math.round(currentRange * factor)))
+    const newStart = Math.max(0, Math.min(total - newRange, Math.round(mid - newRange / 2)))
+    setBrushStart(newStart)
+    setBrushEnd(newStart + newRange)
+  }, [history.length, brushStart, brushEnd])
+
+  // Zoom via buttons — uses the zoomLevel state from parent
+  const prevZoomRef = useRef(1)
+  useEffect(() => {
+    if (zoomLevel === prevZoomRef.current) return
+    prevZoomRef.current = zoomLevel
+    const total = history.length
+    const newRange = Math.max(6, Math.round(total / zoomLevel))
+    const mid = (brushStart + brushEnd) / 2
+    const newStart = Math.max(0, Math.min(total - newRange, Math.round(mid - newRange / 2)))
+    setBrushStart(newStart)
+    setBrushEnd(newStart + newRange)
+  }, [zoomLevel, history.length])
+
+  // Common chart props
+  const sharedXAxis = {
+    dataKey: "label" as const,
+    tick: { fontSize: 9, fill: fc },
+    interval: "preserveStartEnd" as const,
+    minTickGap: 40,
+  }
+  const sharedTooltip = <ChartTooltip dark={dark}/>
+  const sharedCursor = { stroke: dark ? "rgba(255,255,255,0.15)" : "rgba(0,0,0,0.1)", strokeWidth: 1, strokeDasharray: "4 2" }
+  const sharedLegend = { style: { fontSize: 10, fontFamily: "JetBrains Mono, monospace" } }
+
+  const brushProps = {
+    height: 18,
+    stroke: dark ? "#374151" : "#cbd5e1",
+    fill: dark ? "rgba(15,23,32,0.8)" : "rgba(241,245,249,0.9)",
+    travellerWidth: 6,
+    startIndex: brushStart,
+    endIndex: brushEnd,
+    onChange: handleBrushChange,
+  }
+
+  // Wrap charts in a shared scroll-zoom container
+  const brushWrap = (children: React.ReactNode, chartHeight: number) => (
+    <div ref={containerRef} onWheel={handleWheel} style={{ height: chartHeight + 30 }}>
+      {children}
+    </div>
+  )
+
+  return (
+    <div className="space-y-1">
+      {/* SOC chart */}
+      <p className="text-xs text-slate-400 mb-1 font-mono">State of Charge (%)</p>
+      {brushWrap(
+        <ResponsiveContainer width="100%" height={200}>
+          <ComposedChart data={history} margin={{left:0,right:8,top:4,bottom:4}}>
+            <CartesianGrid stroke={grid} strokeDasharray="3 3"/>
+            <XAxis {...sharedXAxis} />
+            <YAxis domain={[socMin, socMax]} tick={{fontSize:9,fill:fc}} width={32} unit="%"/>
+            <Tooltip content={sharedTooltip} cursor={sharedCursor}/>
+            <Legend wrapperStyle={sharedLegend}/>
+            <PeakAreas data={history} yMin={socMin} yMax={socMax}/>
+            {show.envelope&&<>
+              <ReferenceLine y={maxS} stroke="#f87171" strokeDasharray="4 3" strokeWidth={1}
+                label={{value:`max ${maxS}%`,position:"insideTopRight",fontSize:9,fill:"#f87171"}}/>
+              <ReferenceLine y={minS} stroke="#f59e0b" strokeDasharray="4 3" strokeWidth={1}
+                label={{value:`min ${minS}%`,position:"insideBottomRight",fontSize:9,fill:"#f59e0b"}}/>
+            </>}
+            {show.soc&&<Area type="monotone" dataKey="soc" name="SOC %" unit="%" stroke={socCol(live?.soc??50)} strokeWidth={2} fill={socCol(live?.soc??50)} fillOpacity={0.1} dot={false} activeDot={{r:4}}/>}
+            {show.temp&&<Line type="monotone" dataKey="temp_c" name="Temp" unit="°C" stroke="#7c3aed" strokeWidth={1.5} strokeDasharray="4 2" dot={false}/>}
+            <Brush {...brushProps} />
+          </ComposedChart>
+        </ResponsiveContainer>,
+        230
+      )}
+
+      {/* Power chart */}
+      <p className="text-xs text-slate-400 mt-2 mb-1 font-mono">Power Flow (W)</p>
+      {brushWrap(
+        <ResponsiveContainer width="100%" height={180}>
+          <ComposedChart data={history} margin={{left:0,right:8,top:4,bottom:4}}>
+            <CartesianGrid stroke={grid} strokeDasharray="3 3"/>
+            <XAxis {...sharedXAxis} />
+            <YAxis domain={[wMin, wMax??'auto']} tick={{fontSize:9,fill:fc}} width={38} unit="W"/>
+            <Tooltip content={sharedTooltip} cursor={sharedCursor}/>
+            <Legend wrapperStyle={sharedLegend}/>
+            <PeakAreas data={history} yMin={0} yMax={2000}/>
+            {show.solar&&<Bar dataKey="solar_in" name="Solar" unit="W" fill="rgba(251,191,36,0.6)" maxBarSize={12}/>}
+            {show.pIn&&<Area type="monotone" dataKey="power_in" name="Power In" unit="W" stroke="#2563eb" strokeWidth={1.5} fill="rgba(37,99,235,0.1)" dot={false} activeDot={{r:4}}/>}
+            {show.pOut&&<Area type="monotone" dataKey="power_out" name="Power Out" unit="W" stroke="#dc2626" strokeWidth={1.5} fill="rgba(220,38,38,0.1)" dot={false} activeDot={{r:4}}/>}
+            <Brush {...brushProps} />
+          </ComposedChart>
+        </ResponsiveContainer>,
+        210
+      )}
+
+      {/* Solar forecast — same x-axis alignment */}
+      <p className="text-xs text-slate-400 mt-2 mb-1 font-mono">Solar Forecast vs Actual</p>
+      {brushWrap(
+        <ResponsiveContainer width="100%" height={180}>
+          <ComposedChart data={history} margin={{left:0,right:8,top:4,bottom:4}}>
+            <CartesianGrid stroke={grid} strokeDasharray="3 3"/>
+            <XAxis {...sharedXAxis} />
+            <YAxis tick={{fontSize:9,fill:fc}} width={38} unit="W"/>
+            <Tooltip content={sharedTooltip} cursor={sharedCursor}/>
+            <Legend wrapperStyle={sharedLegend}/>
+            <Area type="monotone" dataKey="solar_in" name="Solar" unit="W"
+              stroke="#d97706" strokeWidth={2} fill="rgba(217,119,6,0.1)" dot={false}/>
+            <Brush {...brushProps} />
+          </ComposedChart>
+        </ResponsiveContainer>,
+        210
+      )}
+
+      <p className="text-[10px] text-slate-500 mt-1 text-center font-mono">
+        Ctrl+scroll to zoom · drag brush to pan · all charts synchronized
+      </p>
+    </div>
+  )
+}
+
 // ── Main ──────────────────────────────────────────────────────────────────────
 
 export default function EnergyDashboardPage() {
@@ -270,6 +422,9 @@ export default function EnergyDashboardPage() {
   const [socMax, setSocMax] = useState(105)
   const [wMin,   setWMin]   = useState(0)
   const [wMax,   setWMax]   = useState<number|undefined>(undefined)
+
+  // Zoom level (1 = full range, higher = zoomed in)
+  const [zoomLevel, setZoomLevel] = useState(1)
 
   const grid = dark ? "rgba(55,65,81,0.35)" : "rgba(203,213,225,0.6)"
   const fc   = dark ? "#9ca3af" : "#475569"
@@ -333,21 +488,6 @@ export default function EnergyDashboardPage() {
     if(isPeak(dt)) pkAv+=Math.max(0,history[i].power_out-history[i].solar_in)*dh/1000*(r-0.28)
   }
   const saved = Math.max(0,solOff)+Math.max(0,pkAv)
-
-  // Solar forecast data
-  const forecast = Array.from({ length: 24 }, (_, h) => {
-    const t = new Date(); t.setHours(new Date().getHours() + h, 0, 0, 0)
-    const hr = t.getHours()
-    return {
-      label: fmtTime(t.toISOString()),
-      forecast: hr >= 6 && hr <= 19 ? Math.max(0, Math.round(460 * Math.sin(((hr-6)/13)*Math.PI))) : 0,
-    }
-  })
-  // Merge actual solar into forecast data
-  const forecastWithActual = forecast.map(f => {
-    const match = history.find(h => fmtTime(h.timestamp_iso) === f.label)
-    return { ...f, actual: match?.solar_in }
-  })
 
   // Value stacking data
   const valueData = [
@@ -504,15 +644,26 @@ export default function EnergyDashboardPage() {
                       Battery Time Series
                     </CardTitle>
                     <p className="text-xs text-slate-400">
-                      drag brush to zoom · hover for crosshair · red bands = peak hours (4–9 PM)
+                      scroll to zoom · drag to pan · hover for crosshair · red bands = peak hours (4–9 PM)
                     </p>
                   </div>
-                  {/* Envelope toggle */}
                   <div className="flex items-center gap-2">
-                    <span className="text-xs text-slate-400">SOC limits</span>
-                    <button onClick={()=>tog("envelope")} className="text-green-600 dark:text-green-500">
-                      {show.envelope?<ToggleRight className="h-5 w-5"/>:<ToggleLeft className="h-5 w-5"/>}
-                    </button>
+                    {/* Zoom controls */}
+                    <div className="flex items-center gap-1 rounded-lg border border-slate-200 dark:border-slate-700 p-0.5">
+                      <button onClick={()=>setZoomLevel(z=>Math.min(8,z*1.5))}
+                        className="px-2 py-1 text-xs font-mono rounded hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-400" title="Zoom in">+</button>
+                      <button onClick={()=>setZoomLevel(1)}
+                        className="px-2 py-1 text-xs font-mono rounded hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-400" title="Reset zoom">1:1</button>
+                      <button onClick={()=>setZoomLevel(z=>Math.max(1,z/1.5))}
+                        className="px-2 py-1 text-xs font-mono rounded hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-400" title="Zoom out">−</button>
+                    </div>
+                    {/* Envelope toggle */}
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs text-slate-400">SOC limits</span>
+                      <button onClick={()=>tog("envelope")} className="text-green-600 dark:text-green-500">
+                        {show.envelope?<ToggleRight className="h-5 w-5"/>:<ToggleLeft className="h-5 w-5"/>}
+                      </button>
+                    </div>
                   </div>
                 </div>
 
@@ -524,79 +675,22 @@ export default function EnergyDashboardPage() {
                   <TT label="Power Out" color="#dc2626" active={show.pOut} onToggle={()=>tog("pOut")}/>
                   <TT label="Temp °C" color="#7c3aed" active={show.temp} onToggle={()=>tog("temp")}/>
                 </div>
-
-                {/* Y-axis range controls */}
-                <div className="flex flex-wrap gap-4 pt-2 text-xs text-slate-400">
-                  <div className="flex items-center gap-2">
-                    <span>SOC Y:</span>
-                    <input type="number" value={socMin} onChange={e=>setSocMin(+e.target.value)}
-                      className="w-14 px-2 py-0.5 rounded border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 font-mono text-xs"/>
-                    <span>–</span>
-                    <input type="number" value={socMax} onChange={e=>setSocMax(+e.target.value)}
-                      className="w-14 px-2 py-0.5 rounded border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 font-mono text-xs"/>
-                    <span>%</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span>Power Y:</span>
-                    <input type="number" value={wMin} onChange={e=>setWMin(+e.target.value)}
-                      className="w-14 px-2 py-0.5 rounded border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 font-mono text-xs"/>
-                    <span>–</span>
-                    <input type="number" placeholder="auto" value={wMax??""} onChange={e=>setWMax(e.target.value?+e.target.value:undefined)}
-                      className="w-16 px-2 py-0.5 rounded border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 font-mono text-xs"/>
-                    <span>W</span>
-                  </div>
-                </div>
               </CardHeader>
               <CardContent>
                 {history.length >= 1 ? (
-                  <>
-                    {/* SOC chart */}
-                    <p className="text-xs text-slate-400 mb-1 font-mono">State of Charge (%)</p>
-                    <ResponsiveContainer width="100%" height={220}>
-                      <ComposedChart data={history} margin={{left:0,right:8,top:4,bottom:4}}>
-                        <CartesianGrid stroke={grid} strokeDasharray="3 3"/>
-                        <XAxis dataKey="label" tick={{fontSize:9,fill:fc}} interval="preserveStartEnd" minTickGap={40}/>
-                        <YAxis domain={[socMin, socMax]} tick={{fontSize:9,fill:fc}} width={32} unit="%"/>
-                        <Tooltip content={<ChartTooltip dark={dark}/>}
-                          cursor={{stroke: dark?"rgba(255,255,255,0.15)":"rgba(0,0,0,0.1)", strokeWidth:1, strokeDasharray:"4 2"}}/>
-                        <Legend wrapperStyle={{fontSize:10,fontFamily:"JetBrains Mono, monospace"}}/>
-                        {/* Peak shading */}
-                        <PeakAreas data={history} yMin={socMin} yMax={socMax}/>
-                        {/* Envelope reference lines */}
-                        {show.envelope&&<>
-                          <ReferenceLine y={maxS} stroke="#f87171" strokeDasharray="4 3" strokeWidth={1}
-                            label={{value:`max ${maxS}%`,position:"insideTopRight",fontSize:9,fill:"#f87171"}}/>
-                          <ReferenceLine y={minS} stroke="#f59e0b" strokeDasharray="4 3" strokeWidth={1}
-                            label={{value:`min ${minS}%`,position:"insideBottomRight",fontSize:9,fill:"#f59e0b"}}/>
-                        </>}
-                        {show.soc&&<Area type="monotone" dataKey="soc" name="SOC %" unit="%" stroke={socCol(live?.soc??50)} strokeWidth={2} fill={socCol(live?.soc??50)} fillOpacity={0.1} dot={false} activeDot={{r:4}}/>}
-                        {show.temp&&<Line type="monotone" dataKey="temp_c" name="Temp" unit="°C" stroke="#7c3aed" strokeWidth={1.5} strokeDasharray="4 2" dot={false} yAxisId={0}/>}
-                        <Brush dataKey="label" height={20} stroke={dark?"#374151":"#cbd5e1"}
-                          fill={dark?"rgba(15,23,32,0.8)":"rgba(241,245,249,0.9)"}
-                          travellerWidth={6} startIndex={Math.max(0,history.length-24)}/>
-                      </ComposedChart>
-                    </ResponsiveContainer>
-
-                    {/* Power chart */}
-                    <p className="text-xs text-slate-400 mt-4 mb-1 font-mono">Power Flow (W)</p>
-                    <ResponsiveContainer width="100%" height={180}>
-                      <ComposedChart data={history} margin={{left:0,right:8,top:4,bottom:4}}>
-                        <CartesianGrid stroke={grid} strokeDasharray="3 3"/>
-                        <XAxis dataKey="label" tick={{fontSize:9,fill:fc}} interval="preserveStartEnd" minTickGap={40}/>
-                        <YAxis domain={[wMin, wMax??'auto']} tick={{fontSize:9,fill:fc}} width={38} unit="W"/>
-                        <Tooltip content={<ChartTooltip dark={dark}/>}
-                          cursor={{stroke: dark?"rgba(255,255,255,0.15)":"rgba(0,0,0,0.1)", strokeWidth:1, strokeDasharray:"4 2"}}/>
-                        <Legend wrapperStyle={{fontSize:10,fontFamily:"JetBrains Mono, monospace"}}/>
-                        <PeakAreas data={history} yMin={0} yMax={2000}/>
-                        {show.solar&&<Bar dataKey="solar_in" name="Solar" unit="W" fill="rgba(251,191,36,0.6)" maxBarSize={12}/>}
-                        {show.pIn&&<Area type="monotone" dataKey="power_in" name="Power In" unit="W" stroke="#2563eb" strokeWidth={1.5} fill="rgba(37,99,235,0.1)" dot={false} activeDot={{r:4}}/>}
-                        {show.pOut&&<Area type="monotone" dataKey="power_out" name="Power Out" unit="W" stroke="#dc2626" strokeWidth={1.5} fill="rgba(220,38,38,0.1)" dot={false} activeDot={{r:4}}/>}
-                        <Brush dataKey="label" height={20} stroke={dark?"#374151":"#cbd5e1"}
-                          fill={dark?"rgba(15,23,32,0.8)":"rgba(241,245,249,0.9)"}
-                          travellerWidth={6} startIndex={Math.max(0,history.length-24)}/>
-                      </ComposedChart>
-                    </ResponsiveContainer>
-                  </>
+                  <SyncedCharts
+                    history={history}
+                    dark={dark}
+                    show={show}
+                    live={live}
+                    minS={minS}
+                    maxS={maxS}
+                    socMin={socMin}
+                    socMax={socMax}
+                    wMin={wMin}
+                    wMax={wMax}
+                    zoomLevel={zoomLevel}
+                  />
                 ) : (
                   <div className="h-64 flex flex-col items-center justify-center gap-3">
                     <p className="text-sm text-slate-500">No history data yet.</p>
@@ -628,93 +722,58 @@ export default function EnergyDashboardPage() {
             </Card>
           )}
 
-          {/* Solar forecast + savings */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-            {/* Solar forecast */}
-            <Card className="border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950/40">
-              <CardHeader className="pb-2">
-                <div className="flex items-center gap-2">
-                  <Cloud className="h-4 w-4 text-green-600 dark:text-green-500"/>
-                  <CardTitle className="text-xs text-green-600 dark:text-green-500 uppercase tracking-widest">
-                    24h Solar Forecast vs Actual
-                  </CardTitle>
-                </div>
-                <p className="text-xs text-slate-400 mt-1">Solar position model · drag brush to zoom · hover for values</p>
-              </CardHeader>
-              <CardContent>
-                <ResponsiveContainer width="100%" height={200}>
-                  <ComposedChart data={forecastWithActual} margin={{left:0,right:8,top:4,bottom:4}}>
-                    <CartesianGrid stroke={grid} strokeDasharray="3 3"/>
-                    <XAxis dataKey="label" tick={{fontSize:9,fill:fc}} interval={3}/>
-                    <YAxis tick={{fontSize:9,fill:fc}} width={38} unit="W"/>
-                    <Tooltip content={<ChartTooltip dark={dark}/>}
-                      cursor={{stroke: dark?"rgba(255,255,255,0.15)":"rgba(0,0,0,0.1)", strokeWidth:1}}/>
-                    <Legend wrapperStyle={{fontSize:10,fontFamily:"JetBrains Mono, monospace"}}/>
-                    <Area type="monotone" dataKey="forecast" name="Forecast" unit="W"
-                      stroke="#d97706" strokeWidth={2} strokeDasharray="5 3"
-                      fill="rgba(217,119,6,0.1)" dot={false}/>
-                    <Line type="monotone" dataKey="actual" name="Actual" unit="W"
-                      stroke="#f97316" strokeWidth={2} dot={false} connectNulls/>
-                    <Brush dataKey="label" height={16} stroke={dark?"#374151":"#cbd5e1"}
-                      fill={dark?"rgba(15,23,32,0.8)":"rgba(241,245,249,0.9)"} travellerWidth={6}/>
-                  </ComposedChart>
-                </ResponsiveContainer>
-              </CardContent>
-            </Card>
+          {/* Value stacking — full width */}
+          <Card className="border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950/40">
+            <CardHeader className="pb-2">
+              <div className="flex items-center gap-2">
+                <DollarSign className="h-4 w-4 text-green-600 dark:text-green-500"/>
+                <CardTitle className="text-xs text-green-600 dark:text-green-500 uppercase tracking-widest">
+                  Value Stacking · Today
+                </CardTitle>
+              </div>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <ResponsiveContainer width="100%" height={120}>
+                <BarChart data={valueData} layout="vertical" margin={{left:8,right:16,top:4,bottom:4}}>
+                  <CartesianGrid stroke={grid} strokeDasharray="3 3" horizontal={false}/>
+                  <XAxis type="number" tick={{fontSize:9,fill:fc}} unit="$" tickFormatter={v=>v.toFixed(3)}/>
+                  <YAxis type="category" dataKey="name" tick={{fontSize:9,fill:fc}} width={90}/>
+                  <Tooltip content={<ChartTooltip dark={dark}/>}
+                    cursor={{fill: dark?"rgba(255,255,255,0.05)":"rgba(0,0,0,0.04)"}}
+                    formatter={(v:any)=>[`$${Number(v).toFixed(4)}`,"value"]}/>
+                  <Bar dataKey="value" radius={[0,4,4,0]}>
+                    {valueData.map((d,i)=>(
+                      <rect key={i} fill={d.fill}/>
+                    ))}
+                  </Bar>
+                </BarChart>
+              </ResponsiveContainer>
 
-            {/* Value stacking */}
-            <Card className="border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950/40">
-              <CardHeader className="pb-2">
-                <div className="flex items-center gap-2">
-                  <DollarSign className="h-4 w-4 text-green-600 dark:text-green-500"/>
-                  <CardTitle className="text-xs text-green-600 dark:text-green-500 uppercase tracking-widest">
-                    Value Stacking · Today
-                  </CardTitle>
+              <div className={`rounded-xl p-3 border ${isPeak()
+                ?"border-red-200 dark:border-red-900/40 bg-red-50 dark:bg-red-950/20"
+                :"border-green-200 dark:border-green-900/40 bg-green-50 dark:bg-green-950/15"}`}>
+                <div className="flex items-baseline justify-between mb-1">
+                  <span className="text-xs text-slate-400 uppercase tracking-wider">Current rate</span>
+                  <span className={`text-xl font-bold font-mono ${isPeak()?"text-red-600 dark:text-red-400":"text-green-600 dark:text-green-400"}`}>
+                    ${getRate().toFixed(3)}<span className="text-xs font-normal text-slate-400 ml-1">/kWh</span>
+                  </span>
                 </div>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <ResponsiveContainer width="100%" height={100}>
-                  <BarChart data={valueData} layout="vertical" margin={{left:8,right:16,top:4,bottom:4}}>
-                    <CartesianGrid stroke={grid} strokeDasharray="3 3" horizontal={false}/>
-                    <XAxis type="number" tick={{fontSize:9,fill:fc}} unit="$" tickFormatter={v=>v.toFixed(3)}/>
-                    <YAxis type="category" dataKey="name" tick={{fontSize:9,fill:fc}} width={90}/>
-                    <Tooltip content={<ChartTooltip dark={dark}/>}
-                      cursor={{fill: dark?"rgba(255,255,255,0.05)":"rgba(0,0,0,0.04)"}}
-                      formatter={(v:any)=>[`$${Number(v).toFixed(4)}`,"value"]}/>
-                    <Bar dataKey="value" radius={[0,4,4,0]}>
-                      {valueData.map((d,i)=>(
-                        <rect key={i} fill={d.fill}/>
-                      ))}
-                    </Bar>
-                  </BarChart>
-                </ResponsiveContainer>
-
-                <div className={`rounded-xl p-3 border ${isPeak()
-                  ?"border-red-200 dark:border-red-900/40 bg-red-50 dark:bg-red-950/20"
-                  :"border-green-200 dark:border-green-900/40 bg-green-50 dark:bg-green-950/15"}`}>
-                  <div className="flex items-baseline justify-between mb-1">
-                    <span className="text-xs text-slate-400 uppercase tracking-wider">Current rate</span>
-                    <span className={`text-xl font-bold font-mono ${isPeak()?"text-red-600 dark:text-red-400":"text-green-600 dark:text-green-400"}`}>
-                      ${getRate().toFixed(3)}<span className="text-xs font-normal text-slate-400 ml-1">/kWh</span>
-                    </span>
+                <p className={`text-xs ${isPeak()?"text-red-600 dark:text-red-400":"text-green-600 dark:text-green-400"}`}>
+                  {isPeak()?"⚠ Peak 4–9 PM · discharge battery to offset grid costs":"✓ Off-peak · good window to charge from grid if needed"}
+                </p>
+              </div>
+              <div className="grid grid-cols-2 gap-1.5 text-xs font-mono">
+                {[["Summer peak","$0.52","text-red-600 dark:text-red-400"],
+                  ["Summer off","$0.28","text-green-600 dark:text-green-400"],
+                  ["Winter peak","$0.43","text-amber-600 dark:text-amber-400"],
+                  ["Winter off","$0.26","text-green-600 dark:text-green-400"]].map(([l,v,c])=>(
+                  <div key={l} className="flex justify-between">
+                    <span className="text-slate-400">{l}</span><span className={c}>{v}</span>
                   </div>
-                  <p className={`text-xs ${isPeak()?"text-red-600 dark:text-red-400":"text-green-600 dark:text-green-400"}`}>
-                    {isPeak()?"⚠ Peak 4–9 PM · discharge battery to offset grid costs":"✓ Off-peak · good window to charge from grid if needed"}
-                  </p>
-                </div>
-                <div className="grid grid-cols-2 gap-1.5 text-xs font-mono">
-                  {[["Summer peak","$0.52","text-red-600 dark:text-red-400"],
-                    ["Summer off","$0.28","text-green-600 dark:text-green-400"],
-                    ["Winter peak","$0.43","text-amber-600 dark:text-amber-400"],
-                    ["Winter off","$0.26","text-green-600 dark:text-green-400"]].map(([l,v,c])=>(
-                    <div key={l} className="flex justify-between">
-                      <span className="text-slate-400">{l}</span><span className={c}>{v}</span>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-          </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
 
           {/* Footer */}
           <Card className="border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950/30">
