@@ -61,8 +61,26 @@ const getRate = (d = new Date()) => {
   const su = d.getMonth() >= 5 && d.getMonth() <= 8
   return su ? (isPeak(d) ? 0.52 : 0.28) : (isPeak(d) ? 0.43 : 0.26)
 }
-const fmtTime = (iso: string) =>
-  new Date(iso).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
+const fmtTime = (iso: string) => {
+  const d = new Date(iso)
+  const mon = d.toLocaleString([], { month: "short" })
+  const day = d.getDate()
+  const hh = String(d.getHours()).padStart(2, "0")
+  const mm = String(d.getMinutes()).padStart(2, "0")
+  return `${mon} ${day}, ${hh}:${mm}`
+}
+// Short version for dense x-axis ticks (when zoomed in to a single day)
+const fmtTimeShort = (iso: string) => {
+  const d = new Date(iso)
+  return d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
+}
+// ISO datetime-local value for <input type="datetime-local">
+const toLocalInput = (iso: string) => {
+  const d = new Date(iso)
+  const pad = (n: number) => String(n).padStart(2, "0")
+  return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`
+}
+const fromLocalInput = (val: string) => new Date(val).toISOString()
 
 // ── Custom crosshair tooltip ──────────────────────────────────────────────────
 
@@ -244,15 +262,19 @@ function SyncedCharts({ history, dark, show, live, minS, maxS, socMin, socMax, w
   minS: number; maxS: number; socMin: number; socMax: number
   wMin: number; wMax: number | undefined; zoomLevel: number
 }) {
-  const [brushStart, setBrushStart] = useState(Math.max(0, history.length - 24))
+  const [brushStart, setBrushStart] = useState(Math.max(0, history.length - 96))
   const [brushEnd, setBrushEnd] = useState(history.length)
   const containerRef = useRef<HTMLDivElement>(null)
 
-  // Visible slice
-  const visible = history.slice(brushStart, brushEnd)
-
   const grid = dark ? "rgba(55,65,81,0.35)" : "rgba(203,213,222,0.6)"
   const fc   = dark ? "#9ca3af" : "#475569"
+  const inputBg = dark ? "bg-slate-900" : "bg-white"
+  const inputBorder = dark ? "border-slate-700" : "border-slate-300"
+  const inputText = dark ? "text-slate-300" : "text-slate-700"
+
+  // Current visible range dates
+  const rangeStart = history[brushStart]?.timestamp_iso ?? history[0]?.timestamp_iso ?? ""
+  const rangeEnd   = history[Math.min(brushEnd - 1, history.length - 1)]?.timestamp_iso ?? history[history.length - 1]?.timestamp_iso ?? ""
 
   // Synced Brush handler
   const handleBrushChange = (range: any) => {
@@ -261,6 +283,22 @@ function SyncedCharts({ history, dark, show, live, minS, maxS, socMin, socMax, w
       setBrushEnd(range.endIndex)
     }
   }
+
+  // Jump to date range via datetime picker
+  const jumpToRange = useCallback((startIso: string, endIso: string) => {
+    const startTime = new Date(startIso).getTime()
+    const endTime = new Date(endIso).getTime()
+    let startIdx = 0
+    let endIdx = history.length
+    for (let i = 0; i < history.length; i++) {
+      const t = new Date(history[i].timestamp_iso).getTime()
+      if (t >= startTime && startIdx === 0 && i > 0) startIdx = i - 1
+      if (t >= startTime && startIdx === 0) startIdx = i
+      if (t <= endTime) endIdx = i + 1
+    }
+    setBrushStart(startIdx)
+    setBrushEnd(Math.max(startIdx + 3, endIdx))
+  }, [history])
 
   // Zoom via scroll wheel
   const handleWheel = useCallback((e: React.WheelEvent) => {
@@ -276,7 +314,7 @@ function SyncedCharts({ history, dark, show, live, minS, maxS, socMin, socMax, w
     setBrushEnd(newStart + newRange)
   }, [history.length, brushStart, brushEnd])
 
-  // Zoom via buttons — uses the zoomLevel state from parent
+  // Zoom via buttons
   const prevZoomRef = useRef(1)
   useEffect(() => {
     if (zoomLevel === prevZoomRef.current) return
@@ -289,12 +327,26 @@ function SyncedCharts({ history, dark, show, live, minS, maxS, socMin, socMax, w
     setBrushEnd(newStart + newRange)
   }, [zoomLevel, history.length])
 
+  // Decide tick format based on visible range size
+  const visibleDays = rangeStart && rangeEnd
+    ? (new Date(rangeEnd).getTime() - new Date(rangeStart).getTime()) / 86_400_000
+    : 1
+  const tickFmt = visibleDays > 1.5 ? fmtTime : fmtTimeShort
+
   // Common chart props
   const sharedXAxis = {
     dataKey: "label" as const,
     tick: { fontSize: 9, fill: fc },
     interval: "preserveStartEnd" as const,
-    minTickGap: 40,
+    minTickGap: 50,
+    tickFormatter: (val: string) => {
+      // val is the full label like "Aug 12, 14:30" — trim to time-only when zoomed in
+      if (visibleDays <= 1.5) {
+        const parts = val.split(", ")
+        return parts.length > 1 ? parts[1] : val
+      }
+      return val
+    },
   }
   const sharedTooltip = <ChartTooltip dark={dark}/>
   const sharedCursor = { stroke: dark ? "rgba(255,255,255,0.15)" : "rgba(0,0,0,0.1)", strokeWidth: 1, strokeDasharray: "4 2" }
@@ -308,9 +360,16 @@ function SyncedCharts({ history, dark, show, live, minS, maxS, socMin, socMax, w
     startIndex: brushStart,
     endIndex: brushEnd,
     onChange: handleBrushChange,
+    tickFormatter: (val: string) => {
+      // Show abbreviated labels in the brush minimap
+      if (visibleDays > 1.5) {
+        const parts = val.split(", ")
+        return parts.length > 1 ? parts[1] : val
+      }
+      return val
+    },
   }
 
-  // Wrap charts in a shared scroll-zoom container
   const brushWrap = (children: React.ReactNode, chartHeight: number) => (
     <div ref={containerRef} onWheel={handleWheel} style={{ height: chartHeight + 30 }}>
       {children}
@@ -319,6 +378,47 @@ function SyncedCharts({ history, dark, show, live, minS, maxS, socMin, socMax, w
 
   return (
     <div className="space-y-1">
+      {/* Range display + datetime pickers */}
+      <div className="flex flex-wrap items-center gap-3 mb-3 p-2 rounded-lg bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800">
+        <div className="flex items-center gap-2 text-xs">
+          <span className="text-slate-400 font-mono">Viewing:</span>
+          <span className="font-mono text-slate-600 dark:text-slate-300">
+            {rangeStart ? fmtTime(rangeStart) : "—"}
+          </span>
+          <span className="text-slate-400">→</span>
+          <span className="font-mono text-slate-600 dark:text-slate-300">
+            {rangeEnd ? fmtTime(rangeEnd) : "—"}
+          </span>
+          <span className="text-slate-400 font-mono">
+            ({brushEnd - brushStart} pts · {visibleDays.toFixed(1)}d)
+          </span>
+        </div>
+        <div className="flex items-center gap-1.5 ml-auto">
+          <label className="text-[10px] text-slate-400 uppercase">From</label>
+          <input
+            type="datetime-local"
+            value={rangeStart ? toLocalInput(rangeStart) : ""}
+            onChange={(e) => {
+              if (e.target.value && rangeEnd) {
+                jumpToRange(fromLocalInput(e.target.value), rangeEnd)
+              }
+            }}
+            className={`w-40 px-2 py-1 rounded border text-xs font-mono ${inputBorder} ${inputBg} ${inputText}`}
+          />
+          <label className="text-[10px] text-slate-400 uppercase">To</label>
+          <input
+            type="datetime-local"
+            value={rangeEnd ? toLocalInput(rangeEnd) : ""}
+            onChange={(e) => {
+              if (e.target.value && rangeStart) {
+                jumpToRange(rangeStart, fromLocalInput(e.target.value))
+              }
+            }}
+            className={`w-40 px-2 py-1 rounded border text-xs font-mono ${inputBorder} ${inputBg} ${inputText}`}
+          />
+        </div>
+      </div>
+
       {/* SOC chart */}
       <p className="text-xs text-slate-400 mb-1 font-mono">State of Charge (%)</p>
       {brushWrap(
@@ -364,8 +464,8 @@ function SyncedCharts({ history, dark, show, live, minS, maxS, socMin, socMax, w
         210
       )}
 
-      {/* Solar forecast — same x-axis alignment */}
-      <p className="text-xs text-slate-400 mt-2 mb-1 font-mono">Solar Forecast vs Actual</p>
+      {/* Solar chart */}
+      <p className="text-xs text-slate-400 mt-2 mb-1 font-mono">Solar Production (W)</p>
       {brushWrap(
         <ResponsiveContainer width="100%" height={180}>
           <ComposedChart data={history} margin={{left:0,right:8,top:4,bottom:4}}>
@@ -446,7 +546,7 @@ export default function EnergyDashboardPage() {
   // Fetch history
   const fetchHistory = useCallback(async () => {
     try {
-      const res = await fetch("/api/ecoflow/history?days=2", { cache:"no-store" })
+      const res = await fetch("/api/ecoflow/history?days=7", { cache:"no-store" })
       if (!res.ok) return
       const json = await res.json()
       const pts: Pt[] = (json.data ?? []).map((d: any) => {
