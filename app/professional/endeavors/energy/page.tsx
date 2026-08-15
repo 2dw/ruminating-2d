@@ -761,7 +761,7 @@ export default function EnergyDashboardPage() {
                       Battery Time Series
                     </CardTitle>
                     <p className="text-xs text-slate-400">
-                      {isMobile ? "drag brush to pan · red = peak hours" : "scroll to zoom · drag to pan · hover for crosshair · red bands = peak hours (4–9 PM)"}
+                      scroll to zoom · drag to pan · hover for crosshair · red bands = peak hours (4–9 PM)
                     </p>
                   </div>
                   <div className="flex items-center gap-2">
