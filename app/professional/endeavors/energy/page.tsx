@@ -370,16 +370,25 @@ function SyncedCharts({ history, dark, show, live, minS, maxS, socMin, socMax, w
   const sharedCursor = { stroke: dark ? "rgba(255,255,255,0.15)" : "rgba(0,0,0,0.1)", strokeWidth: 1, strokeDasharray: "4 2" }
   const sharedLegend = { style: { fontSize: 10, fontFamily: "JetBrains Mono, monospace" } }
 
+  // Responsive brush sizing — bigger for touch on mobile
+  const [isMobile, setIsMobile] = useState(false)
+  useEffect(() => {
+    const check = () => setIsMobile(window.innerWidth < 640)
+    check()
+    window.addEventListener("resize", check)
+    return () => window.removeEventListener("resize", check)
+  }, [])
+
   const brushProps = {
-    height: 18,
+    height: isMobile ? 28 : 18,
     stroke: dark ? "#374151" : "#cbd5e1",
     fill: dark ? "rgba(15,23,32,0.8)" : "rgba(241,245,249,0.9)",
-    travellerWidth: 6,
+    travellerWidth: isMobile ? 12 : 6,
     onChange: handleBrushChange,
   }
 
   const brushWrap = (children: React.ReactNode, chartHeight: number) => (
-    <div ref={containerRef} onWheel={handleWheel} style={{ height: chartHeight + 30 }}>
+    <div ref={containerRef} onWheel={handleWheel} style={{ height: chartHeight + (isMobile ? 40 : 30) }}>
       {children}
     </div>
   )
@@ -387,7 +396,7 @@ function SyncedCharts({ history, dark, show, live, minS, maxS, socMin, socMax, w
   return (
     <div className="space-y-1">
       {/* Range display + datetime pickers */}
-      <div className="flex flex-wrap items-center gap-3 mb-3 p-2 rounded-lg bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800">
+      <div className="flex flex-col sm:flex-row sm:flex-wrap items-start sm:items-center gap-2 sm:gap-3 mb-3 p-2 rounded-lg bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800">
         <div className="flex items-center gap-2 text-xs">
           <span className="text-slate-400 font-mono">Viewing:</span>
           <span className="font-mono text-slate-600 dark:text-slate-300">
@@ -401,7 +410,7 @@ function SyncedCharts({ history, dark, show, live, minS, maxS, socMin, socMax, w
             ({brushEnd - brushStart} pts · {visibleDays.toFixed(1)}d)
           </span>
         </div>
-        <div className="flex items-center gap-1.5 ml-auto">
+        <div className="flex items-center gap-1.5 sm:ml-auto flex-wrap">
           <label className="text-[10px] text-slate-400 uppercase">From</label>
           <input
             type="datetime-local"
@@ -411,7 +420,7 @@ function SyncedCharts({ history, dark, show, live, minS, maxS, socMin, socMax, w
                 jumpToRange(fromLocalInput(e.target.value), rangeEnd)
               }
             }}
-            className={`w-40 px-2 py-1 rounded border text-xs font-mono ${inputBorder} ${inputBg} ${inputText}`}
+            className={`w-32 sm:w-40 px-2 py-1 rounded border text-xs font-mono ${inputBorder} ${inputBg} ${inputText}`}
           />
           <label className="text-[10px] text-slate-400 uppercase">To</label>
           <input
@@ -422,7 +431,7 @@ function SyncedCharts({ history, dark, show, live, minS, maxS, socMin, socMax, w
                 jumpToRange(rangeStart, fromLocalInput(e.target.value))
               }
             }}
-            className={`w-40 px-2 py-1 rounded border text-xs font-mono ${inputBorder} ${inputBg} ${inputText}`}
+            className={`w-32 sm:w-40 px-2 py-1 rounded border text-xs font-mono ${inputBorder} ${inputBg} ${inputText}`}
           />
         </div>
       </div>
@@ -491,7 +500,7 @@ function SyncedCharts({ history, dark, show, live, minS, maxS, socMin, socMax, w
       )}
 
       <p className="text-[10px] text-slate-500 mt-1 text-center font-mono">
-        Ctrl+scroll to zoom · drag brush to pan · all charts synchronized
+        {isMobile ? "pinch to zoom · drag brush to pan" : "Ctrl+scroll to zoom · drag brush to pan"} · all charts synchronized
       </p>
     </div>
   )
@@ -570,7 +579,7 @@ export default function EnergyDashboardPage() {
           isPeak:    dt.getHours() >= 16 && dt.getHours() < 21,
         }
       })
-      if (pts.length > 0) setHistory(pts)
+      if (pts.length > 0) setHistory(pts.sort((a, b) => new Date(a.timestamp_iso).getTime() - new Date(b.timestamp_iso).getTime()))
     } catch (_) {}
   }, [])
 
@@ -752,7 +761,7 @@ export default function EnergyDashboardPage() {
                       Battery Time Series
                     </CardTitle>
                     <p className="text-xs text-slate-400">
-                      scroll to zoom · drag to pan · hover for crosshair · red bands = peak hours (4–9 PM)
+                      {isMobile ? "drag brush to pan · red = peak hours" : "scroll to zoom · drag to pan · hover for crosshair · red bands = peak hours (4–9 PM)"}
                     </p>
                   </div>
                   <div className="flex items-center gap-2">
