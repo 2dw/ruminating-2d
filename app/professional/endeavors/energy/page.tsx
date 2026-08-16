@@ -14,7 +14,7 @@ import { motion } from "framer-motion"
 import {
   ArrowLeft, Zap, Eye, Lock, Sun, Battery, Activity,
   Thermometer, DollarSign, TrendingUp, Cloud,
-  AlertCircle, RefreshCw, ToggleLeft, ToggleRight,
+  AlertCircle, RefreshCw, ToggleLeft, ToggleRight, Settings,
 } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
@@ -24,6 +24,12 @@ import {
   Tooltip, Legend, Brush, ReferenceLine, ReferenceArea,
   ResponsiveContainer, BarChart,
 } from "recharts"
+import { AuthProvider, useAuth } from "@/lib/auth-context"
+import AdminControls from "@/components/energy/AdminControls"
+import ForecastChart from "@/components/energy/ForecastChart"
+import RateHeatmap from "@/components/energy/RateHeatmap"
+import DailySummaryChart from "@/components/energy/DailySummaryChart"
+import R2Management from "@/components/energy/R2Management"
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -263,9 +269,9 @@ function SyncedCharts({ history, dark, show, live, minS, maxS, socMin, socMax, w
   wMin: number; wMax: number | undefined; zoomLevel: number
 }) {
   const len = history.length
-  const initEnd = Math.min(len, 96)
-  const [brushStart, setBrushStart] = useState(Math.max(0, len - initEnd))
-  const [brushEnd, setBrushEnd] = useState(initEnd)
+  const defaultWindow = Math.min(len, 96)
+  const [brushStart, setBrushStart] = useState(Math.max(0, len - defaultWindow))
+  const [brushEnd, setBrushEnd] = useState(len)
   const containerRef = useRef<HTMLDivElement>(null)
 
   // Clamp brush indices whenever history length changes
@@ -292,13 +298,15 @@ function SyncedCharts({ history, dark, show, live, minS, maxS, socMin, socMax, w
   const rangeStart = history[safeStart]?.timestamp_iso ?? ""
   const rangeEnd   = history[safeEnd]?.timestamp_iso ?? ""
 
-  // Synced Brush handler — clamp to valid range
+  // Synced Brush handler — clamp to valid range, skip if unchanged to prevent loop
   const handleBrushChange = (range: any) => {
     if (range && typeof range.startIndex === "number" && typeof range.endIndex === "number") {
       const s = Math.max(0, Math.min(range.startIndex, len - 1))
-      const e = Math.max(s + 3, Math.min(range.endIndex, len))
-      setBrushStart(s)
-      setBrushEnd(e)
+      const e = Math.max(s + 3, Math.min(range.endIndex + 1, len))
+      if (s !== brushStart || e !== brushEnd) {
+        setBrushStart(s)
+        setBrushEnd(e)
+      }
     }
   }
 
@@ -380,6 +388,8 @@ function SyncedCharts({ history, dark, show, live, minS, maxS, socMin, socMax, w
   }, [])
 
   const brushProps = {
+    startIndex: brushStart,
+    endIndex: Math.max(brushStart, Math.min(brushEnd - 1, len - 1)),
     height: isMobile ? 28 : 18,
     stroke: dark ? "#374151" : "#cbd5e1",
     fill: dark ? "rgba(15,23,32,0.8)" : "rgba(241,245,249,0.9)",
@@ -508,7 +518,7 @@ function SyncedCharts({ history, dark, show, live, minS, maxS, socMin, socMax, w
 
 // ── Main ──────────────────────────────────────────────────────────────────────
 
-export default function EnergyDashboardPage() {
+function EnergyDashboardContent() {
   const router = useRouter()
 
   const [dark, setDark] = useState(false)
@@ -520,12 +530,13 @@ export default function EnergyDashboardPage() {
     return () => obs.disconnect()
   }, [])
 
+  const { isAuthenticated, token } = useAuth()
   const [live, setLive]         = useState<Live | null>(null)
   const [apiError, setApiError] = useState<string | null>(null)
   const [history, setHistory]   = useState<Pt[]>([])
   const [loading, setLoading]   = useState(true)
   const [showHint, setShowHint] = useState(false)
-  const [tab, setTab]           = useState<"battery"|"pge">("battery")
+  const [tab, setTab]           = useState<"battery"|"pge"|"forecast"|"r2">("battery")
 
   // Metric visibility toggles
   const [show, setShow] = useState({
@@ -638,9 +649,15 @@ export default function EnergyDashboardPage() {
             <div className="flex-1">
               <div className="flex items-center gap-3 flex-wrap">
                 <h1 className="text-4xl font-serif font-bold text-slate-900 dark:text-white">Home Energy Dashboard</h1>
-                <span className="inline-flex items-center gap-1.5 rounded-full border border-green-300 dark:border-green-800 px-3 py-1 text-xs text-green-700 dark:text-green-400">
-                  <Eye className="h-3 w-3"/> view only
-                </span>
+                {isAuthenticated ? (
+                  <span className="inline-flex items-center gap-1.5 rounded-full border border-purple-300 dark:border-purple-800 px-3 py-1 text-xs text-purple-700 dark:text-purple-400">
+                    <Settings className="h-3 w-3"/> admin
+                  </span>
+                ) : (
+                  <span className="inline-flex items-center gap-1.5 rounded-full border border-green-300 dark:border-green-800 px-3 py-1 text-xs text-green-700 dark:text-green-400">
+                    <Eye className="h-3 w-3"/> view only
+                  </span>
+                )}
                 {live&&!apiError&&(
                   <span className="flex items-center gap-1.5 text-xs text-slate-400">
                     <span className="h-2 w-2 rounded-full bg-green-500 animate-pulse inline-block"/>
@@ -651,6 +668,26 @@ export default function EnergyDashboardPage() {
               <p className="mt-2 max-w-2xl text-sm text-slate-500 dark:text-slate-400">
                 EcoFlow Delta Pro 3 · solar · PG&E E-TOU-C · Cloudflare Worker → R2 · polled every 30 min
               </p>
+            </div>
+            <div className="shrink-0">
+              {isAuthenticated ? (
+                <button
+                  onClick={() => {
+                    localStorage.removeItem("ecoflow_admin_token")
+                    window.location.reload()
+                  }}
+                  className="text-xs text-slate-400 hover:text-red-500 transition-colors"
+                >
+                  Logout
+                </button>
+              ) : (
+                <button
+                  onClick={() => router.push("/admin/login?redirect=/professional/endeavors/energy")}
+                  className="text-xs text-slate-400 hover:text-green-600 dark:hover:text-green-400 transition-colors"
+                >
+                  Admin Login
+                </button>
+              )}
             </div>
           </div>
 
@@ -740,7 +777,7 @@ export default function EnergyDashboardPage() {
           </div>
 
           {/* Tab bar */}
-          <div className="flex gap-2">
+          <div className="flex gap-2 flex-wrap">
             {(["battery","pge"] as const).map(t=>(
               <button key={t} onClick={()=>setTab(t)}
                 className={`px-4 py-1.5 rounded-full text-xs font-mono border transition-all ${tab===t
@@ -749,6 +786,22 @@ export default function EnergyDashboardPage() {
                 {t==="battery"?"⚡ Battery History":"📊 PG&E Grid Usage"}
               </button>
             ))}
+            {isAuthenticated&&(
+              <>
+                <button onClick={()=>setTab("forecast")}
+                  className={`px-4 py-1.5 rounded-full text-xs font-mono border transition-all ${tab==="forecast"
+                    ?"border-green-500 bg-green-500/10 text-green-700 dark:text-green-400"
+                    :"border-slate-300 dark:border-slate-700 text-slate-500 hover:border-slate-400"}`}>
+                  📈 Forecast
+                </button>
+                <button onClick={()=>setTab("r2")}
+                  className={`px-4 py-1.5 rounded-full text-xs font-mono border transition-all ${tab==="r2"
+                    ?"border-green-500 bg-green-500/10 text-green-700 dark:text-green-400"
+                    :"border-slate-300 dark:border-slate-700 text-slate-500 hover:border-slate-400"}`}>
+                  ☁️ R2 Storage
+                </button>
+              </>
+            )}
           </div>
 
           {/* ── INTERACTIVE BATTERY TIME SERIES ── */}
@@ -839,6 +892,25 @@ export default function EnergyDashboardPage() {
             </Card>
           )}
 
+          {/* Forecast tab (admin only) */}
+          {tab==="forecast"&&isAuthenticated&&(
+            <div className="space-y-4">
+              <ForecastChart dark={dark} />
+              <RateHeatmap dark={dark} />
+              <DailySummaryChart dark={dark} />
+            </div>
+          )}
+
+          {/* R2 Storage tab (admin only) */}
+          {tab==="r2"&&isAuthenticated&&(
+            <R2Management dark={dark} />
+          )}
+
+          {/* Admin controls (admin only, always visible) */}
+          {isAuthenticated&&(
+            <AdminControls />
+          )}
+
           {/* Value stacking — full width */}
           <Card className="border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950/40">
             <CardHeader className="pb-2">
@@ -910,5 +982,13 @@ export default function EnergyDashboardPage() {
         </motion.div>
       </main>
     </div>
+  )
+}
+
+export default function EnergyDashboardPage() {
+  return (
+    <AuthProvider>
+      <EnergyDashboardContent />
+    </AuthProvider>
   )
 }
