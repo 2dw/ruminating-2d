@@ -70,9 +70,9 @@ function generateTree(w: number, h: number) {
   const trunkW = Math.max(6, w * 0.008)
   branches.push({ x1: cx, y1: groundY, x2: cx, y2: trunkTop, thickness: trunkW, depth: 0 })
 
-  // Major scaffold branches — spread into dome shape
-  const scaffoldAngles = [-0.7, -0.35, 0, 0.35, 0.7]
-  const scaffoldLengths = [trunkH * 0.45, trunkH * 0.5, trunkH * 0.55, trunkH * 0.5, trunkH * 0.45]
+  // Major scaffold branches — wide spread into dome shape
+  const scaffoldAngles = [-1.1, -0.55, 0, 0.55, 1.1]
+  const scaffoldLengths = [trunkH * 0.55, trunkH * 0.65, trunkH * 0.7, trunkH * 0.65, trunkH * 0.55]
   const scaffoldStartY = trunkTop + trunkH * 0.05
 
   scaffoldAngles.forEach((angle, i) => {
@@ -106,9 +106,9 @@ function generateTree(w: number, h: number) {
 
   // Generate dome canopy leaf positions
   const canopyCenterY = trunkTop - trunkH * 0.05
-  const canopyRadiusX = w * 0.32
-  const canopyRadiusY = trunkH * 0.38
-  const leafCount = Math.floor(w * 0.08)
+  const canopyRadiusX = w * 0.4
+  const canopyRadiusY = trunkH * 0.45
+  const leafCount = Math.floor(w * 0.12)
   const canopyLeaves: CanopyLeaf[] = []
 
   for (let i = 0; i < leafCount; i++) {
@@ -148,26 +148,26 @@ function generateTree(w: number, h: number) {
 function generateRoots(w: number, trunkBaseX: number, groundY: number): Root[] {
   resetSeed()
   const roots: Root[] = []
-  const rootBot = groundY + (1.0 - 0.62) * (groundY / 0.62) * 0.62
+  const rootBot = groundY * 1.55
 
   function grow(x: number, y: number, angle: number, depth: number, path: [number, number][]) {
-    if (depth > 5 || y > rootBot || x < -20 || x > w + 20) return
-    const len = (8 + srng() * 14) * (1 - depth * 0.1)
+    if (depth > 6 || y > rootBot || x < -20 || x > w + 20) return
+    const len = (14 + srng() * 22) * (1 - depth * 0.08)
     const nx = x + Math.cos(angle) * len
     const ny = y + Math.sin(angle) * len * 1.1
     path.push([nx, ny])
     roots.push({ points: [...path], depth })
-    const spread = 0.25 + srng() * 0.25
-    if (srng() < 0.5) {
+    const spread = 0.3 + srng() * 0.35
+    if (srng() < 0.45) {
       grow(nx, ny, angle - spread, depth + 1, [...path])
       grow(nx, ny, angle + spread, depth + 1, [...path])
     } else {
-      grow(nx, ny, angle + (srng() - 0.5) * 0.2, depth + 1, [...path])
+      grow(nx, ny, angle + (srng() - 0.5) * 0.3, depth + 1, [...path])
     }
   }
 
-  // All roots from the single trunk base
-  const rootAngles = [-0.6, -0.3, 0, 0.3, 0.6]
+  // All roots from the single trunk base, wide fan
+  const rootAngles = [-1.1, -0.55, 0, 0.55, 1.1]
   rootAngles.forEach((a) => {
     grow(trunkBaseX, groundY, Math.PI / 2 + a + (srng() - 0.5) * 0.15, 0, [[trunkBaseX, groundY]])
   })
@@ -291,7 +291,7 @@ export function MotherTreeCanvas({ summary, className }: MotherTreeCanvasProps) 
       // ── Roots (faded, all from trunk base) ──
       roots.forEach((r) => {
         if (r.points.length < 2) return
-        const fade = Math.max(0.1, 0.45 - r.depth * 0.08)
+        const fade = Math.max(0.3, 0.65 - r.depth * 0.08)
         // Glow
         ctx.beginPath()
         ctx.moveTo(r.points[0][0], r.points[0][1])
@@ -359,8 +359,8 @@ export function MotherTreeCanvas({ summary, className }: MotherTreeCanvasProps) 
             ctx.beginPath()
             ctx.moveTo(leaves[i].x, leaves[i].y)
             ctx.lineTo(leaves[j].x, leaves[j].y)
-            ctx.strokeStyle = a(palette.leafRing, near ? 0.18 : 0.04)
-            ctx.lineWidth = near ? 0.6 : 0.2
+            ctx.strokeStyle = a(palette.leafRing, near ? 0.3 : 0.08)
+            ctx.lineWidth = near ? 0.8 : 0.3
             ctx.stroke()
           }
         }
@@ -371,13 +371,13 @@ export function MotherTreeCanvas({ summary, className }: MotherTreeCanvasProps) 
         const dist = Math.sqrt((mx - leaf.x) ** 2 + (my - leaf.y) ** 2)
         const near = dist < 35
         const f = 0.3 + 0.7 * Math.sin(t * 1.6 + leaf.phase)
-        const la = near ? 0.7 + 0.3 * f : 0.12 + 0.18 * f
-        const lr = near ? leaf.r * 1.6 : leaf.r
+        const la = near ? 0.8 + 0.2 * f : 0.35 + 0.3 * f
+        const lr = near ? leaf.r * 1.8 : leaf.r * 1.2
 
         // Glow
         ctx.beginPath()
-        ctx.arc(leaf.x, leaf.y, lr * (near ? 5 : 2.5), 0, Math.PI * 2)
-        ctx.fillStyle = a(palette.leaf, la * (near ? 0.18 : 0.04))
+        ctx.arc(leaf.x, leaf.y, lr * (near ? 5 : 3), 0, Math.PI * 2)
+        ctx.fillStyle = a(palette.leaf, la * (near ? 0.25 : 0.1))
         ctx.fill()
         // Core
         ctx.beginPath()
@@ -400,8 +400,8 @@ export function MotherTreeCanvas({ summary, className }: MotherTreeCanvasProps) 
               ctx.beginPath()
               ctx.moveTo(la.x, la.y)
               ctx.lineTo(lb.x, lb.y)
-              ctx.strokeStyle = a(palette.leafRing, isHovered ? 0.3 : 0.08)
-              ctx.lineWidth = isHovered ? 0.7 : 0.25
+              ctx.strokeStyle = a(palette.leafRing, isHovered ? 0.45 : 0.18)
+              ctx.lineWidth = isHovered ? 0.9 : 0.4
               ctx.stroke()
             }
           }
@@ -410,12 +410,12 @@ export function MotherTreeCanvas({ summary, className }: MotherTreeCanvasProps) 
         // Dots
         cluster.leaves.forEach((leaf) => {
           const f = 0.4 + 0.6 * Math.sin(t * 1.4 + leaf.phase)
-          const la = isHovered ? 0.8 + 0.2 * f : 0.2 + 0.2 * f
-          const lr = isHovered ? leaf.r * 1.4 : leaf.r
+          const la = isHovered ? 0.85 + 0.15 * f : 0.4 + 0.35 * f
+          const lr = isHovered ? leaf.r * 1.5 : leaf.r * 1.2
 
           ctx.beginPath()
-          ctx.arc(leaf.x, leaf.y, lr * (isHovered ? 4.5 : 2.2), 0, Math.PI * 2)
-          ctx.fillStyle = a(palette.leaf, la * (isHovered ? 0.2 : 0.05))
+          ctx.arc(leaf.x, leaf.y, lr * (isHovered ? 5 : 3), 0, Math.PI * 2)
+          ctx.fillStyle = a(palette.leaf, la * (isHovered ? 0.25 : 0.1))
           ctx.fill()
           ctx.beginPath()
           ctx.arc(leaf.x, leaf.y, lr, 0, Math.PI * 2)
@@ -443,8 +443,8 @@ export function MotherTreeCanvas({ summary, className }: MotherTreeCanvasProps) 
 
     if (treeDataRef.current) {
       let found: number | null = null
-      for (let i = 0; i < treeDataRef.current.tierClusters.length; i++) {
-        const c = treeDataRef.current.tierClusters[i]
+      for (let i = 0; i < treeDataRef.current.tree.tierClusters.length; i++) {
+        const c = treeDataRef.current.tree.tierClusters[i]
         if (Math.sqrt((x - c.cx) ** 2 + (y - c.cy) ** 2) < c.radius * 2) { found = i; break }
       }
       setHoveredCluster(found)

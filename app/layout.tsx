@@ -4,6 +4,7 @@ import { Inter } from "next/font/google"
 import "./globals.css"
 import { AccessibilityProvider } from "@/contexts/accessibility-context"
 import { LazyStarryBackground } from "@/components/lazy-starry-background"
+import { ScrollToTop } from "@/components/scroll-to-top"
 
 const inter = Inter({ subsets: ["latin"] })
 
@@ -27,6 +28,7 @@ export default function RootLayout({
         <AccessibilityProvider>
           <LazyStarryBackground />
           {children}
+          <ScrollToTop />
 
           {/* Screen reader announcer */}
           <div id="screen-reader-announcer" className="sr-only" aria-live="polite" aria-atomic="true"></div>
