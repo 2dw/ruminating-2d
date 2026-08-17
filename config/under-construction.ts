@@ -12,7 +12,6 @@
 /** Pages/sections currently behind the under-construction stub */
 export const UNDER_CONSTRUCTION_SECTIONS = new Set([
   "/personal/story",
-  "/professional/musings",
 ])
 
 /** Project IDs that should show under-construction instead of real content */
