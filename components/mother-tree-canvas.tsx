@@ -203,6 +203,7 @@ export function MotherTreeCanvas({ summary, className }: MotherTreeCanvasProps) 
   const frameRef = useRef<number>(0)
   const treeDataRef = useRef<{
     tree: ReturnType<typeof generateTree>
+    roots: Root[]
     bgStars: { x: number; y: number; r: number; a: number; phase: number }[]
     particles: EnergyParticle[]
   } | null>(null)
@@ -220,8 +221,10 @@ export function MotherTreeCanvas({ summary, className }: MotherTreeCanvasProps) 
   }, [])
 
   const buildData = useCallback((w: number, h: number) => {
+    const tree = generateTree(w, h)
     treeDataRef.current = {
-      tree: generateTree(w, h),
+      tree,
+      roots: generateRoots(w, tree.trunkBaseX, tree.groundY),
       bgStars: generateBgStars(w, h, 30),
       particles: spawnParticles(w, h, 15),
     }
@@ -257,7 +260,7 @@ export function MotherTreeCanvas({ summary, className }: MotherTreeCanvasProps) 
     let t = 0
     const draw = () => {
       if (!running || !treeDataRef.current) return
-      const { tree, bgStars, particles } = treeDataRef.current
+      const { tree, roots, bgStars, particles } = treeDataRef.current
       const W = w(), H = h()
       const mx = mouseRef.current.x, my = mouseRef.current.y
       t += 0.012
@@ -286,7 +289,7 @@ export function MotherTreeCanvas({ summary, className }: MotherTreeCanvasProps) 
       })
 
       // ── Roots (faded, all from trunk base) ──
-      tree.roots.forEach((r) => {
+      roots.forEach((r) => {
         if (r.points.length < 2) return
         const fade = Math.max(0.1, 0.45 - r.depth * 0.08)
         // Glow
