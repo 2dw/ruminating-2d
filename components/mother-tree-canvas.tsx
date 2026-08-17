@@ -104,39 +104,42 @@ function generateTree(w: number, h: number) {
     }
   })
 
-  // Generate dome canopy leaf positions
-  const canopyCenterY = trunkTop - trunkH * 0.05
-  const canopyRadiusX = w * 0.4
-  const canopyRadiusY = trunkH * 0.45
-  const leafCount = Math.floor(w * 0.12)
+  // Generate dome canopy leaf positions — tall dome centered above branches
+  const canopyCenterY = trunkTop - trunkH * 0.22
+  const canopyRadiusX = w * 0.44
+  const canopyRadiusY = trunkH * 0.55
+  const leafCount = Math.floor(w * 0.15)
   const canopyLeaves: CanopyLeaf[] = []
 
   for (let i = 0; i < leafCount; i++) {
-    // Distribute in dome shape (ellipse, denser toward center)
     const angle = srng() * Math.PI * 2
-    const r = Math.sqrt(srng()) // denser toward center
+    // Power distribution: heavily concentrated toward center (trunk)
+    const raw = srng()
+    const r = Math.pow(raw, 0.6)
     const lx = cx + Math.cos(angle) * canopyRadiusX * r
-    const ly = canopyCenterY + Math.sin(angle) * canopyRadiusY * r * 0.7 - canopyRadiusY * 0.15
+    // Squeeze vertical less at center, more at edges for dome shape
+    const vSqueeze = 0.55 + 0.25 * r
+    const ly = canopyCenterY + Math.sin(angle) * canopyRadiusY * vSqueeze
     canopyLeaves.push({
       x: lx,
       y: ly,
-      r: 0.6 + srng() * 1.8,
+      r: 1.0 + srng() * 2.5,
       phase: srng() * Math.PI * 2,
       inCluster: -1,
     })
   }
 
-  // Generate tier cluster positions (integrated into canopy)
+  // Generate tier cluster positions — pushed out to edges of canopy
   const tierClusters: TierCluster[] = TIER_CLUSTERS.map((def, i) => {
-    const clusterAngle = i === 0 ? Math.PI * 0.75 : Math.PI * 0.25
-    const clusterR = 0.45
+    const clusterAngle = i === 0 ? Math.PI * 0.8 : Math.PI * 0.2
+    const clusterR = 0.72
     const clusterCx = cx + Math.cos(clusterAngle) * canopyRadiusX * clusterR
-    const clusterCy = canopyCenterY + Math.sin(clusterAngle) * canopyRadiusY * clusterR * 0.7 - canopyRadiusY * 0.1
-    const leafCount = 12 + Math.floor(srng() * 5)
+    const clusterCy = canopyCenterY + Math.sin(clusterAngle) * canopyRadiusY * clusterR * 0.6
+    const leafCount = 14 + Math.floor(srng() * 6)
     const leaves = Array.from({ length: leafCount }, () => ({
-      x: clusterCx + (srng() - 0.5) * def.radius * 1.6,
-      y: clusterCy + (srng() - 0.5) * def.radius * 1.2,
-      r: 1.2 + srng() * 2.2,
+      x: clusterCx + (srng() - 0.5) * def.radius * 1.8,
+      y: clusterCy + (srng() - 0.5) * def.radius * 1.4,
+      r: 1.5 + srng() * 2.5,
       phase: srng() * Math.PI * 2,
     }))
     return { ...def, cx: clusterCx, cy: clusterCy, leaves }
@@ -209,7 +212,6 @@ export function MotherTreeCanvas({ summary, className }: MotherTreeCanvasProps) 
   } | null>(null)
   const mouseRef = useRef<{ x: number; y: number }>({ x: -999, y: -999 })
   const [hoveredCluster, setHoveredCluster] = useState<number | null>(null)
-  const [hoveredTrunk, setHoveredTrunk] = useState(false)
   const [isDark, setIsDark] = useState(false)
 
   useEffect(() => {
@@ -439,7 +441,6 @@ export function MotherTreeCanvas({ summary, className }: MotherTreeCanvasProps) 
     const rect = e.currentTarget.getBoundingClientRect()
     const x = e.clientX - rect.left, y = e.clientY - rect.top
     mouseRef.current = { x, y }
-    setHoveredTrunk(y / rect.height >= 0.30 && y / rect.height <= 0.65)
 
     if (treeDataRef.current) {
       let found: number | null = null
@@ -454,7 +455,6 @@ export function MotherTreeCanvas({ summary, className }: MotherTreeCanvasProps) 
   const handleMouseLeave = useCallback(() => {
     mouseRef.current = { x: -999, y: -999 }
     setHoveredCluster(null)
-    setHoveredTrunk(false)
   }, [])
 
   const handleLeafClick = useCallback((href: string, e: React.MouseEvent) => {
@@ -462,67 +462,58 @@ export function MotherTreeCanvas({ summary, className }: MotherTreeCanvasProps) 
     document.querySelector(href)?.scrollIntoView({ behavior: "smooth", block: "start" })
   }, [])
 
-  const handleCanvasClick = useCallback(() => {
-    if (window.innerWidth < 640) setHoveredTrunk((h) => !h)
-  }, [])
-
   const activeCluster = treeDataRef.current && hoveredCluster !== null ? treeDataRef.current.tree.tierClusters[hoveredCluster] : null
 
   return (
-    <div
-      ref={containerRef}
-      className={`relative w-full overflow-hidden ${className ?? ""}`}
-      style={{ height: "clamp(380px, 52vw, 540px)" }}
-      onMouseMove={handleMouseMove}
-      onMouseLeave={handleMouseLeave}
-      onClick={handleCanvasClick}
-    >
-      <canvas ref={canvasRef} className="absolute inset-0" style={{ cursor: hoveredCluster !== null ? "pointer" : "default" }} />
+    <>
+      <div
+        ref={containerRef}
+        className={`relative w-full overflow-hidden ${className ?? ""}`}
+        style={{ height: "clamp(420px, 58vw, 600px)" }}
+        onMouseMove={handleMouseMove}
+        onMouseLeave={handleMouseLeave}
+      >
+        <canvas ref={canvasRef} className="absolute inset-0" style={{ cursor: hoveredCluster !== null ? "pointer" : "default" }} />
 
-      <AnimatePresence>
-        {activeCluster && (
-          <motion.div
-            key={`tip-${hoveredCluster}`}
-            initial={{ opacity: 0, y: 4 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 4 }}
-            transition={{ duration: 0.2 }}
-            className="pointer-events-none absolute z-20 -translate-x-1/2"
-            style={{ left: activeCluster.cx, top: activeCluster.cy - activeCluster.radius - 22 }}
-          >
-            <span className="whitespace-nowrap rounded-full bg-slate-900/80 px-3 py-1 text-xs font-medium text-green-300 backdrop-blur-sm dark:bg-slate-950/80 dark:text-green-200">
-              {activeCluster.icon} {activeCluster.label}
-            </span>
-          </motion.div>
-        )}
-      </AnimatePresence>
+        <AnimatePresence>
+          {activeCluster && (
+            <motion.div
+              key={`tip-${hoveredCluster}`}
+              initial={{ opacity: 0, y: 4 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 4 }}
+              transition={{ duration: 0.2 }}
+              className="pointer-events-none absolute z-20 -translate-x-1/2"
+              style={{ left: activeCluster.cx, top: activeCluster.cy - activeCluster.radius - 22 }}
+            >
+              <span className="whitespace-nowrap rounded-full bg-slate-900/80 px-3 py-1 text-xs font-medium text-green-300 backdrop-blur-sm dark:bg-slate-950/80 dark:text-green-200">
+                {activeCluster.icon} {activeCluster.label}
+              </span>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
-      {treeDataRef.current && treeDataRef.current.tree.tierClusters.map((cluster, i) => (
-        <button
-          key={i}
-          onClick={(e) => handleLeafClick(cluster.href, e)}
-          className="absolute z-30 rounded-full bg-transparent"
-          style={{ left: cluster.cx - cluster.radius, top: cluster.cy - cluster.radius, width: cluster.radius * 2, height: cluster.radius * 2 }}
-          aria-label={`Go to ${cluster.label}`}
-        />
-      ))}
+        {treeDataRef.current && treeDataRef.current.tree.tierClusters.map((cluster, i) => (
+          <button
+            key={i}
+            onClick={(e) => handleLeafClick(cluster.href, e)}
+            className="absolute z-30 rounded-full bg-transparent"
+            style={{ left: cluster.cx - cluster.radius, top: cluster.cy - cluster.radius, width: cluster.radius * 2, height: cluster.radius * 2 }}
+            aria-label={`Go to ${cluster.label}`}
+          />
+        ))}
+      </div>
 
-      <AnimatePresence>
-        {hoveredTrunk && (
-          <motion.div
-            key="trunk-summary"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.4, ease: "easeOut" }}
-            className="absolute inset-0 z-10 flex items-center justify-center"
-          >
-            <div className="mx-4 max-w-2xl rounded-2xl border border-green-500/20 bg-slate-900/70 px-6 py-5 backdrop-blur-md sm:mx-8 sm:px-10 sm:py-8 dark:border-green-400/15 dark:bg-slate-950/60">
-              {summary}
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </div>
+      {/* Mission statement — permanent, uses whitespace below tree */}
+      <motion.div
+        initial={{ opacity: 0, y: 12 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true }}
+        transition={{ duration: 0.6, delay: 0.2 }}
+        className="mx-auto max-w-2xl px-6 py-6 text-center"
+      >
+        {summary}
+      </motion.div>
+    </>
   )
 }
