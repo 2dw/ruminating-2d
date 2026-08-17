@@ -466,7 +466,7 @@ export function MotherTreeCanvas({ summary, className }: MotherTreeCanvasProps) 
     if (window.innerWidth < 640) setHoveredTrunk((h) => !h)
   }, [])
 
-  const activeCluster = treeDataRef.current && hoveredCluster !== null ? treeDataRef.current.tierClusters[hoveredCluster] : null
+  const activeCluster = treeDataRef.current && hoveredCluster !== null ? treeDataRef.current.tree.tierClusters[hoveredCluster] : null
 
   return (
     <div
@@ -497,7 +497,7 @@ export function MotherTreeCanvas({ summary, className }: MotherTreeCanvasProps) 
         )}
       </AnimatePresence>
 
-      {treeDataRef.current && treeDataRef.current.tierClusters.map((cluster, i) => (
+      {treeDataRef.current && treeDataRef.current.tree.tierClusters.map((cluster, i) => (
         <button
           key={i}
           onClick={(e) => handleLeafClick(cluster.href, e)}
