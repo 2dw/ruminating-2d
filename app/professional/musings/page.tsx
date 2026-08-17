@@ -49,7 +49,7 @@ const TIERS: ContentTier[] = [
     title: "Deep Dives",
     icon: Zap,
     description: "Strategic vision with guiding architecture, blueprints, and roadmaps for execution.",
-    r2Prefix: "2d-personal/thought pieces/",
+    r2Prefix: "thought pieces/",
     items: [],
   },
   {
@@ -319,9 +319,6 @@ function MissionSummary() {
         Taking the dream from my head and making it happen \u2014 spreading ideas through
         a decentralized network of mycelium, connecting communities through sustainable
         energy systems that heal our planet and empower everyone.
-      </p>
-      <p className="text-xs italic text-slate-400/60">
-        Hover over the tree to read \u00b7 explore the tiers below
       </p>
     </div>
   )
