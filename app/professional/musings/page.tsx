@@ -7,6 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { SectionGate } from "@/components/section-gate"
 import { MotherTreeCanvas } from "@/components/mother-tree-canvas"
 import { ProjectConstellation } from "@/components/project-constellation"
+import { ScrollToTop } from "@/components/scroll-to-top"
 
 interface TierItem { title: string; body: string }
 
@@ -176,6 +177,7 @@ export default function ProfessionalMusingsPage() {
           </div>
         </main>
       </div>
+      <ScrollToTop />
     </SectionGate>
   )
 }
