@@ -2,7 +2,7 @@
 
 import Link from "next/link"
 import { motion } from "framer-motion"
-import { ArrowLeft, Lightbulb, Zap, FileText, Eye } from "lucide-react"
+import { ArrowLeft, Lightbulb, Zap, Eye } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { SectionGate } from "@/components/section-gate"
 import { MotherTreeCanvas } from "@/components/mother-tree-canvas"
@@ -24,15 +24,15 @@ const TIERS: ContentTier[] = [
     items: [
       {
         title: "Healing Our Planet",
-        body: "Every energy system we design should contribute to planetary healing. This means considering not just efficiency, but regenerative impact on ecosystems and communities. A solar array isn't just kilowatt-hours — it's a statement about what kind of future we're building.",
+        body: "Every energy system we design should contribute to planetary healing. That means considering not just efficiency, but the regenerative impact on ecosystems and communities. A solar array is not just kilowatt hours. It is a statement about the kind of future we are building together.",
       },
       {
         title: "Equitable Access",
-        body: "Clean energy shouldn't be a privilege. My work focuses on ensuring that sustainable solutions are accessible to all communities, especially those historically marginalized. The decentralized nature of solar + storage is inherently democratizing — if we design it that way.",
+        body: "Clean energy should never be a privilege. My work centers on ensuring sustainable solutions reach all communities, especially those historically left behind. The decentralized nature of solar and storage is inherently democratizing, if we design it that way.",
       },
       {
         title: "Interconnected Systems",
-        body: "Like mycelium networks in nature, our energy systems should be interconnected, resilient, and mutually supportive. The future isn't a few massive power plants — it's millions of distributed nodes creating webs of sustainability, sharing resources through intelligent networks.",
+        body: "Like mycelium networks in nature, our energy systems should be interconnected, resilient, and mutually supportive. The future is not a few massive power plants. It is millions of distributed nodes creating webs of sustainability, sharing resources through intelligent networks.",
       },
     ],
   },
@@ -42,13 +42,6 @@ const TIERS: ContentTier[] = [
     icon: Zap,
     description: "Strategic vision with guiding architecture, blueprints, and roadmaps for execution.",
     r2Prefix: "thought pieces/",
-    items: [],
-  },
-  {
-    id: "whitepapers",
-    title: "Whitepapers",
-    icon: FileText,
-    description: "In-depth research and analysis on energy systems, policy, and technology.",
     items: [],
   },
 ]
@@ -62,6 +55,7 @@ function TierSection({ tier }: { tier: ContentTier }) {
 
   return (
     <motion.section
+      id={tier.id}
       initial={{ opacity: 0, y: 20 }}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true, margin: "-50px" }}
@@ -112,8 +106,8 @@ function MissionSummary() {
         From Vision to Network
       </h2>
       <p className="mx-auto max-w-lg text-sm leading-relaxed text-slate-300/80">
-        Taking the dream from my head and making it happen — spreading ideas through
-        a decentralized network of mycelium, connecting communities through sustainable
+        Turning the dream into reality, one connection at a time. Spreading ideas through
+        a decentralized network of mycelium, linking communities through sustainable
         energy systems that heal our planet and empower everyone.
       </p>
     </div>
@@ -156,7 +150,7 @@ export default function ProfessionalMusingsPage() {
             >
               <p className="text-base leading-relaxed text-slate-600 dark:text-slate-300">
                 Like a mother tree nurturing the forest floor through fungal networks,
-                my work connects communities through decentralized energy systems — sharing
+                my work connects communities through decentralized energy systems, sharing
                 resources, knowledge, and resilience across the grid.
               </p>
               <p className="text-sm text-slate-400 dark:text-slate-500">
