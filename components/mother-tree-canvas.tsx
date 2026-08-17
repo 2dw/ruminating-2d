@@ -201,7 +201,11 @@ export function MotherTreeCanvas({ summary, className }: MotherTreeCanvasProps) 
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const containerRef = useRef<HTMLDivElement>(null)
   const frameRef = useRef<number>(0)
-  const treeDataRef = useRef<ReturnType<typeof generateTree> | null>(null)
+  const treeDataRef = useRef<{
+    tree: ReturnType<typeof generateTree>
+    bgStars: { x: number; y: number; r: number; a: number; phase: number }[]
+    particles: EnergyParticle[]
+  } | null>(null)
   const mouseRef = useRef<{ x: number; y: number }>({ x: -999, y: -999 })
   const [hoveredCluster, setHoveredCluster] = useState<number | null>(null)
   const [hoveredTrunk, setHoveredTrunk] = useState(false)
@@ -216,7 +220,11 @@ export function MotherTreeCanvas({ summary, className }: MotherTreeCanvasProps) 
   }, [])
 
   const buildData = useCallback((w: number, h: number) => {
-    treeDataRef.current = generateTree(w, h)
+    treeDataRef.current = {
+      tree: generateTree(w, h),
+      bgStars: generateBgStars(w, h, 30),
+      particles: spawnParticles(w, h, 15),
+    }
   }, [])
 
   useEffect(() => {
@@ -249,7 +257,7 @@ export function MotherTreeCanvas({ summary, className }: MotherTreeCanvasProps) 
     let t = 0
     const draw = () => {
       if (!running || !treeDataRef.current) return
-      const tree = treeDataRef.current
+      const { tree, bgStars, particles } = treeDataRef.current
       const W = w(), H = h()
       const mx = mouseRef.current.x, my = mouseRef.current.y
       t += 0.012
@@ -257,7 +265,6 @@ export function MotherTreeCanvas({ summary, className }: MotherTreeCanvasProps) 
       ctx.clearRect(0, 0, W, H)
 
       // ── Background stars ──
-      const bgStars = generateBgStars(W, H, 30)
       bgStars.forEach((s) => {
         const f = 0.4 + 0.6 * Math.sin(t * 0.6 + s.phase)
         ctx.beginPath()
@@ -267,7 +274,6 @@ export function MotherTreeCanvas({ summary, className }: MotherTreeCanvasProps) 
       })
 
       // ── Energy particles ──
-      const particles = spawnParticles(W, H, 15)
       particles.forEach((p) => {
         p.y -= p.speed
         p.x += Math.sin(t * 1.2 + p.phase) * 0.15
