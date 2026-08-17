@@ -34,8 +34,8 @@ const TRUNK_ZONE  = [0.30, 0.65]
 const ROOT_ZONE   = [0.62, 1.0]
 
 const TIER_CLUSTERS: Omit<TierCluster, "cx" | "cy" | "leaves">[] = [
-  { radius: 48, label: "Thought Pieces", href: "#thought-pieces", icon: "\u2606" },
-  { radius: 52, label: "Deep Dives",     href: "#deep-dives",     icon: "\u26A1" },
+  { radius: 48, label: "Constellatory Ideations", href: "#thought-pieces", icon: "\u2606" },
+  { radius: 52, label: "Seeding Networks",        href: "#deep-dives",     icon: "\u26A1" },
 ]
 
 const COLORS = {

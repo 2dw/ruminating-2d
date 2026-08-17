@@ -11,14 +11,15 @@ import { ProjectConstellation } from "@/components/project-constellation"
 interface TierItem { title: string; body: string }
 
 interface ContentTier {
-  id: string; title: string; icon: typeof Lightbulb; description: string
+  id: string; title: string; subtitle: string; icon: typeof Lightbulb; description: string
   r2Prefix?: string; mediaFilter?: string[]; items: TierItem[]
 }
 
 const TIERS: ContentTier[] = [
   {
-    id: "thought-pieces",
-    title: "Thought Pieces",
+    id: "thought-pieces", // literal descriptor
+    title: "Constellatory Ideations",
+    subtitle: "Thought Pieces",
     icon: Lightbulb,
     description: "Core principles and the philosophy guiding my work in sustainable, equitable energy systems.",
     items: [
@@ -37,8 +38,9 @@ const TIERS: ContentTier[] = [
     ],
   },
   {
-    id: "deep-dives",
-    title: "Deep Dives",
+    id: "deep-dives", // literal descriptor
+    title: "Seeding Networks",
+    subtitle: "Deep Dives",
     icon: Zap,
     description: "Strategic vision with guiding architecture, blueprints, and roadmaps for execution.",
     r2Prefix: "thought pieces/",
@@ -68,7 +70,8 @@ function TierSection({ tier }: { tier: ContentTier }) {
         </div>
         <div>
           <h2 className="text-xl font-serif font-bold text-slate-900 dark:text-white">{tier.title}</h2>
-          <p className="text-sm text-slate-500 dark:text-slate-400">{tier.description}</p>
+          <p className="text-xs font-mono uppercase tracking-wider text-green-600/70 dark:text-green-400/60">{tier.subtitle}</p>
+          <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">{tier.description}</p>
         </div>
       </div>
 
