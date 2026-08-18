@@ -504,29 +504,25 @@ export function MotherTreeCanvas({ summary, className }: MotherTreeCanvasProps) 
         {treeDataRef.current && treeDataRef.current.tree.tierClusters.map((cluster, i) => {
           const isHovered = hoveredCluster === i
           return (
-            <div key={i} className="pointer-events-none absolute z-20 -translate-x-1/2" style={{ left: cluster.cx, top: cluster.cy - cluster.radius - 18 }}>
+            <button
+              key={i}
+              onClick={(e) => handleLeafClick(cluster.href, e)}
+              className="absolute z-30 -translate-x-1/2"
+              style={{ left: cluster.cx, top: cluster.cy - cluster.radius - 18 }}
+              aria-label={`Go to ${cluster.label}`}
+            >
               <span
-                className={`whitespace-nowrap rounded-full px-3 py-1 text-xs font-medium backdrop-blur-sm transition-opacity duration-200 ${
+                className={`whitespace-nowrap rounded-full px-3 py-1 text-xs font-medium backdrop-blur-sm transition-all duration-200 ${
                   isHovered
                     ? "bg-slate-900/90 text-green-300 opacity-100 dark:bg-slate-950/90 dark:text-green-200"
-                    : "bg-slate-900/40 text-green-400/50 opacity-60 dark:bg-slate-950/40 dark:text-green-300/50"
+                    : "bg-slate-900/40 text-green-400/50 opacity-60 hover:bg-slate-900/70 hover:text-green-300 hover:opacity-100 dark:bg-slate-950/40 dark:hover:bg-slate-950/70"
                 }`}
               >
                 {cluster.icon} {cluster.label}
               </span>
-            </div>
+            </button>
           )
         })}
-
-        {treeDataRef.current && treeDataRef.current.tree.tierClusters.map((cluster, i) => (
-          <button
-            key={i}
-            onClick={(e) => handleLeafClick(cluster.href, e)}
-            className="absolute z-30 rounded-full bg-transparent"
-            style={{ left: cluster.cx - cluster.radius, top: cluster.cy - cluster.radius, width: cluster.radius * 2, height: cluster.radius * 2 }}
-            aria-label={`Go to ${cluster.label}`}
-          />
-        ))}
       </div>
 
       {/* Mission statement — permanent, uses whitespace below tree */}
