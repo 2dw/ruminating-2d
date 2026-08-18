@@ -129,10 +129,10 @@ function generateTree(w: number, h: number) {
     })
   }
 
-  // Pass 2: dense branch-zone leaves — concentrated along the branch area
-  const branchZoneTop = trunkTop - trunkH * 0.62
-  const branchZoneBot = trunkTop + trunkH * 0.08
-  const branchLeafCount = Math.floor(w * 0.13)
+  // Pass 2: dense branch-tip leaves — concentrated around branch tips, not below
+  const branchZoneTop = trunkTop - trunkH * 0.65
+  const branchZoneBot = trunkTop - trunkH * 0.05
+  const branchLeafCount = Math.floor(w * 0.11)
   for (let i = 0; i < branchLeafCount; i++) {
     const bx = cx + (srng() - 0.5) * w * 0.65
     const by = branchZoneTop + srng() * (branchZoneBot - branchZoneTop)
@@ -146,10 +146,10 @@ function generateTree(w: number, h: number) {
   }
 
   // Pass 3: inner trunk/junction leaves — fill the hole right around branch junctions
-  const junctionLeafCount = Math.floor(w * 0.07)
+  const junctionLeafCount = Math.floor(w * 0.06)
   for (let i = 0; i < junctionLeafCount; i++) {
-    const jx = cx + (srng() - 0.5) * w * 0.35
-    const jy = trunkTop + (srng() - 0.5) * trunkH * 0.35
+    const jx = cx + (srng() - 0.5) * w * 0.3
+    const jy = trunkTop + (srng() - 0.5) * trunkH * 0.25
     canopyLeaves.push({
       x: jx,
       y: jy,
@@ -160,9 +160,9 @@ function generateTree(w: number, h: number) {
   }
 
   // Pass 4: upper canopy leaves — dense band directly above branch tips
-  const upperTop = canopyCenterY - canopyRadiusY * 0.65
-  const upperBot = trunkTop - trunkH * 0.38
-  const upperLeafCount = Math.floor(w * 0.12)
+  const upperTop = canopyCenterY - canopyRadiusY * 0.7
+  const upperBot = trunkTop - trunkH * 0.5
+  const upperLeafCount = Math.floor(w * 0.14)
   for (let i = 0; i < upperLeafCount; i++) {
     const ux = cx + (srng() - 0.5) * w * 0.55
     const uy = upperTop + srng() * (upperBot - upperTop)
@@ -170,6 +170,22 @@ function generateTree(w: number, h: number) {
       x: ux,
       y: uy,
       r: 0.9 + srng() * 2.0,
+      phase: srng() * Math.PI * 2,
+      inCluster: -1,
+    })
+  }
+
+  // Pass 5: ragged edges — scattered leaves beyond canopy perimeter for organic shape
+  const raggedCount = Math.floor(w * 0.04)
+  for (let i = 0; i < raggedCount; i++) {
+    const angle = srng() * Math.PI * 2
+    const r = 0.85 + srng() * 0.4
+    const lx = cx + Math.cos(angle) * canopyRadiusX * r
+    const ly = canopyCenterY + Math.sin(angle) * canopyRadiusY * (0.6 + srng() * 0.3) * (srng() < 0.6 ? -1 : 0.4)
+    canopyLeaves.push({
+      x: lx,
+      y: ly,
+      r: 0.5 + srng() * 1.5,
       phase: srng() * Math.PI * 2,
       inCluster: -1,
     })
