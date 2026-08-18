@@ -143,6 +143,20 @@ function generateTree(w: number, h: number) {
     })
   }
 
+  // Pass 3: inner trunk/junction leaves — fill the hole right around branch junctions
+  const junctionLeafCount = Math.floor(w * 0.06)
+  for (let i = 0; i < junctionLeafCount; i++) {
+    const jx = cx + (srng() - 0.5) * w * 0.3
+    const jy = trunkTop + (srng() - 0.5) * trunkH * 0.3
+    canopyLeaves.push({
+      x: jx,
+      y: jy,
+      r: 0.7 + srng() * 1.8,
+      phase: srng() * Math.PI * 2,
+      inCluster: -1,
+    })
+  }
+
   // Generate tier cluster positions — pushed out to edges of canopy
   const tierClusters: TierCluster[] = TIER_CLUSTERS.map((def, i) => {
     const clusterAngle = i === 0 ? Math.PI * 0.8 : Math.PI * 0.2
