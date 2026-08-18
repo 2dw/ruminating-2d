@@ -110,10 +110,12 @@ function generateTree(w: number, h: number) {
   const canopyRadiusY = trunkH * 0.7
   const canopyLeaves: CanopyLeaf[] = []
 
-  // Pass 1: main dome leaves — heavy center concentration, tall dome shape
+  // Pass 1: main dome leaves — heavy center concentration, bias toward upper canopy
   const domeLeafCount = Math.floor(w * 0.18)
   for (let i = 0; i < domeLeafCount; i++) {
-    const angle = srng() * Math.PI * 2
+    const rawAngle = srng() * Math.PI * 2
+    // Bias 65% of leaves into upper half (sin < 0 = above center)
+    const angle = srng() < 0.65 ? rawAngle - Math.PI : rawAngle
     const r = Math.pow(srng(), 0.45)
     const lx = cx + Math.cos(angle) * canopyRadiusX * r
     const vSqueeze = 0.75 + 0.15 * r
@@ -152,6 +154,22 @@ function generateTree(w: number, h: number) {
       x: jx,
       y: jy,
       r: 0.7 + srng() * 1.8,
+      phase: srng() * Math.PI * 2,
+      inCluster: -1,
+    })
+  }
+
+  // Pass 4: upper canopy leaves — dense band directly above branch tips
+  const upperTop = canopyCenterY - canopyRadiusY * 0.6
+  const upperBot = trunkTop - trunkH * 0.42
+  const upperLeafCount = Math.floor(w * 0.08)
+  for (let i = 0; i < upperLeafCount; i++) {
+    const ux = cx + (srng() - 0.5) * w * 0.55
+    const uy = upperTop + srng() * (upperBot - upperTop)
+    canopyLeaves.push({
+      x: ux,
+      y: uy,
+      r: 0.9 + srng() * 2.0,
       phase: srng() * Math.PI * 2,
       inCluster: -1,
     })
