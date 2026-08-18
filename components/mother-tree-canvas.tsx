@@ -130,9 +130,9 @@ function generateTree(w: number, h: number) {
   }
 
   // Pass 2: dense branch-zone leaves — concentrated along the branch area
-  const branchZoneTop = trunkTop - trunkH * 0.52
+  const branchZoneTop = trunkTop - trunkH * 0.62
   const branchZoneBot = trunkTop + trunkH * 0.08
-  const branchLeafCount = Math.floor(w * 0.09)
+  const branchLeafCount = Math.floor(w * 0.13)
   for (let i = 0; i < branchLeafCount; i++) {
     const bx = cx + (srng() - 0.5) * w * 0.65
     const by = branchZoneTop + srng() * (branchZoneBot - branchZoneTop)
@@ -146,10 +146,10 @@ function generateTree(w: number, h: number) {
   }
 
   // Pass 3: inner trunk/junction leaves — fill the hole right around branch junctions
-  const junctionLeafCount = Math.floor(w * 0.06)
+  const junctionLeafCount = Math.floor(w * 0.07)
   for (let i = 0; i < junctionLeafCount; i++) {
-    const jx = cx + (srng() - 0.5) * w * 0.3
-    const jy = trunkTop + (srng() - 0.5) * trunkH * 0.3
+    const jx = cx + (srng() - 0.5) * w * 0.35
+    const jy = trunkTop + (srng() - 0.5) * trunkH * 0.35
     canopyLeaves.push({
       x: jx,
       y: jy,
@@ -160,9 +160,9 @@ function generateTree(w: number, h: number) {
   }
 
   // Pass 4: upper canopy leaves — dense band directly above branch tips
-  const upperTop = canopyCenterY - canopyRadiusY * 0.6
-  const upperBot = trunkTop - trunkH * 0.42
-  const upperLeafCount = Math.floor(w * 0.08)
+  const upperTop = canopyCenterY - canopyRadiusY * 0.65
+  const upperBot = trunkTop - trunkH * 0.38
+  const upperLeafCount = Math.floor(w * 0.12)
   for (let i = 0; i < upperLeafCount; i++) {
     const ux = cx + (srng() - 0.5) * w * 0.55
     const uy = upperTop + srng() * (upperBot - upperTop)
