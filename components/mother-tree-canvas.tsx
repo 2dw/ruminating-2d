@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useRef, useState, useCallback, type ReactNode } from "react"
-import { motion, AnimatePresence } from "framer-motion"
+import { motion } from "framer-motion"
 
 let _seed = 777
 function srng() {
@@ -104,26 +104,40 @@ function generateTree(w: number, h: number) {
     }
   })
 
-  // Generate dome canopy leaf positions — tall dome centered above branches
-  const canopyCenterY = trunkTop - trunkH * 0.22
-  const canopyRadiusX = w * 0.44
-  const canopyRadiusY = trunkH * 0.55
-  const leafCount = Math.floor(w * 0.15)
+  // Generate dome canopy leaf positions — tall dome rising above branch tips
+  const canopyCenterY = trunkTop - trunkH * 0.38
+  const canopyRadiusX = w * 0.42
+  const canopyRadiusY = trunkH * 0.7
   const canopyLeaves: CanopyLeaf[] = []
 
-  for (let i = 0; i < leafCount; i++) {
+  // Pass 1: main dome leaves — heavy center concentration, tall dome shape
+  const domeLeafCount = Math.floor(w * 0.18)
+  for (let i = 0; i < domeLeafCount; i++) {
     const angle = srng() * Math.PI * 2
-    // Power distribution: heavily concentrated toward center (trunk)
-    const raw = srng()
-    const r = Math.pow(raw, 0.6)
+    const r = Math.pow(srng(), 0.45)
     const lx = cx + Math.cos(angle) * canopyRadiusX * r
-    // Squeeze vertical less at center, more at edges for dome shape
-    const vSqueeze = 0.55 + 0.25 * r
+    const vSqueeze = 0.75 + 0.15 * r
     const ly = canopyCenterY + Math.sin(angle) * canopyRadiusY * vSqueeze
     canopyLeaves.push({
       x: lx,
       y: ly,
-      r: 1.0 + srng() * 2.5,
+      r: 1.0 + srng() * 2.8,
+      phase: srng() * Math.PI * 2,
+      inCluster: -1,
+    })
+  }
+
+  // Pass 2: dense branch-zone leaves — concentrated along the branch area
+  const branchZoneTop = trunkTop - trunkH * 0.52
+  const branchZoneBot = trunkTop + trunkH * 0.08
+  const branchLeafCount = Math.floor(w * 0.09)
+  for (let i = 0; i < branchLeafCount; i++) {
+    const bx = cx + (srng() - 0.5) * w * 0.65
+    const by = branchZoneTop + srng() * (branchZoneBot - branchZoneTop)
+    canopyLeaves.push({
+      x: bx,
+      y: by,
+      r: 0.8 + srng() * 2.2,
       phase: srng() * Math.PI * 2,
       inCluster: -1,
     })
@@ -462,8 +476,6 @@ export function MotherTreeCanvas({ summary, className }: MotherTreeCanvasProps) 
     document.querySelector(href)?.scrollIntoView({ behavior: "smooth", block: "start" })
   }, [])
 
-  const activeCluster = treeDataRef.current && hoveredCluster !== null ? treeDataRef.current.tree.tierClusters[hoveredCluster] : null
-
   return (
     <>
       <div
@@ -475,23 +487,22 @@ export function MotherTreeCanvas({ summary, className }: MotherTreeCanvasProps) 
       >
         <canvas ref={canvasRef} className="absolute inset-0" style={{ cursor: hoveredCluster !== null ? "pointer" : "default" }} />
 
-        <AnimatePresence>
-          {activeCluster && (
-            <motion.div
-              key={`tip-${hoveredCluster}`}
-              initial={{ opacity: 0, y: 4 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: 4 }}
-              transition={{ duration: 0.2 }}
-              className="pointer-events-none absolute z-20 -translate-x-1/2"
-              style={{ left: activeCluster.cx, top: activeCluster.cy - activeCluster.radius - 22 }}
-            >
-              <span className="whitespace-nowrap rounded-full bg-slate-900/80 px-3 py-1 text-xs font-medium text-green-300 backdrop-blur-sm dark:bg-slate-950/80 dark:text-green-200">
-                {activeCluster.icon} {activeCluster.label}
+        {treeDataRef.current && treeDataRef.current.tree.tierClusters.map((cluster, i) => {
+          const isHovered = hoveredCluster === i
+          return (
+            <div key={i} className="pointer-events-none absolute z-20 -translate-x-1/2" style={{ left: cluster.cx, top: cluster.cy - cluster.radius - 18 }}>
+              <span
+                className={`whitespace-nowrap rounded-full px-3 py-1 text-xs font-medium backdrop-blur-sm transition-opacity duration-200 ${
+                  isHovered
+                    ? "bg-slate-900/90 text-green-300 opacity-100 dark:bg-slate-950/90 dark:text-green-200"
+                    : "bg-slate-900/40 text-green-400/50 opacity-60 dark:bg-slate-950/40 dark:text-green-300/50"
+                }`}
+              >
+                {cluster.icon} {cluster.label}
               </span>
-            </motion.div>
-          )}
-        </AnimatePresence>
+            </div>
+          )
+        })}
 
         {treeDataRef.current && treeDataRef.current.tree.tierClusters.map((cluster, i) => (
           <button
