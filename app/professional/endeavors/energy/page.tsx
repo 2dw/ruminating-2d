@@ -24,6 +24,11 @@ import {
   Tooltip, Legend, Brush, ReferenceLine, ReferenceArea,
   ResponsiveContainer, BarChart,
 } from "recharts"
+import { AuthProvider, useAuth } from "@/lib/auth-context"
+import AdminControls from "@/components/energy/AdminControls"
+import ForecastChart from "@/components/energy/ForecastChart"
+import RateHeatmap from "@/components/energy/RateHeatmap"
+import DailySummaryChart from "@/components/energy/DailySummaryChart"
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -514,6 +519,7 @@ function SyncedCharts({ history, dark, show, live, minS, maxS, socMin, socMax, w
 
 function EnergyDashboardContent() {
   const router = useRouter()
+  const { isAuthenticated, logout } = useAuth()
 
   const [dark, setDark] = useState(false)
   useEffect(() => {
@@ -528,8 +534,7 @@ function EnergyDashboardContent() {
   const [apiError, setApiError] = useState<string | null>(null)
   const [history, setHistory]   = useState<Pt[]>([])
   const [loading, setLoading]   = useState(true)
-  const [showHint, setShowHint] = useState(false)
-  const [tab, setTab]           = useState<"battery"|"pge">("battery")
+  const [tab, setTab]           = useState<"battery"|"pge"|"admin">("battery")
 
   // Metric visibility toggles
   const [show, setShow] = useState({
@@ -656,13 +661,23 @@ function EnergyDashboardContent() {
                 EcoFlow Delta Pro 3 · solar · PG&E E-TOU-C · Cloudflare Worker → R2 · polled every 30 min
               </p>
             </div>
-            <div className="shrink-0">
-                <button
-                  onClick={() => router.push("/admin/login?redirect=/professional/endeavors/energy")}
-                  className="text-xs text-slate-400 hover:text-green-600 dark:hover:text-green-400 transition-colors"
-                >
-                  Admin Login
-                </button>
+            <div className="shrink-0 flex items-center gap-2">
+                {isAuthenticated ? (
+                  <>
+                    <span className="inline-flex items-center gap-1.5 rounded-full border border-green-300 dark:border-green-700 bg-green-50 dark:bg-green-900/30 px-3 py-1 text-xs text-green-700 dark:text-green-400">
+                      <Settings className="h-3 w-3"/> admin
+                    </span>
+                    <button onClick={() => { logout(); setTab("battery") }}
+                      className="inline-flex items-center gap-1.5 rounded-full border border-red-300 dark:border-red-700 bg-red-50 dark:bg-red-900/30 px-3 py-1 text-xs text-red-700 dark:text-red-400 transition-colors hover:bg-red-100 dark:hover:bg-red-900/50">
+                      logout
+                    </button>
+                  </>
+                ) : (
+                  <button onClick={() => router.push("/admin/login?redirect=/professional/endeavors/energy")}
+                    className="inline-flex items-center gap-1.5 rounded-full border border-green-300 dark:border-green-700 bg-green-50 dark:bg-green-900/30 px-3 py-1 text-xs text-green-700 dark:text-green-400 transition-colors hover:bg-green-100 dark:hover:bg-green-900/50">
+                    <Lock className="h-3 w-3"/> admin
+                  </button>
+                )}
             </div>
           </div>
 
@@ -677,15 +692,6 @@ function EnergyDashboardContent() {
               <button onClick={fetchLive} className="text-red-500 hover:text-red-600"><RefreshCw className="h-4 w-4"/></button>
             </div>
           )}
-
-          {/* Admin hint */}
-          <div>
-            <button onClick={()=>setShowHint(v=>!v)}
-              className="inline-flex items-center gap-1.5 text-xs text-slate-400 hover:text-green-600 dark:hover:text-green-400 transition-colors">
-              <Lock className="h-3 w-3"/>{showHint?"hide":"admin access"}
-            </button>
-            {showHint&&<p className="text-xs text-slate-400 mt-1">Full controls via local Python dashboard.</p>}
-          </div>
 
           {/* Stat cards */}
           {live&&!apiError&&(
@@ -753,12 +759,12 @@ function EnergyDashboardContent() {
 
           {/* Tab bar */}
           <div className="flex gap-2 flex-wrap">
-            {(["battery","pge"] as const).map(t=>(
+            {(["battery","pge", ...(isAuthenticated ? ["admin"] : [])] as const).map(t=>(
               <button key={t} onClick={()=>setTab(t)}
                 className={`px-4 py-1.5 rounded-full text-xs font-mono border transition-all ${tab===t
                   ?"border-green-500 bg-green-500/10 text-green-700 dark:text-green-400"
                   :"border-slate-300 dark:border-slate-700 text-slate-500 hover:border-slate-400"}`}>
-                {t==="battery"?"⚡ Battery History":"📊 PG&E Grid Usage"}
+                {t==="battery"?"⚡ Battery History":t==="pge"?"📊 PG&E Grid Usage":"⚙️ Admin Controls"}
               </button>
             ))}
           </div>
@@ -851,6 +857,16 @@ function EnergyDashboardContent() {
             </Card>
           )}
 
+          {/* Admin tab */}
+          {tab==="admin"&&isAuthenticated&&(
+            <div className="space-y-5">
+              <AdminControls />
+              <ForecastChart dark={dark} />
+              <RateHeatmap dark={dark} />
+              <DailySummaryChart dark={dark} />
+            </div>
+          )}
+
           {/* Value stacking — full width */}
           <Card className="border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950/40">
             <CardHeader className="pb-2">
@@ -911,7 +927,7 @@ function EnergyDashboardContent() {
               <ul className="space-y-1 text-xs text-slate-500">
                 <li>⚡ EcoFlow Open API (HMAC-SHA256) · api-a.ecoflow.com</li>
                 <li>☀️ Open-Meteo solar irradiance · no API key</li>
-                <li>🔋 Python + Plotly Dash · local admin with full controls</li>
+                <li>⚙️ Web admin controls · EcoFlow DP3 API · HMAC-SHA256</li>
                 <li>☁️ Cloudflare Worker + R2 · serverless 24/7 archival</li>
                 <li>📊 SQLite + Ridge regression · counterfactual PG&E baseline</li>
                 <li>⚡ PG&E interval data · 282,880 rows · Apr 2018 → Jul 2026</li>
@@ -926,5 +942,9 @@ function EnergyDashboardContent() {
 }
 
 export default function EnergyDashboardPage() {
-  return <EnergyDashboardContent />
+  return (
+    <AuthProvider>
+      <EnergyDashboardContent />
+    </AuthProvider>
+  )
 }
