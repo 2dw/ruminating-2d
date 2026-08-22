@@ -761,14 +761,22 @@ function EnergyDashboardContent() {
 
           {/* Tab bar */}
           <div className="flex gap-2 flex-wrap">
-            {(["battery","pge", ...(isAuthenticated ? ["admin"] : [])] as const).map(t=>(
+            {(["battery","pge"] as const).map(t=>(
               <button key={t} onClick={()=>setTab(t)}
                 className={`px-4 py-1.5 rounded-full text-xs font-mono border transition-all ${tab===t
                   ?"border-green-500 bg-green-500/10 text-green-700 dark:text-green-400"
                   :"border-slate-300 dark:border-slate-700 text-slate-500 hover:border-slate-400"}`}>
-                {t==="battery"?"⚡ Battery History":t==="pge"?"📊 PG&E Grid Usage":"⚙️ Admin Controls"}
+                {t==="battery"?"⚡ Battery History":"📊 PG&E Grid Usage"}
               </button>
             ))}
+            {isAuthenticated && (
+              <button onClick={()=>setTab("admin")}
+                className={`px-4 py-1.5 rounded-full text-xs font-mono border transition-all ${tab==="admin"
+                  ?"border-green-500 bg-green-500/10 text-green-700 dark:text-green-400"
+                  :"border-slate-300 dark:border-slate-700 text-slate-500 hover:border-slate-400"}`}>
+                ⚙️ Admin Controls
+              </button>
+            )}
           </div>
 
           {/* ── INTERACTIVE BATTERY TIME SERIES ── */}
