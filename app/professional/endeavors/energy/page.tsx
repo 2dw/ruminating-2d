@@ -521,6 +521,8 @@ function EnergyDashboardContent() {
   const router = useRouter()
   const { isAuthenticated, logout } = useAuth()
 
+  useEffect(() => { window.scrollTo(0, 0) }, [])
+
   const [dark, setDark] = useState(false)
   useEffect(() => {
     const check = () => setDark(document.documentElement.classList.contains("dark"))

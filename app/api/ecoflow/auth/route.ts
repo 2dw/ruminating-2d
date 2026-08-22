@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server"
 import crypto from "crypto"
 
+export const runtime = "nodejs"
+
 const ADMIN_USERNAME = process.env.ECOFLOW_ADMIN_USERNAME ?? "admin"
 const ADMIN_PASSWORD_HASH = process.env.ECOFLOW_ADMIN_PASSWORD_HASH ?? ""
 const ADMIN_SECRET = process.env.ECOFLOW_ADMIN_SECRET ?? ""
