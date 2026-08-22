@@ -3,17 +3,18 @@ import { createHmac } from "crypto"
 
 export const runtime = "nodejs"
 
-const ADMIN_SECRET = process.env.ECOFLOW_ADMIN_SECRET ?? ""
-const ECOFLOW_ACCESS_KEY = process.env.ECOFLOW_ACCESS_KEY ?? ""
-const ECOFLOW_SECRET_KEY = process.env.ECOFLOW_SECRET_KEY ?? ""
-const ECOFLOW_DEVICE_SN = process.env.ECOFLOW_DEVICE_SN ?? ""
 const ECOFLOW_API_BASE = "https://api-a.ecoflow.com"
 
-function clamp(v: number, min: number, max: number) { return Math.max(min, Math.min(max, v)) }
-
-function checkAuth(request: NextRequest) {
-  return request.headers.get("Authorization") === `Bearer ${ADMIN_SECRET}`
+function getEnv() {
+  return {
+    adminSecret: process.env.ECOFLOW_ADMIN_SECRET ?? "",
+    accessKey: process.env.ECOFLOW_ACCESS_KEY ?? "",
+    secretKey: process.env.ECOFLOW_SECRET_KEY ?? "",
+    deviceSn: process.env.ECOFLOW_DEVICE_SN ?? "",
+  }
 }
+
+function clamp(v: number, min: number, max: number) { return Math.max(min, Math.min(max, v)) }
 
 function flattenForSign(obj: Record<string, any>, prefix = ""): Record<string, string> {
   const out: Record<string, string> = {}
@@ -29,15 +30,15 @@ function hmacSha256Hex(message: string, secret: string): string {
   return createHmac("sha256", secret).update(message).digest("hex")
 }
 
-function generateSign(flatParams: Record<string, string>, nonce: string, timestamp: string): string {
+function generateSign(flatParams: Record<string, string>, nonce: string, timestamp: string, accessKey: string, secretKey: string): string {
   const bodyStr = Object.keys(flatParams).sort().map(k => `${k}=${flatParams[k]}`).join("&")
-  const signStr = bodyStr + "&accessKey=" + ECOFLOW_ACCESS_KEY + "&nonce=" + nonce + "&timestamp=" + timestamp
-  return hmacSha256Hex(signStr, ECOFLOW_SECRET_KEY)
+  const signStr = bodyStr + "&accessKey=" + accessKey + "&nonce=" + nonce + "&timestamp=" + timestamp
+  return hmacSha256Hex(signStr, secretKey)
 }
 
-function dp3Body(params: Record<string, any>) {
+function dp3Body(params: Record<string, any>, deviceSn: string) {
   return {
-    sn: ECOFLOW_DEVICE_SN,
+    sn: deviceSn,
     cmdId: 17,
     cmdFunc: 254,
     dest: 2,
@@ -48,26 +49,29 @@ function dp3Body(params: Record<string, any>) {
   }
 }
 
-async function ecoflowPut(body: Record<string, any>) {
+async function ecoflowPut(body: Record<string, any>, accessKey: string, secretKey: string) {
   const nonce = String(Math.floor(Math.random() * 900000 + 100000))
   const timestamp = String(Date.now())
   const flat = flattenForSign(body)
-  const sign = generateSign(flat, nonce, timestamp)
+  const sign = generateSign(flat, nonce, timestamp, accessKey, secretKey)
   const bodyStr = JSON.stringify(body)
   const resp = await fetch(`${ECOFLOW_API_BASE}/iot-open/sign/device/quota`, {
     method: "PUT",
-    headers: { "Content-Type": "application/json;charset=UTF-8", accessKey: ECOFLOW_ACCESS_KEY, nonce, timestamp, sign },
+    headers: { "Content-Type": "application/json;charset=UTF-8", accessKey, nonce, timestamp, sign },
     body: bodyStr,
   })
   return resp.json()
 }
 
 export async function POST(request: NextRequest) {
-  if (!checkAuth(request)) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+  const env = getEnv()
+  if (request.headers.get("Authorization") !== `Bearer ${env.adminSecret}`) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+  }
   try {
     const { command, params } = await request.json()
     if (!command || !params) return NextResponse.json({ error: "command and params required" }, { status: 400 })
-    if (!ECOFLOW_ACCESS_KEY || !ECOFLOW_SECRET_KEY || !ECOFLOW_DEVICE_SN) {
+    if (!env.accessKey || !env.secretKey || !env.deviceSn) {
       return NextResponse.json({ error: "EcoFlow credentials not configured" }, { status: 503 })
     }
 
@@ -85,7 +89,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: `Unknown command: ${command}` }, { status: 400 })
     }
 
-    const result = await ecoflowPut(dp3Body(dp3Params))
+    const result = await ecoflowPut(dp3Body(dp3Params, env.deviceSn), env.accessKey, env.secretKey)
 
     if (result.code === "0") return NextResponse.json({ success: true, command, params })
     return NextResponse.json({ error: `EcoFlow API error: ${result.message ?? result.code}`, code: result.code }, { status: 500 })
@@ -93,16 +97,19 @@ export async function POST(request: NextRequest) {
 }
 
 export async function GET(request: NextRequest) {
-  if (!checkAuth(request)) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+  const env = getEnv()
+  if (request.headers.get("Authorization") !== `Bearer ${env.adminSecret}`) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+  }
   try {
-    if (!ECOFLOW_ACCESS_KEY || !ECOFLOW_SECRET_KEY || !ECOFLOW_DEVICE_SN) {
+    if (!env.accessKey || !env.secretKey || !env.deviceSn) {
       return NextResponse.json({ error: "EcoFlow credentials not configured" }, { status: 503 })
     }
     const nonce = String(Math.floor(Math.random() * 900000 + 100000))
     const timestamp = String(Date.now())
-    const sign = generateSign({ sn: ECOFLOW_DEVICE_SN }, nonce, timestamp)
-    const resp = await fetch(`${ECOFLOW_API_BASE}/iot-open/sign/device/quota/all?sn=${ECOFLOW_DEVICE_SN}`, {
-      headers: { accessKey: ECOFLOW_ACCESS_KEY, nonce, timestamp, sign },
+    const sign = generateSign({ sn: env.deviceSn }, nonce, timestamp, env.accessKey, env.secretKey)
+    const resp = await fetch(`${ECOFLOW_API_BASE}/iot-open/sign/device/quota/all?sn=${env.deviceSn}`, {
+      headers: { accessKey: env.accessKey, nonce, timestamp, sign },
     })
     const data = await resp.json()
     if (data.code !== "0") return NextResponse.json({ error: `EcoFlow API error: ${data.message}` }, { status: 500 })

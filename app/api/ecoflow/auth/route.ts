@@ -3,10 +3,6 @@ import crypto from "crypto"
 
 export const runtime = "nodejs"
 
-const ADMIN_USERNAME = process.env.ECOFLOW_ADMIN_USERNAME ?? "admin"
-const ADMIN_PASSWORD_HASH = process.env.ECOFLOW_ADMIN_PASSWORD_HASH ?? ""
-const ADMIN_SECRET = process.env.ECOFLOW_ADMIN_SECRET ?? ""
-
 function timingSafeEqual(a: string, b: string) {
   if (a.length !== b.length) return false
   return crypto.timingSafeEqual(Buffer.from(a), Buffer.from(b))
@@ -33,17 +29,20 @@ export async function POST(request: NextRequest) {
     if (!username || !password) {
       return NextResponse.json({ error: "Username and password required" }, { status: 400 })
     }
-    if (!ADMIN_PASSWORD_HASH) {
+    const adminUsername = process.env.ECOFLOW_ADMIN_USERNAME ?? "admin"
+    const adminPasswordHash = process.env.ECOFLOW_ADMIN_PASSWORD_HASH ?? ""
+    const adminSecret = process.env.ECOFLOW_ADMIN_SECRET ?? ""
+    if (!adminPasswordHash) {
       return NextResponse.json({ error: "Admin credentials not configured" }, { status: 503 })
     }
-    if (username !== ADMIN_USERNAME || !verifyPassword(password, ADMIN_PASSWORD_HASH)) {
+    if (username !== adminUsername || !verifyPassword(password, adminPasswordHash)) {
       return NextResponse.json({ error: "Invalid credentials" }, { status: 401 })
     }
-    if (!ADMIN_SECRET) {
+    if (!adminSecret) {
       return NextResponse.json({ error: "Admin secret not configured" }, { status: 503 })
     }
-    const response = NextResponse.json({ success: true, token: ADMIN_SECRET })
-    response.cookies.set("ecoflow_admin_token", ADMIN_SECRET, {
+    const response = NextResponse.json({ success: true, token: adminSecret })
+    response.cookies.set("ecoflow_admin_token", adminSecret, {
       httpOnly: true, secure: process.env.NODE_ENV === "production",
       sameSite: "lax", maxAge: 86400, path: "/",
     })
