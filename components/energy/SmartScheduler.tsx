@@ -756,6 +756,10 @@ export default function SmartScheduler({ dark = false }: { dark?: boolean }) {
             </button>
           </div>
 
+          <p className="text-[10px] text-amber-500/80 font-mono max-w-xs leading-relaxed">
+            The site is the source of truth for tasks. The EcoFlow HTTP API cannot read task configurations — only the currently running task is visible. If you change tasks in the EcoFlow app, re-enter them here and sync.
+          </p>
+
           {feedback && (
             <motion.div
               initial={{ opacity: 0, x: 10 }}
