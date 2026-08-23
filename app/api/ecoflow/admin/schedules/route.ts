@@ -342,8 +342,9 @@ export async function GET(request: NextRequest) {
     const strategy = (searchParams.get("strategy") ?? "multi_objective") as OptimizationProfile["strategy"]
     const summer = isSummer(new Date())
 
-    // 1. Try to read tasks from the device
-    let deviceTasks: ScheduleTask[] | null = null
+    // 1. Read currently active task from device (DP3 only exposes active task)
+    //    API returns flat dot-notation keys like "currentTimeTaskV2Item.isCfg"
+    let activeTask: { taskIndex: number; taskType: string; timeTable: number; isEnable: boolean } | null = null
     if (env.accessKey && env.secretKey && env.deviceSn) {
       try {
         const nonce = String(Math.floor(Math.random() * 900000 + 100000))
@@ -355,40 +356,15 @@ export async function GET(request: NextRequest) {
         const data = await resp.json()
         if (data.code === "0" && data.data) {
           const d = data.data
-          const parsed: ScheduleTask[] = []
-          // cfgTimeTaskV2Item may be an array or single object
-          const taskItems = Array.isArray(d.cfgTimeTaskV2Item) ? d.cfgTimeTaskV2Item
-            : d.cfgTimeTaskV2Item ? [d.cfgTimeTaskV2Item] : []
-          for (let i = 0; i < taskItems.length; i++) {
-            const t = taskItems[i]
-            if (!t || !t.isCfg) continue
-            const timeTable = t.timeTable ?? 0
-            const startMin = timeTable & 0xFFFF
-            const endMin = (timeTable >> 16) & 0xFFFF
-            const bitmask = t.timeParam ?? 127
-            const repeatDays: number[] = []
-            for (let d = 0; d < 7; d++) {
-              if (bitmask & (1 << d)) repeatDays.push(d)
+          const isCfg = d["currentTimeTaskV2Item.isCfg"]
+          if (isCfg === true || isCfg === "true" || isCfg === 1) {
+            activeTask = {
+              taskIndex: Number(d["currentTimeTaskV2Item.taskIndex"] ?? 0),
+              taskType: String(d["currentTimeTaskV2Item.taskType"] ?? ""),
+              timeTable: Number(d["currentTimeTaskV2Item.timeTable"] ?? 0),
+              isEnable: Boolean(d["currentTimeTaskV2Item.isEnable"]),
             }
-            let actionType: ScheduleTask["actionType"] = "ac_discharge"
-            if (t.taskType === "TIME_TASK_TYPE_AC_CHG") actionType = "ac_charge"
-            else if (t.taskType === "TIME_TASK_TYPE_DC_CHG") actionType = "solar_charge"
-            else if (t.taskType === "TIME_TASK_TYPE_DC_DSG") actionType = "dc_discharge"
-            parsed.push({
-              id: `device_${i}`,
-              name: actionType === "ac_discharge" ? "On Peak Home Discharge"
-                : actionType === "ac_charge" ? "Grid Charging"
-                : actionType === "solar_charge" ? "Solar Charging"
-                : "DC Output",
-              enabled: Boolean(t.isEnable),
-              startTime: formatMinutesToTime(startMin),
-              endTime: formatMinutesToTime(endMin),
-              actionType,
-              repeatDays,
-              priority: i + 1,
-            })
           }
-          if (parsed.length > 0) deviceTasks = parsed
         }
       } catch {}
     }
@@ -417,21 +393,7 @@ export async function GET(request: NextRequest) {
     }
 
     const profile = savedData?.profile ?? defaultProfile
-    // Priority: device tasks > R2 tasks > defaults
-    const tasks = deviceTasks ?? savedData?.tasks ?? generateDefaultTasks(strategy, currentSoc, summer)
-
-    // 3. If we read tasks from device, update R2 so it stays in sync
-    if (deviceTasks && r2) {
-      try {
-        const cmd = new PutObjectCommand({
-          Bucket: BUCKET,
-          Key: SCHEDULES_KEY,
-          Body: JSON.stringify({ updatedAt: new Date().toISOString(), profile, tasks: deviceTasks }, null, 2),
-          ContentType: "application/json",
-        })
-        await r2.send(cmd)
-      } catch {}
-    }
+    const tasks = savedData?.tasks ?? generateDefaultTasks(strategy, currentSoc, summer)
 
     const hourlySolar = await fetchSolarForecast()
 
@@ -443,6 +405,7 @@ export async function GET(request: NextRequest) {
       isSummer: summer,
       profile,
       tasks,
+      activeTask,
       optimization: optimizationResult,
     })
   } catch (e: any) {

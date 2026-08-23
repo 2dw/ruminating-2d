@@ -140,6 +140,7 @@ export default function SmartScheduler({ dark = false }: { dark?: boolean }) {
   })
   const [tasks, setTasks] = useState<ScheduleTask[]>([])
   const [optimization, setOptimization] = useState<any>(null)
+  const [activeTask, setActiveTask] = useState<any>(null)
 
   const [editingTask, setEditingTask] = useState<ScheduleTask | null>(null)
   const [isNewTask, setIsNewTask] = useState(false)
@@ -176,6 +177,7 @@ export default function SmartScheduler({ dark = false }: { dark?: boolean }) {
           if (d.tasks) setTasks(d.tasks)
           if (d.optimization) setOptimization(d.optimization)
           if (d.isSummer !== undefined) setIsSummer(d.isSummer)
+          if (d.activeTask !== undefined) setActiveTask(d.activeTask)
         }
       }
     } catch {}
@@ -650,6 +652,11 @@ export default function SmartScheduler({ dark = false }: { dark?: boolean }) {
                         <span className="text-xs font-bold text-slate-800 dark:text-slate-200">
                           {task.name}
                         </span>
+                        {activeTask && activeTask.taskIndex === idx && activeTask.isEnable && (
+                          <span className="text-[9px] font-mono font-bold text-green-600 dark:text-green-400 bg-green-500/20 px-1.5 py-0.5 rounded animate-pulse">
+                            RUNNING
+                          </span>
+                        )}
                         <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-500">
                           {task.startTime} to {task.endTime}
                         </span>
