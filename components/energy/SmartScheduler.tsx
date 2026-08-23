@@ -610,7 +610,7 @@ export default function SmartScheduler({ dark = false }: { dark?: boolean }) {
           </div>
 
           <div className="space-y-2.5">
-            {tasks.map(task => {
+            {tasks.map((task, idx) => {
               const isDischarge = task.actionType === "ac_discharge"
               const isSolar = task.actionType === "solar_charge"
               const isCharge = task.actionType === "ac_charge"
