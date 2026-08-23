@@ -271,7 +271,7 @@ export default function ProfessionalMePage() {
               title="Trudie Wang — Resume"
               description="Complete professional background, experience, and qualifications"
               type="pdf"
-              url="https://assets.trudie.dpdns.org/professional/Trudie's%20resume.pdf"
+              url={`${process.env.NEXT_PUBLIC_ASSETS_BASE_URL}/professional/Trudie's%20resume.pdf`}
               icon={<FileText className="h-6 w-6" />}
               color="green"
             />
