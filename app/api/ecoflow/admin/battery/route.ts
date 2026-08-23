@@ -81,10 +81,16 @@ export async function POST(request: NextRequest) {
       if (params.upperLimit !== undefined) dp3Params.cfgMaxChgSoc = params.upperLimit
     } else if (command === "set_backup_reserve") {
       dp3Params.cfgEnergyBackup = { energyBackupStartSoc: params.soc, energyBackupEn: true }
+    } else if (command === "set_ac_switch") {
+      dp3Params.cfgAcOutEn = Boolean(params.enabled)
+    } else if (command === "set_dc_switch") {
+      dp3Params.cfg12vOutEn = Boolean(params.enabled)
     } else if (command === "set_all") {
       if (params.lowerLimit !== undefined) dp3Params.cfgMinDsgSoc = params.lowerLimit
       if (params.upperLimit !== undefined) dp3Params.cfgMaxChgSoc = params.upperLimit
       if (params.backupSoc !== undefined) dp3Params.cfgEnergyBackup = { energyBackupStartSoc: params.backupSoc, energyBackupEn: true }
+      if (params.acOutEn !== undefined) dp3Params.cfgAcOutEn = Boolean(params.acOutEn)
+      if (params.dcOutEn !== undefined) dp3Params.cfg12vOutEn = Boolean(params.dcOutEn)
     } else {
       return NextResponse.json({ error: `Unknown command: ${command}` }, { status: 400 })
     }
@@ -120,6 +126,8 @@ export async function GET(request: NextRequest) {
       discharge_lower: d.cmsMinDsgSoc ?? 0,
       charge_upper: d.cmsMaxChgSoc ?? 100,
       backup_reserve: d.energyBackupStartSoc ?? d.backupReverseSoc ?? 50,
+      ac_out_en: Boolean(d.cfgAcOutEn ?? d.powGetAcLvOut ?? false),
+      dc_out_en: Boolean(d.cfg12vOutEn ?? false),
     })
   } catch (e: any) { return NextResponse.json({ error: "Failed to read battery state" }, { status: 500 }) }
 }

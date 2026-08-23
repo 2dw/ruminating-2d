@@ -26,6 +26,7 @@ import {
 } from "recharts"
 import { AuthProvider, useAuth } from "@/lib/auth-context"
 import AdminControls from "@/components/energy/AdminControls"
+import SmartScheduler from "@/components/energy/SmartScheduler"
 import ForecastChart from "@/components/energy/ForecastChart"
 import RateHeatmap from "@/components/energy/RateHeatmap"
 import DailySummaryChart from "@/components/energy/DailySummaryChart"
@@ -871,6 +872,7 @@ function EnergyDashboardContent() {
           {tab==="admin"&&isAuthenticated&&(
             <div className="space-y-5">
               <AdminControls />
+              <SmartScheduler dark={dark} />
               <ForecastChart dark={dark} />
               <RateHeatmap dark={dark} />
               <DailySummaryChart dark={dark} />
