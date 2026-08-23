@@ -739,13 +739,17 @@ export default function SmartScheduler({ dark = false }: { dark?: boolean }) {
               <CheckCircle2 className="h-3.5 w-3.5" />
               {syncing ? "Syncing with Battery..." : "Sync Schedule to EcoFlow"}
             </button>
+
+            <button
+              onClick={() => fetchScheduleData()}
+              disabled={loading}
+              className="px-3.5 py-2 rounded-lg border border-slate-300 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-900 text-xs font-mono transition-colors disabled:opacity-50"
+            >
+              {loading ? "Loading..." : "Reload"}
+            </button>
           </div>
 
-          <div className="flex items-center gap-3">
-            <p className="text-[10px] text-slate-400 font-mono max-w-[200px] leading-relaxed">
-              Sync pushes site tasks to the device. Changes made in the EcoFlow app must be re-synced from here.
-            </p>
-            {feedback && (
+          {feedback && (
             <motion.div
               initial={{ opacity: 0, x: 10 }}
               animate={{ opacity: 1, x: 0 }}
@@ -763,7 +767,6 @@ export default function SmartScheduler({ dark = false }: { dark?: boolean }) {
               {feedback.message}
             </motion.div>
           )}
-          </div>
         </div>
       </CardContent>
       )}
