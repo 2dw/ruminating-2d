@@ -739,7 +739,7 @@ export default function SmartScheduler({ dark = false }: { dark?: boolean }) {
           </div>
 
           <p className="text-[10px] text-amber-500/80 font-mono max-w-xs leading-relaxed">
-            The site is the source of truth for tasks. The EcoFlow HTTP API cannot read task configurations; only the currently running task is visible. If you change tasks in the EcoFlow app, re-enter them here and sync.
+            R2 serves as the authoritative repository for task schedules. The EcoFlow HTTP API exposes only the currently running task, not the full configuration. Any changes made in the EcoFlow app should be re-entered here and synced to maintain a single source of truth.
           </p>
 
           {feedback && (

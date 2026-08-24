@@ -125,10 +125,10 @@ export default function PersonalStoryPage() {
                     Writing Process
                   </h3>
                   <p className="text-gray-700 dark:text-gray-300 mb-4">
-                    This story grows organically, much like the mycelium networks that inspire it. I don't follow a rigid outline, instead allowing the narrative to branch and connect in unexpected ways.
+                    The narrative unfolds the way mycelium networks grow: not along a rigid outline, but through branching connections that emerge as the work deepens.
                   </p>
                   <p className="text-gray-700 dark:text-gray-300">
-                    I write most often in the early mornings or while traveling, capturing ideas in a small notebook before developing them further. The story is intentionally always "in progress," a living document that evolves as my own understanding of interconnectedness deepens.
+                    I write most often in the early mornings or while traveling, capturing ideas in a small notebook before developing them further. The story is intentionally always in progress, evolving alongside my own understanding of the systems it describes.
                   </p>
                 </div>
               </DynamicFrame>
