@@ -27,9 +27,13 @@ export default function RateHeatmap({ dark = false }: { dark?: boolean }) {
         </div>
         <div className="overflow-x-auto">
           <div className="min-w-[600px]">
-            <div className="grid grid-cols-24 gap-px text-[8px] font-mono text-center mb-1">{Array.from({ length: 24 }, (_, i) => <div key={i} className="text-slate-400">{i}</div>)}</div>
+            <div className="text-[8px] font-mono text-center mb-1" style={{ display: "grid", gridTemplateColumns: "repeat(24, minmax(0, 1fr))", gap: "1px" }}>
+              {Array.from({ length: 24 }, (_, i) => (
+                <div key={i} className="text-slate-400">{i}</div>
+              ))}
+            </div>
             {data.heatmap.map(row => (
-              <div key={row.day} className="grid grid-cols-24 gap-px mb-px">
+              <div key={row.day} className="mb-px" style={{ display: "grid", gridTemplateColumns: "repeat(24, minmax(0, 1fr))", gap: "1px" }}>
                 {row.hours.map((rate, h) => (
                   <div key={h} className={`h-5 rounded-sm ${rate > 0.4 ? "bg-red-400 dark:bg-red-600" : rate > 0.25 ? "bg-amber-300 dark:bg-amber-500" : "bg-green-300 dark:bg-green-600"}`}
                     title={`${row.day} ${h}:00 — $${rate.toFixed(3)}/kWh`} />
