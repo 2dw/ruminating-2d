@@ -338,13 +338,21 @@ export async function GET(request: NextRequest) {
 
   try {
     const { searchParams } = new URL(request.url)
-    const currentSoc = parseFloat(searchParams.get("soc") ?? "50")
     const strategy = (searchParams.get("strategy") ?? "multi_objective") as OptimizationProfile["strategy"]
     const summer = isSummer(new Date())
 
-    // 1. Read currently active task from device (DP3 only exposes active task)
-    //    API returns flat dot-notation keys like "currentTimeTaskV2Item.isCfg"
-    let activeTask: { taskIndex: number; taskType: string; timeTable: number; isEnable: boolean } | null = null
+    // 1. Fetch latest device state from EcoFlow HTTP API
+    let deviceState: {
+      soc: number
+      activeTask: { taskIndex: number; taskType: string; timeTable: number; isEnable: boolean } | null
+      acSwitch: boolean
+      dcSwitch: boolean
+      acChgWatts: number
+      minDsgSoc: number
+      maxChgSoc: number
+      backupReserve: number
+    } | null = null
+
     if (env.accessKey && env.secretKey && env.deviceSn) {
       try {
         const nonce = String(Math.floor(Math.random() * 900000 + 100000))
@@ -356,6 +364,12 @@ export async function GET(request: NextRequest) {
         const data = await resp.json()
         if (data.code === "0" && data.data) {
           const d = data.data
+
+          // Parse SOC
+          const soc = Number(d["pd.soc"] ?? d["bms.soc"] ?? 50)
+
+          // Parse active task
+          let activeTask: typeof deviceState extends { activeTask: infer T } ? T : null = null
           const isCfg = d["currentTimeTaskV2Item.isCfg"]
           if (isCfg === true || isCfg === "true" || isCfg === 1) {
             activeTask = {
@@ -365,11 +379,23 @@ export async function GET(request: NextRequest) {
               isEnable: Boolean(d["currentTimeTaskV2Item.isEnable"]),
             }
           }
+
+          // Parse battery limits
+          const acSwitch = d["mppt.acSwitch"] === 1 || d["mppt.acSwitch"] === true
+          const dcSwitch = d["pd.dcOutCfg"] === 1 || d["pd.dcOutCfg.enabled"] === 1
+          const acChgWatts = Number(d["mppt.cfgChgWatts"] ?? 1800)
+          const minDsgSoc = Number(d["bms.minDsgSoc"] ?? 0)
+          const maxChgSoc = Number(d["bms.maxChgSoc"] ?? 100)
+          const backupReserve = Number(d["pd.bpPowerSoc"] ?? 0)
+
+          deviceState = { soc, activeTask, acSwitch, dcSwitch, acChgWatts, minDsgSoc, maxChgSoc, backupReserve }
         }
       } catch {}
     }
 
-    // 2. Load saved data from R2
+    const currentSoc = deviceState?.soc ?? 50
+
+    // 2. Load saved data from R2, merge with device state
     let savedData: any = null
     const r2 = getR2Client(env)
     if (r2) {
@@ -378,6 +404,34 @@ export async function GET(request: NextRequest) {
         const resp = await r2.send(cmd)
         const text = await resp.Body?.transformToString()
         if (text) savedData = JSON.parse(text)
+      } catch {}
+    }
+
+    // 3. Stash device state to R2 if not already there (or update stale data)
+    if (deviceState && r2) {
+      try {
+        const stashedAt = savedData?.deviceState?.stashedAt
+        const fiveMinAgo = Date.now() - 5 * 60_000
+        const shouldUpdate = !stashedAt || new Date(stashedAt).getTime() < fiveMinAgo
+
+        if (shouldUpdate) {
+          const updatedData = {
+            ...savedData,
+            deviceState: {
+              ...deviceState,
+              stashedAt: new Date().toISOString(),
+            },
+            updatedAt: new Date().toISOString(),
+          }
+          const putCmd = new PutObjectCommand({
+            Bucket: BUCKET,
+            Key: SCHEDULES_KEY,
+            Body: JSON.stringify(updatedData, null, 2),
+            ContentType: "application/json",
+          })
+          await r2.send(putCmd)
+          savedData = updatedData
+        }
       } catch {}
     }
 
@@ -396,7 +450,6 @@ export async function GET(request: NextRequest) {
     const tasks = savedData?.tasks ?? generateDefaultTasks(strategy, currentSoc, summer)
 
     const hourlySolar = await fetchSolarForecast()
-
     const optimizationResult = solveScheduleOptimization(currentSoc, profile, hourlySolar)
 
     return NextResponse.json({
@@ -405,7 +458,15 @@ export async function GET(request: NextRequest) {
       isSummer: summer,
       profile,
       tasks,
-      activeTask,
+      activeTask: deviceState?.activeTask ?? null,
+      deviceState: deviceState ? {
+        acSwitch: deviceState.acSwitch,
+        dcSwitch: deviceState.dcSwitch,
+        acChgWatts: deviceState.acChgWatts,
+        minDsgSoc: deviceState.minDsgSoc,
+        maxChgSoc: deviceState.maxChgSoc,
+        backupReserve: deviceState.backupReserve,
+      } : null,
       optimization: optimizationResult,
     })
   } catch (e: any) {

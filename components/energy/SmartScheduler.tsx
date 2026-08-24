@@ -146,25 +146,10 @@ export default function SmartScheduler({ dark = false }: { dark?: boolean }) {
   const [isNewTask, setIsNewTask] = useState(false)
   const [showPayloadPreview, setShowPayloadPreview] = useState(false)
 
-  const fetchBatterySoc = useCallback(async () => {
-    try {
-      const res = await fetch("/api/ecoflow/admin/battery", {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      if (res.ok) {
-        const d = await res.json()
-        if (d.success && d.battery?.soc_percent !== undefined) {
-          setCurrentSoc(Math.round(d.battery.soc_percent))
-        }
-      }
-    } catch {}
-  }, [token])
-
-  const fetchScheduleData = useCallback(async (strategyOverride?: string, socOverride?: number) => {
+  const fetchScheduleData = useCallback(async (strategyOverride?: string) => {
     setLoading(true)
     try {
       const qs = new URLSearchParams({
-        soc: String(socOverride ?? currentSoc),
         strategy: strategyOverride || profile.strategy,
       })
       const res = await fetch(`/api/ecoflow/admin/schedules?${qs.toString()}`, {
@@ -178,19 +163,16 @@ export default function SmartScheduler({ dark = false }: { dark?: boolean }) {
           if (d.optimization) setOptimization(d.optimization)
           if (d.isSummer !== undefined) setIsSummer(d.isSummer)
           if (d.activeTask !== undefined) setActiveTask(d.activeTask)
+          if (d.currentSoc !== undefined) setCurrentSoc(Math.round(d.currentSoc))
         }
       }
     } catch {}
     setLoading(false)
-  }, [currentSoc, profile.strategy, token])
+  }, [profile.strategy, token])
 
   useEffect(() => {
     socRef.current = currentSoc
   }, [currentSoc])
-
-  useEffect(() => {
-    fetchBatterySoc()
-  }, [fetchBatterySoc])
 
   useEffect(() => {
     if (currentSoc > 0) fetchScheduleData()
@@ -420,7 +402,7 @@ export default function SmartScheduler({ dark = false }: { dark?: boolean }) {
                     setCurrentSoc(val)
                     socRef.current = val
                   }}
-                  onBlur={() => fetchScheduleData(undefined, socRef.current)}
+                   onBlur={() => fetchScheduleData()}
                   className="w-14 px-2 py-0.5 rounded border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-xs font-mono text-slate-700 dark:text-slate-300 text-center focus:outline-none focus:border-green-500"
                 />
                 <span className="text-[11px] font-mono text-slate-400">%</span>

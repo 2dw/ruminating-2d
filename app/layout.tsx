@@ -37,15 +37,17 @@ export default function RootLayout({
           dangerouslySetInnerHTML={{
             __html: `
               (() => {
-                // Restore dark mode from localStorage before paint
+                // Default to dark mode; only switch to light if explicitly chosen
                 try {
                   const mode = localStorage.getItem("theme-mode");
-                  if (mode === "dark") {
-                    document.documentElement.classList.add("dark");
-                  } else if (mode === "light") {
+                  if (mode === "light") {
                     document.documentElement.classList.remove("dark");
+                  } else {
+                    document.documentElement.classList.add("dark");
                   }
-                } catch (_) {}
+                } catch (_) {
+                  document.documentElement.classList.add("dark");
+                }
 
                 const stripBisAttributes = (root = document) => {
                   root.querySelectorAll?.("[bis_skin_checked]").forEach((node) => {
