@@ -268,7 +268,7 @@ export default function ProfessionalMePage() {
               Resume
             </h2>
             <DocumentCard
-              title="Trudie Wang — Resume"
+              title="Trudie Wang, Resume"
               description="Complete professional background, experience, and qualifications"
               type="pdf"
               url={`${process.env.NEXT_PUBLIC_ASSETS_BASE_URL}/professional/Trudie's%20resume.pdf`}

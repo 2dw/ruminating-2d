@@ -48,11 +48,11 @@ export default function PersonalStoryPage() {
                 <div className="prose prose-blue dark:prose-invert max-w-none">
                   <blockquote className="italic text-gray-700 dark:text-gray-300 border-l-4 border-blue-500 pl-4">
                     <p>
-                      "The first time Maya heard the mycelium speak, she was kneeling in her grandmother's garden, hands deep in the rich soil. It wasn't a voice, exactly—more like a feeling that formed itself into words in her mind. A gentle hum that resolved into meaning.
+                      "The first time Maya heard the mycelium speak, she was kneeling in her grandmother's garden, hands deep in the rich soil. It wasn't a voice, exactly, more like a feeling that formed itself into words in her mind. A gentle hum that resolved into meaning.
                     </p>
                     <p>'We have been waiting for you,' it seemed to say. 'For someone who would listen.'</p>
                     <p>
-                      Maya withdrew her hands quickly, heart racing. She had heard the stories, of course—everyone had, since the Great Reconnection—but she had always assumed they were exaggerations. Metaphors for the new environmental awareness that had swept through society after the Climate Crisis of the 2030s.
+                      Maya withdrew her hands quickly, heart racing. She had heard the stories, of course, everyone had, since the Great Reconnection, but she had always assumed they were exaggerations. Metaphors for the new environmental awareness that had swept through society after the Climate Crisis of the 2030s.
                     </p>
                     <p>But this was no metaphor. This was a conversation."</p>
                   </blockquote>
@@ -128,7 +128,7 @@ export default function PersonalStoryPage() {
                     This story grows organically, much like the mycelium networks that inspire it. I don't follow a rigid outline, instead allowing the narrative to branch and connect in unexpected ways.
                   </p>
                   <p className="text-gray-700 dark:text-gray-300">
-                    I write most often in the early mornings or while traveling, capturing ideas in a small notebook before developing them further. The story is intentionally always "in progress"—a living document that evolves as my own understanding of interconnectedness deepens.
+                    I write most often in the early mornings or while traveling, capturing ideas in a small notebook before developing them further. The story is intentionally always "in progress," a living document that evolves as my own understanding of interconnectedness deepens.
                   </p>
                 </div>
               </DynamicFrame>

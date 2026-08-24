@@ -32,14 +32,21 @@ export default function RateHeatmap({ dark = false }: { dark?: boolean }) {
                 <div key={i} className="text-slate-400">{i}</div>
               ))}
             </div>
-            {data.heatmap.map(row => (
-              <div key={row.day} className="mb-px" style={{ display: "grid", gridTemplateColumns: "repeat(24, minmax(0, 1fr))", gap: "1px" }}>
-                {row.hours.map((rate, h) => (
-                  <div key={h} className={`h-5 rounded-sm ${rate > 0.4 ? "bg-red-400 dark:bg-red-600" : rate > 0.25 ? "bg-amber-300 dark:bg-amber-500" : "bg-green-300 dark:bg-green-600"}`}
-                    title={`${row.day} ${h}:00 — $${rate.toFixed(3)}/kWh`} />
-                ))}
-              </div>
-            ))}
+            {data.heatmap.map(row => {
+              const d = new Date(row.day + "T12:00:00")
+              const dayLabel = d.toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" })
+              return (
+                <div key={row.day} className="flex items-center gap-2 mb-px">
+                  <span className="text-[9px] font-mono text-slate-500 w-16 shrink-0 text-right">{dayLabel}</span>
+                  <div className="flex-1" style={{ display: "grid", gridTemplateColumns: "repeat(24, minmax(0, 1fr))", gap: "1px" }}>
+                    {row.hours.map((rate, h) => (
+                      <div key={h} className={`h-5 rounded-sm ${rate > 0.4 ? "bg-red-400 dark:bg-red-600" : rate > 0.25 ? "bg-amber-300 dark:bg-amber-500" : "bg-green-300 dark:bg-green-600"}`}
+                        title={`${row.day} ${h}:00 - $${rate.toFixed(3)}/kWh`} />
+                    ))}
+                  </div>
+                </div>
+              )
+            })}
           </div>
           <div className="flex justify-between text-[9px] text-slate-400 mt-1"><span>← midnight</span><span>{data.schedule.peak_hours}</span><span>midnight →</span></div>
         </div>

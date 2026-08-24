@@ -69,7 +69,7 @@ function LoginForm() {
             </button>
           </form>
         </div>
-        <p className="text-center text-[10px] text-[#8b949e] mt-4">Battery controls are live — changes apply immediately.</p>
+        <p className="text-center text-[10px] text-[#8b949e] mt-4">Battery controls are live. Changes apply immediately.</p>
       </motion.div>
     </div>
   )

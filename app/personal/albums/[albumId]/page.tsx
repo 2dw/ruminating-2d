@@ -36,7 +36,7 @@ function getPhotoCaption(
 ): string {
   if (captions?.[photo.key]) return captions[photo.key]
   if (captions?.[photo.name]) return captions[photo.name]
-  return `${albumTitle} — ${index + 1}`
+  return `${albumTitle}, ${index + 1}`
 }
 
 export default function AlbumDetailPage() {

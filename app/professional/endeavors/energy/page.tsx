@@ -935,7 +935,7 @@ function EnergyDashboardContent() {
           {/* Footer */}
           <Card className="border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950/30">
             <CardContent className="pt-5 grid md:grid-cols-2 gap-5 text-sm text-slate-600 dark:text-slate-400 leading-relaxed">
-              <p>A full-stack home energy management system applying distributed optimization principles from two decades of work at Heila, GELI, and EPRI — running live on an EcoFlow Delta Pro 3, rooftop solar, and 8 years of PG&E interval data.</p>
+              <p>A full-stack home energy management system applying distributed optimization principles from two decades of work at Heila, GELI, and EPRI, running live on an EcoFlow Delta Pro 3, rooftop solar, and 8 years of PG&E interval data.</p>
               <ul className="space-y-1 text-xs text-slate-500">
                 <li>⚡ EcoFlow Open API (HMAC-SHA256) · api-a.ecoflow.com</li>
                 <li>☀️ Open-Meteo solar irradiance · no API key</li>

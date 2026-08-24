@@ -86,7 +86,7 @@ export const creativeProjectOverrides: Record<string, CreativeProjectConfig> = {
         title: "Protein Powered Melty Cheese",
         summary: "The science of sodium citrate and fat-free cheese sauces",
         journey:
-          "Fat-free cheese refuses to melt smoothly — the casein proteins seize without fat's lubrication. Sodium citrate, made from vinegar and baking soda, changes everything: it emulsifies the proteins, turning a clumpy failure into a rich, creamy, thermoreversible sauce.",
+          "Fat-free cheese refuses to melt smoothly, the casein proteins seize without fat's lubrication. Sodium citrate, made from vinegar and baking soda, changes everything: it emulsifies the proteins, turning a clumpy failure into a rich, creamy, thermoreversible sauce.",
         mediaPrefix: "projects/edible science experiments/",
         mediaFilter: ["cheese", "sodium", "melty", "protein", "DIY melty"],
       },

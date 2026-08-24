@@ -14,7 +14,7 @@ const sections = [
   {
     title: "Tiny Endeavors",
     description:
-      "Research publications, live projects, and a home energy dashboard — where the engineering becomes tangible. IEEE papers on DER control plus a live solar and battery system built from scratch.",
+      "Research publications, live projects, and a home energy dashboard: where the engineering becomes tangible. IEEE papers on DER control plus a live solar and battery system built from scratch.",
     icon: <Sparkles className="h-5 w-5" />,
     href: "/professional/endeavors",
   },
@@ -44,7 +44,7 @@ export default function ProfessionalPage() {
             Professional Repertoire
           </h1>
           <p className="mx-auto max-w-3xl text-xl text-gray-700 dark:text-gray-300">
-            Engineering and product leadership at the frontier of distributed energy —
+            Engineering and product leadership at the frontier of distributed energy,
             building platforms, scaling acquisitions, and proving that intelligent systems
             and equitable access are not in conflict.
           </p>

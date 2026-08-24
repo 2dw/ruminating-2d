@@ -164,7 +164,7 @@ export default function BatteryViewer({ showFullDashboard = false }) {
         home energy
       </div>
       <div style={{ color: "rgba(255,255,255,0.35)", fontSize: "0.85rem", lineHeight: 1.6 }}>
-        the battery is quiet right now —<br />check back soon
+        the battery is quiet right now,<br />check back soon
       </div>
     </div>
   );

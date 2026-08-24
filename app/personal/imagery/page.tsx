@@ -120,7 +120,7 @@ export default function PersonalImageryPage() {
                   Photo Essay: The Hidden Networks
                 </h3>
                 <p className="text-gray-700 dark:text-gray-300">
-                  This ongoing photo series explores the visible manifestations of nature's interconnected systems—from the branching patterns of rivers and trees to the intricate structures of fungi and coral reefs. Through these images, I hope to inspire viewers to recognize the similar patterns that connect us all.
+                  This ongoing photo series explores the visible manifestations of nature's interconnected systems, from the branching patterns of rivers and trees to the intricate structures of fungi and coral reefs. Through these images, I hope to inspire viewers to recognize the similar patterns that connect us all.
                 </p>
                 <div className="mt-4 grid grid-cols-2 gap-4">
                   <div className="aspect-video bg-blue-100 dark:bg-blue-900/30 relative rounded-md overflow-hidden">
