@@ -1,4 +1,5 @@
 import { S3Client, ListObjectsV2Command } from "@aws-sdk/client-s3"
+import { albumMeta } from "@/config/albums"
 
 const s3Client = new S3Client({
   region: "auto",
@@ -41,14 +42,14 @@ export async function GET() {
     const albums = Array.from(albumPaths)
       .sort()
       .map((albumPath) => {
-        // Convert path to a readable title
         const title = albumPath
           .split(/[-_\s]+/)
           .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
           .join(" ")
 
-        // Create a slug ID from the path
         const id = albumPath.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "")
+
+        const meta = albumMeta[id]
 
         return {
           id,
@@ -57,6 +58,7 @@ export async function GET() {
           description: `A collection of photographs from ${title}.`,
           prefix: `photography/${albumPath}/`,
           cover: "/placeholder.jpg",
+          meta: meta || null,
         }
       })
 

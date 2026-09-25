@@ -10,6 +10,10 @@ interface PhotoAlbum {
   description: string
   prefix: string
   cover?: string
+  meta?: {
+    location: { lat: number; lng: number; label: string }
+    dateRange: { start: string; end?: string }
+  } | null
 }
 
 interface AlbumsContextType {
