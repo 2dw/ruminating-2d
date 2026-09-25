@@ -57,15 +57,25 @@ export async function GET(request: Request) {
 
     console.log(`[Photos API] Requested prefix: ${prefix}`)
 
-    const command = new ListObjectsV2Command({
-      Bucket: process.env.R2_BUCKET_NAME,
-      Prefix: prefix,
-    })
+    const allContents: { Key?: string; LastModified?: Date; Size?: number }[] = []
+    let continuationToken: string | undefined
 
-    const response = await s3Client.send(command)
+    // R2/S3 returns max 1000 objects per request — page through all of them
+    do {
+      const command = new ListObjectsV2Command({
+        Bucket: process.env.R2_BUCKET_NAME,
+        Prefix: prefix,
+        ContinuationToken: continuationToken,
+      })
+
+      const response = await s3Client.send(command)
+      allContents.push(...(response.Contents || []))
+      continuationToken = response.IsTruncated ? response.NextContinuationToken : undefined
+    } while (continuationToken)
+
     const baseUrl = getBaseUrl()
 
-    const files = (response.Contents || [])
+    const files = allContents
       .filter((obj) => {
         const key = obj.Key?.toLowerCase() || ""
         return (

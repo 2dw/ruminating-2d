@@ -26,21 +26,28 @@ function toId(path: string) {
 
 export async function GET() {
   try {
-    const command = new ListObjectsV2Command({
-      Bucket: process.env.R2_BUCKET_NAME,
-      Prefix: "projects/",
-    })
-
-    const response = await s3Client.send(command)
     const projectPaths = new Set<string>()
+    let continuationToken: string | undefined
 
-    ;(response.Contents || []).forEach((obj) => {
-      const key = obj.Key
-      if (!key?.startsWith("projects/")) return
+    // R2/S3 returns max 1000 objects per request — page through all of them
+    do {
+      const command = new ListObjectsV2Command({
+        Bucket: process.env.R2_BUCKET_NAME,
+        Prefix: "projects/",
+        ContinuationToken: continuationToken,
+      })
 
-      const projectPath = key.replace("projects/", "").split("/")[0]
-      if (projectPath) projectPaths.add(projectPath)
-    })
+      const response = await s3Client.send(command)
+
+      ;(response.Contents || []).forEach((obj) => {
+        const key = obj.Key
+        if (!key?.startsWith("projects/")) return
+        const projectPath = key.replace("projects/", "").split("/")[0]
+        if (projectPath) projectPaths.add(projectPath)
+      })
+
+      continuationToken = response.IsTruncated ? response.NextContinuationToken : undefined
+    } while (continuationToken)
 
     const projects = Array.from(projectPaths)
       .sort()

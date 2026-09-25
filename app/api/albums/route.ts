@@ -11,26 +11,31 @@ const s3Client = new S3Client({
 
 export async function GET() {
   try {
-    const command = new ListObjectsV2Command({
-      Bucket: process.env.R2_BUCKET_NAME,
-      Prefix: "photography/",
-    })
-
-    const response = await s3Client.send(command)
-
-    // Extract unique album directories from all object keys
     const albumPaths = new Set<string>()
+    let continuationToken: string | undefined
 
-    ;(response.Contents || []).forEach((obj) => {
-      const key = obj.Key
-      if (key && key.startsWith("photography/")) {
-        // Remove "photography/" prefix and get the album directory
-        const albumPath = key.replace("photography/", "").split("/")[0]
-        if (albumPath && albumPath.length > 0) {
-          albumPaths.add(albumPath)
+    // R2/S3 returns max 1000 objects per request — page through all of them
+    do {
+      const command = new ListObjectsV2Command({
+        Bucket: process.env.R2_BUCKET_NAME,
+        Prefix: "photography/",
+        ContinuationToken: continuationToken,
+      })
+
+      const response = await s3Client.send(command)
+
+      ;(response.Contents || []).forEach((obj) => {
+        const key = obj.Key
+        if (key && key.startsWith("photography/")) {
+          const albumPath = key.replace("photography/", "").split("/")[0]
+          if (albumPath && albumPath.length > 0) {
+            albumPaths.add(albumPath)
+          }
         }
-      }
-    })
+      })
+
+      continuationToken = response.IsTruncated ? response.NextContinuationToken : undefined
+    } while (continuationToken)
 
     // Convert to album objects
     const albums = Array.from(albumPaths)
