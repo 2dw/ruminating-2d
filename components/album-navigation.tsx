@@ -3,7 +3,7 @@
 import { useState, useMemo, useCallback, useEffect, useRef, type ReactNode, type FormEvent } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import { useRouter } from "next/navigation"
-import { MapIcon, Timer, Search, MapPin, X, RotateCcw, ChevronUp, Check } from "lucide-react"
+import { MapIcon, Timer, Search, MapPin, X, RotateCcw, ChevronUp, Check, Plus, Minus } from "lucide-react"
 import { useAlbums } from "@/contexts/albums-context"
 import { resolveAlbumMeta } from "@/config/albums"
 import { WORLD_COUNTRIES, WORLD_MAP_W, WORLD_MAP_H, latToY, lngToX } from "@/components/world-map-data"
@@ -13,6 +13,23 @@ const AXIS_Y = 180
 const LANE_H = 34
 const LANE_GAP = 78
 const MAP_MIN_GAP = 17
+const MAP_MIN_ZOOM = 1
+const MAP_MAX_ZOOM = 8
+
+type MapView = { z: number; x: number; y: number }
+
+function clampMapView(z: number, x: number, y: number): MapView {
+  const nz = Math.min(MAP_MAX_ZOOM, Math.max(MAP_MIN_ZOOM, z))
+  const minX = WORLD_MAP_W * (1 - nz)
+  const minY = WORLD_MAP_H * (1 - nz)
+  return { z: nz, x: Math.min(0, Math.max(minX, x)), y: Math.min(0, Math.max(minY, y)) }
+}
+
+function zoomMapView(view: MapView, factor: number, mx: number, my: number): MapView {
+  const nz = Math.min(MAP_MAX_ZOOM, Math.max(MAP_MIN_ZOOM, view.z * factor))
+  const k = nz / view.z
+  return clampMapView(nz, mx - (mx - view.x) * k, my - (my - view.y) * k)
+}
 
 type AlbumMeta = {
   location: { lat: number; lng: number; label: string } | null
@@ -172,6 +189,10 @@ export default function AlbumNavigation() {
   const [whereQuery, setWhereQuery] = useState("")
   const [when, setWhen] = useState("")
   const [hoveredAlbum, setHoveredAlbum] = useState<string | null>(null)
+  const [mapView, setMapView] = useState<MapView>({ z: 1, x: 0, y: 0 })
+  const mapSvgRef = useRef<SVGSVGElement>(null)
+  const mapDragRef = useRef<{ sx: number; sy: number; ox: number; oy: number; moved: boolean } | null>(null)
+  const suppressMarkerClick = useRef(false)
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search)
@@ -203,6 +224,79 @@ export default function AlbumNavigation() {
     const qs = params.toString()
     window.history.replaceState(null, "", `${window.location.pathname}${qs ? `?${qs}` : ""}`)
   }, [where, when, view, mode])
+
+  useEffect(() => {
+    const svg = mapSvgRef.current
+    if (!svg || view !== "map" || mode !== "results") return
+    const handleWheel = (e: WheelEvent) => {
+      e.preventDefault()
+      const rect = svg.getBoundingClientRect()
+      if (rect.width === 0 || rect.height === 0) return
+      const mx = ((e.clientX - rect.left) / rect.width) * WORLD_MAP_W
+      const my = ((e.clientY - rect.top) / rect.height) * WORLD_MAP_H
+      setMapView((v) => zoomMapView(v, e.deltaY < 0 ? 1.18 : 1 / 1.18, mx, my))
+    }
+    svg.addEventListener("wheel", handleWheel, { passive: false })
+    return () => svg.removeEventListener("wheel", handleWheel)
+  }, [view, mode])
+
+  const handleMapPointerDown = useCallback(
+    (e: React.PointerEvent<SVGSVGElement>) => {
+      suppressMarkerClick.current = false
+      mapDragRef.current = { sx: e.clientX, sy: e.clientY, ox: mapView.x, oy: mapView.y, moved: false }
+    },
+    [mapView.x, mapView.y],
+  )
+
+  const handleMapPointerMove = useCallback((e: React.PointerEvent<SVGSVGElement>) => {
+    const drag = mapDragRef.current
+    const svg = mapSvgRef.current
+    if (!drag || !svg) return
+    const px = e.clientX - drag.sx
+    const py = e.clientY - drag.sy
+    if (!drag.moved && Math.hypot(px, py) < 5) return
+    if (!drag.moved) {
+      drag.moved = true
+      try {
+        svg.setPointerCapture(e.pointerId)
+      } catch {
+        /* capture is best effort */
+      }
+    }
+    const rect = svg.getBoundingClientRect()
+    if (rect.width === 0 || rect.height === 0) return
+    const dx = (px / rect.width) * WORLD_MAP_W
+    const dy = (py / rect.height) * WORLD_MAP_H
+    setMapView((v) => clampMapView(v.z, drag.ox + dx, drag.oy + dy))
+  }, [])
+
+  const handleMapPointerUp = useCallback((e: React.PointerEvent<SVGSVGElement>) => {
+    const drag = mapDragRef.current
+    if (drag?.moved) {
+      suppressMarkerClick.current = true
+      try {
+        mapSvgRef.current?.releasePointerCapture(e.pointerId)
+      } catch {
+        /* capture is best effort */
+      }
+    }
+    mapDragRef.current = null
+  }, [])
+
+  const zoomMapBy = useCallback((factor: number) => {
+    setMapView((v) => zoomMapView(v, factor, WORLD_MAP_W / 2, WORLD_MAP_H / 2))
+  }, [])
+
+  const openAlbum = useCallback(
+    (albumId: string) => {
+      if (suppressMarkerClick.current) {
+        suppressMarkerClick.current = false
+        return
+      }
+      router.push(`/personal/albums/${albumId}`)
+    },
+    [router],
+  )
 
   const items = useMemo(() => albums.map((album) => ({ album, meta: getAlbumMeta(album) })), [albums])
 
@@ -746,10 +840,16 @@ export default function AlbumNavigation() {
           ) : view === "map" ? (
             <div className="relative w-full overflow-hidden rounded-2xl border border-slate-200 bg-[#060a0f] dark:border-slate-700">
               <svg
+                ref={mapSvgRef}
                 viewBox={`0 0 ${WORLD_MAP_W} ${WORLD_MAP_H}`}
-                className="block w-full"
+                className={`block w-full ${mapView.z > 1 ? "cursor-grab active:cursor-grabbing" : ""}`}
+                style={{ touchAction: "pan-y" }}
+                onPointerDown={handleMapPointerDown}
+                onPointerMove={handleMapPointerMove}
+                onPointerUp={handleMapPointerUp}
+                onPointerCancel={handleMapPointerUp}
                 role="img"
-                aria-label="World map of album locations"
+                aria-label="World map of album locations, scroll to zoom and drag to pan"
               >
                 <defs>
                   <radialGradient id="mapGlow" cx="50%" cy="45%" r="65%">
@@ -768,6 +868,7 @@ export default function AlbumNavigation() {
                 <rect width={WORLD_MAP_W} height={WORLD_MAP_H} fill="#060a0f" />
                 <rect width={WORLD_MAP_W} height={WORLD_MAP_H} fill="url(#mapGlow)" />
 
+                <g transform={`translate(${mapView.x} ${mapView.y}) scale(${mapView.z})`}>
                 <g opacity={0.07} stroke="rgb(20, 184, 166)" strokeWidth={0.5}>
                   {Array.from({ length: 12 }, (_, i) => (
                     <line
@@ -776,10 +877,18 @@ export default function AlbumNavigation() {
                       y1={0}
                       x2={((i + 1) * WORLD_MAP_W) / 12}
                       y2={WORLD_MAP_H}
+                      vectorEffect="non-scaling-stroke"
                     />
                   ))}
                   {Array.from({ length: 7 }, (_, i) => (
-                    <line key={`h${i}`} x1={0} y1={(i * WORLD_MAP_H) / 6} x2={WORLD_MAP_W} y2={(i * WORLD_MAP_H) / 6} />
+                    <line
+                      key={`h${i}`}
+                      x1={0}
+                      y1={(i * WORLD_MAP_H) / 6}
+                      x2={WORLD_MAP_W}
+                      y2={(i * WORLD_MAP_H) / 6}
+                      vectorEffect="non-scaling-stroke"
+                    />
                   ))}
                 </g>
 
@@ -792,6 +901,7 @@ export default function AlbumNavigation() {
                       stroke="rgba(45, 212, 191, 0.45)"
                       strokeWidth={0.5}
                       strokeLinejoin="round"
+                      vectorEffect="non-scaling-stroke"
                     />
                   ))}
                 </g>
@@ -808,8 +918,15 @@ export default function AlbumNavigation() {
                         stroke="rgba(45, 212, 191, 0.35)"
                         strokeWidth={0.6}
                         strokeDasharray="2 2"
+                        vectorEffect="non-scaling-stroke"
                       />
-                      <circle cx={p.ox} cy={p.oy} r={1.6} fill="rgba(45, 212, 191, 0.7)" />
+                      <circle
+                        cx={p.ox}
+                        cy={p.oy}
+                        r={1.6 / mapView.z}
+                        fill="rgba(45, 212, 191, 0.7)"
+                        vectorEffect="non-scaling-stroke"
+                      />
                     </g>
                   )
                 })}
@@ -825,19 +942,19 @@ export default function AlbumNavigation() {
                       <MushroomCap
                         x={p.x}
                         y={p.y}
-                        size={isHovered ? 9 : 6}
+                        size={(isHovered ? 9 : 6) / mapView.z}
                         color={isHovered ? "rgb(74, 222, 128)" : "rgb(20, 184, 166)"}
                         active={isHovered}
-                        onClick={() => router.push(`/personal/albums/${p.album.id}`)}
+                        onClick={() => openAlbum(p.album.id)}
                         label={`${p.album.title}, open album`}
                       />
                       {isHovered && (
                         <text
                           x={p.x}
-                          y={p.y - 13}
+                          y={p.y - 13 / mapView.z}
                           textAnchor="middle"
                           fill="rgb(153, 246, 228)"
-                          fontSize={9}
+                          fontSize={9 / mapView.z}
                           fontFamily="Inter, sans-serif"
                           fontWeight={600}
                         >
@@ -847,14 +964,57 @@ export default function AlbumNavigation() {
                     </g>
                   )
                 })}
+                </g>
               </svg>
+
+              <div className="absolute right-3 top-3 z-10 flex flex-col gap-1.5">
+                <button
+                  type="button"
+                  onClick={() => zoomMapBy(1.3)}
+                  className="rounded-lg border border-white/10 bg-slate-900/70 p-2 text-slate-300 backdrop-blur transition hover:bg-slate-800 hover:text-white"
+                  aria-label="Zoom in"
+                >
+                  <Plus className="h-4 w-4" />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => zoomMapBy(1 / 1.3)}
+                  disabled={mapView.z <= MAP_MIN_ZOOM}
+                  className="rounded-lg border border-white/10 bg-slate-900/70 p-2 text-slate-300 backdrop-blur transition hover:bg-slate-800 hover:text-white disabled:opacity-30 disabled:hover:bg-slate-900/70"
+                  aria-label="Zoom out"
+                >
+                  <Minus className="h-4 w-4" />
+                </button>
+                {mapView.z > MAP_MIN_ZOOM && (
+                  <button
+                    type="button"
+                    onClick={() => setMapView({ z: 1, x: 0, y: 0 })}
+                    className="rounded-lg border border-white/10 bg-slate-900/70 p-2 text-slate-300 backdrop-blur transition hover:bg-slate-800 hover:text-white"
+                    aria-label="Reset the map view"
+                  >
+                    <RotateCcw className="h-4 w-4" />
+                  </button>
+                )}
+              </div>
 
               {hoveredMapPoint && hovered && (
                 <div
                   className="pointer-events-none absolute z-20 -translate-x-1/2 -translate-y-full rounded-lg bg-slate-900/95 px-3 py-2 text-xs shadow-xl backdrop-blur-sm"
                   style={{
-                    left: `${Math.min(88, Math.max(12, (hoveredMapPoint.x / WORLD_MAP_W) * 100))}%`,
-                    top: `${((hoveredMapPoint.y - 14) / WORLD_MAP_H) * 100}%`,
+                    left: `${Math.min(
+                      88,
+                      Math.max(
+                        12,
+                        ((hoveredMapPoint.x * mapView.z + mapView.x) / WORLD_MAP_W) * 100,
+                      ),
+                    )}%`,
+                    top: `${Math.min(
+                      94,
+                      Math.max(
+                        8,
+                        ((hoveredMapPoint.y * mapView.z + mapView.y - 14) / WORLD_MAP_H) * 100,
+                      ),
+                    )}%`,
                     marginTop: -6,
                   }}
                 >
@@ -868,7 +1028,7 @@ export default function AlbumNavigation() {
 
               <div className="absolute bottom-3 left-3 text-[10px] text-slate-500">
                 <span className="mr-1 inline-block h-2 w-2 rounded-full bg-teal-400" />
-                Hover for details, click to open the album
+                Scroll to zoom, drag to pan. Hover for details, click to open the album
               </div>
             </div>
           ) : timeline ? (
