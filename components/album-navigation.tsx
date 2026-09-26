@@ -1,9 +1,9 @@
 "use client"
 
-import { useState, useMemo, useCallback, useEffect, type ReactNode, type FormEvent } from "react"
+import { useState, useMemo, useCallback, useEffect, useRef, type ReactNode, type FormEvent } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import { useRouter } from "next/navigation"
-import { MapIcon, Timer, Search, MapPin, X, RotateCcw } from "lucide-react"
+import { MapIcon, Timer, Search, MapPin, X, RotateCcw, ChevronUp, Check } from "lucide-react"
 import { useAlbums } from "@/contexts/albums-context"
 import { resolveAlbumMeta } from "@/config/albums"
 import { WORLD_COUNTRIES, WORLD_MAP_W, WORLD_MAP_H, latToY, lngToX } from "@/components/world-map-data"
@@ -49,11 +49,10 @@ function matchesWhen(range: AlbumMeta["dateRange"], text: string): boolean {
   return formatDateRange(range).toLowerCase().includes(t.toLowerCase())
 }
 
-function matchesWhere(meta: AlbumMeta, title: string, text: string): boolean {
-  const t = text.trim().toLowerCase()
-  if (!t) return true
-  const label = meta.location?.label.toLowerCase() ?? ""
-  return label.includes(t) || title.toLowerCase().includes(t)
+function matchesWhere(meta: AlbumMeta, selected: string[]): boolean {
+  if (selected.length === 0) return true
+  const label = meta.location?.label
+  return !!label && selected.includes(label)
 }
 
 function MushroomCap({
@@ -169,28 +168,46 @@ export default function AlbumNavigation() {
   const [view, setView] = useState<"map" | "timeline">("map")
   const [mode, setMode] = useState<"collapsed" | "results">("collapsed")
   const [field, setField] = useState<"where" | "when" | null>(null)
-  const [where, setWhere] = useState("")
+  const [where, setWhere] = useState<string[]>([])
+  const [whereQuery, setWhereQuery] = useState("")
   const [when, setWhen] = useState("")
   const [hoveredAlbum, setHoveredAlbum] = useState<string | null>(null)
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search)
+    const places = params.getAll("place").filter(Boolean)
+    if (places.length) setWhere(places)
+    const whenParam = params.get("when")
+    if (whenParam) setWhen(whenParam)
     const requested = params.get("view")
-    if (requested === "timeline" || requested === "map") {
-      setView(requested)
-      setMode("results")
-    }
+    if (requested === "timeline" || requested === "map") setView(requested)
+    if (places.length || whenParam || requested || params.get("panel") === "open") setMode("results")
     const focusParam = params.get("focus")
     if (focusParam === "where" || focusParam === "when") setField(focusParam)
   }, [])
 
+  const skipUrlSync = useRef(true)
+  useEffect(() => {
+    if (skipUrlSync.current) {
+      skipUrlSync.current = false
+      return
+    }
+    const params = new URLSearchParams(window.location.search)
+    for (const key of ["place", "when", "view", "panel", "focus"]) params.delete(key)
+    for (const place of where) params.append("place", place)
+    if (when.trim()) params.set("when", when.trim())
+    if (mode === "results") {
+      params.set("view", view)
+      params.set("panel", "open")
+    }
+    const qs = params.toString()
+    window.history.replaceState(null, "", `${window.location.pathname}${qs ? `?${qs}` : ""}`)
+  }, [where, when, view, mode])
+
   const items = useMemo(() => albums.map((album) => ({ album, meta: getAlbumMeta(album) })), [albums])
 
   const filtered = useMemo(
-    () =>
-      items.filter(
-        ({ album, meta }) => matchesWhere(meta, album.title, where) && matchesWhen(meta.dateRange, when),
-      ),
+    () => items.filter(({ album, meta }) => matchesWhere(meta, where) && matchesWhen(meta.dateRange, when)),
     [items, where, when],
   )
 
@@ -220,46 +237,85 @@ export default function AlbumNavigation() {
       if (!label) continue
       counts.set(label, (counts.get(label) ?? 0) + 1)
     }
-    const t = where.trim().toLowerCase()
+    const t = whereQuery.trim().toLowerCase()
+    const selectedSet = new Set(where)
     return Array.from(counts.entries())
       .filter(([label]) => label.toLowerCase().includes(t))
-      .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))
-  }, [items, where, when])
+      .sort((a, b) => {
+        const aSelected = selectedSet.has(a[0]) ? 0 : 1
+        const bSelected = selectedSet.has(b[0]) ? 0 : 1
+        if (aSelected !== bSelected) return aSelected - bSelected
+        return b[1] - a[1] || a[0].localeCompare(b[0])
+      })
+  }, [items, whereQuery, when, where])
 
   const whenSuggestions = useMemo(() => {
-    const counts = new Map<number, number>()
-    for (const { album, meta } of items) {
-      if (!matchesWhere(meta, album.title, where)) continue
+    const relevant = items.filter(({ album, meta }) => matchesWhere(meta, where))
+    let min = Number.MAX_SAFE_INTEGER
+    let max = Number.MIN_SAFE_INTEGER
+    for (const { meta } of relevant) {
       if (!meta.dateRange) continue
-      const start = parseInt(meta.dateRange.start, 10)
-      const end = parseInt(meta.dateRange.end || meta.dateRange.start, 10)
-      for (let y = start; y <= end; y++) counts.set(y, (counts.get(y) ?? 0) + 1)
+      min = Math.min(min, parseInt(meta.dateRange.start, 10))
+      max = Math.max(max, parseInt(meta.dateRange.end || meta.dateRange.start, 10))
     }
+    if (min > max) return []
+
+    const buckets: { y0: number; y1: number; count: number }[] = []
+    for (let y0 = min; y0 <= max; y0 += 5) {
+      const y1 = Math.min(y0 + 4, max)
+      let count = 0
+      for (const { meta } of relevant) {
+        if (!meta.dateRange) continue
+        const start = parseInt(meta.dateRange.start, 10)
+        const end = parseInt(meta.dateRange.end || meta.dateRange.start, 10)
+        if (start <= y1 && end >= y0) count++
+      }
+      if (count > 0) buckets.push({ y0, y1, count })
+    }
+
     const t = when.trim()
     const parsed = parseYearQuery(t)
-    return Array.from(counts.entries())
-      .filter(([year]) => (parsed ? year >= parsed.y0 && year <= parsed.y1 : String(year).includes(t)))
-      .sort((a, b) => a[0] - b[0])
+    return buckets.filter(
+      (b) => !parsed || (b.y0 <= parsed.y1 && b.y1 >= parsed.y0),
+    )
   }, [items, where, when])
 
-  const openResults = useCallback(() => {
+  const togglePlace = useCallback((label: string) => {
+    setWhere((prev) => (prev.includes(label) ? prev.filter((p) => p !== label) : [...prev, label]))
+  }, [])
+
+  const openView = useCallback((v: "map" | "timeline") => {
+    setView(v)
     setField(null)
     setMode("results")
   }, [])
 
-  const resetAll = useCallback(() => {
-    setWhere("")
-    setWhen("")
+  const closeResults = useCallback(() => {
     setField(null)
     setMode("collapsed")
+  }, [])
+
+  const resetAll = useCallback(() => {
+    setWhere([])
+    setWhereQuery("")
+    setWhen("")
+    setField(null)
   }, [])
 
   const handleSubmit = useCallback(
     (e: FormEvent) => {
       e.preventDefault()
-      openResults()
+      if (whereQuery.trim()) {
+        const q = whereQuery.trim().toLowerCase()
+        const containing = whereSuggestions.filter(([label]) => label.toLowerCase().includes(q))
+        const pick = containing.find(([label]) => label.toLowerCase() === q) ?? (containing.length === 1 ? containing[0] : null)
+        if (pick && !where.includes(pick[0])) togglePlace(pick[0])
+      }
+      setWhereQuery("")
+      setField(null)
+      setMode("results")
     },
-    [openResults],
+    [whereQuery, whereSuggestions, where, togglePlace],
   )
 
   const mapPoints = useMemo(() => {
@@ -371,8 +427,10 @@ export default function AlbumNavigation() {
   )
 
   const activeChips: { key: string; label: string; remove: () => void }[] = []
-  if (where.trim()) activeChips.push({ key: "where", label: `Where: ${where.trim()}`, remove: () => setWhere("") })
-  if (when.trim()) activeChips.push({ key: "when", label: `When: ${when.trim()}`, remove: () => setWhen("") })
+  for (const place of where) {
+    activeChips.push({ key: `where-${place}`, label: place, remove: () => togglePlace(place) })
+  }
+  if (when.trim()) activeChips.push({ key: "when", label: when.trim(), remove: () => setWhen("") })
 
   const suggestionPanel = field && (
     <motion.div
@@ -384,35 +442,54 @@ export default function AlbumNavigation() {
       className="overflow-hidden"
     >
       <div className="mt-2 rounded-2xl border border-slate-200 bg-white/95 p-2 shadow-xl shadow-slate-900/5 dark:border-slate-700 dark:bg-slate-950/95 dark:shadow-black/40">
-        <div className="px-3 py-2 text-[10px] font-semibold uppercase tracking-[0.16em] text-slate-400 dark:text-slate-500">
-          {field === "where" ? "Destinations" : "Years"}
+        <div className="flex items-center justify-between px-3 py-2">
+          <span className="text-[10px] font-semibold uppercase tracking-[0.16em] text-slate-400 dark:text-slate-500">
+            {field === "where" ? "Destinations" : "Year ranges"}
+          </span>
+          <span className="text-[10px] text-slate-400 dark:text-slate-500">
+            {field === "where"
+              ? where.length
+                ? `${where.length} selected, tap to add more`
+                : "Select as many as you like"
+              : "Pick a range or type your own"}
+          </span>
         </div>
 
         {field === "where" ? (
           whereSuggestions.length ? (
             <ul className="max-h-64 overflow-y-auto">
-              {whereSuggestions.map(([label, count]) => (
-                <li key={label}>
-                  <button
-                    onMouseDown={(e) => e.preventDefault()}
-                    onClick={() => {
-                      setWhere(label)
-                      setField("when")
-                    }}
-                    className={`flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm transition ${
-                      where.trim() === label
-                        ? "bg-teal-50 text-teal-700 dark:bg-teal-900/40 dark:text-teal-300"
-                        : "text-slate-700 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800/70"
-                    }`}
-                  >
-                    <MapPin className="h-4 w-4 shrink-0 text-teal-500" />
-                    <span className="flex-1 truncate">{label}</span>
-                    <span className="text-xs text-slate-400 dark:text-slate-500">
-                      {count} {count === 1 ? "album" : "albums"}
-                    </span>
-                  </button>
-                </li>
-              ))}
+              {whereSuggestions.map(([label, count]) => {
+                const selected = where.includes(label)
+                return (
+                  <li key={label}>
+                    <button
+                      onMouseDown={(e) => e.preventDefault()}
+                      onClick={() => togglePlace(label)}
+                      className={`flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm transition ${
+                        selected
+                          ? "bg-teal-50 text-teal-700 dark:bg-teal-900/40 dark:text-teal-300"
+                          : "text-slate-700 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800/70"
+                      }`}
+                    >
+                      <span
+                        className={`flex h-4 w-4 shrink-0 items-center justify-center rounded border transition ${
+                          selected
+                            ? "border-teal-500 bg-teal-500 text-white"
+                            : "border-slate-300 dark:border-slate-600"
+                        }`}
+                        aria-hidden
+                      >
+                        {selected && <Check className="h-3 w-3" strokeWidth={3} />}
+                      </span>
+                      <MapPin className="h-4 w-4 shrink-0 text-teal-500" />
+                      <span className="flex-1 truncate">{label}</span>
+                      <span className="text-xs text-slate-400 dark:text-slate-500">
+                        {count} {count === 1 ? "album" : "albums"}
+                      </span>
+                    </button>
+                  </li>
+                )
+              })}
             </ul>
           ) : (
             <p className="px-3 py-6 text-sm text-slate-400">
@@ -421,28 +498,32 @@ export default function AlbumNavigation() {
           )
         ) : whenSuggestions.length ? (
           <div className="flex flex-wrap gap-2 px-2 pb-2 pt-1">
-            {whenSuggestions.map(([year, count]) => (
-              <button
-                key={year}
-                onMouseDown={(e) => e.preventDefault()}
-                onClick={() => {
-                  setWhen(String(year))
-                  setField(null)
-                }}
-                className={`flex items-center gap-2 rounded-full border px-3 py-1.5 text-sm transition ${
-                  when.trim() === String(year)
-                    ? "border-teal-500 bg-teal-50 text-teal-700 dark:bg-teal-900/40 dark:text-teal-300"
-                    : "border-slate-200 text-slate-600 hover:border-teal-300 hover:text-teal-700 dark:border-slate-700 dark:text-slate-400 dark:hover:border-teal-700 dark:hover:text-teal-300"
-                }`}
-              >
-                {year}
-                <span className="text-xs opacity-60">{count}</span>
-              </button>
-            ))}
+            {whenSuggestions.map((bucket) => {
+              const label = bucket.y0 === bucket.y1 ? String(bucket.y0) : `${bucket.y0} to ${bucket.y1}`
+              const selected = when.trim() === label
+              return (
+                <button
+                  key={bucket.y0}
+                  onMouseDown={(e) => e.preventDefault()}
+                  onClick={() => {
+                    setWhen(label)
+                    setField(null)
+                  }}
+                  className={`flex items-center gap-2 rounded-full border px-3 py-1.5 text-sm transition ${
+                    selected
+                      ? "border-teal-500 bg-teal-50 text-teal-700 dark:bg-teal-900/40 dark:text-teal-300"
+                      : "border-slate-200 text-slate-600 hover:border-teal-300 hover:text-teal-700 dark:border-slate-700 dark:text-slate-400 dark:hover:border-teal-700 dark:hover:text-teal-300"
+                  }`}
+                >
+                  {label}
+                  <span className="text-xs opacity-60">{bucket.count}</span>
+                </button>
+              )
+            })}
           </div>
         ) : (
           <p className="px-3 py-6 text-sm text-slate-400">
-            No years hold albums for that destination. Clear the destination to browse every year.
+            No years hold albums for that destination. Clear the destinations to browse every year.
           </p>
         )}
       </div>
@@ -474,26 +555,49 @@ export default function AlbumNavigation() {
             <span className="block text-[10px] font-semibold uppercase tracking-[0.16em] text-slate-400 dark:text-slate-500">
               Where
             </span>
-            <span className="flex items-center gap-2">
-              <input
-                value={where}
-                onChange={(e) => setWhere(e.target.value)}
-                onFocus={() => setField("where")}
-                placeholder="Search destinations"
-                aria-label="Search by destination"
-                className="w-full bg-transparent py-0.5 text-sm text-slate-800 outline-none placeholder:text-slate-400 dark:text-slate-100 dark:placeholder:text-slate-600"
-              />
-              {where && (
-                <button
-                  type="button"
-                  onMouseDown={(e) => e.preventDefault()}
-                  onClick={() => setWhere("")}
-                  className="rounded-full p-1 text-slate-400 transition hover:bg-slate-100 hover:text-slate-600 dark:hover:bg-slate-800"
-                  aria-label="Clear destination"
+            <span className="flex flex-wrap items-center gap-1.5">
+              {where.map((place) => (
+                <span
+                  key={place}
+                  className="flex items-center gap-1 rounded-full bg-teal-50 px-2 py-0.5 text-xs font-medium text-teal-700 dark:bg-teal-900/40 dark:text-teal-300"
                 >
-                  <X className="h-3.5 w-3.5" />
-                </button>
-              )}
+                  <MapPin className="h-3 w-3" />
+                  <span className="max-w-32 truncate">{place}</span>
+                  <button
+                    type="button"
+                    onMouseDown={(e) => e.preventDefault()}
+                    onClick={() => togglePlace(place)}
+                    className="rounded-full p-0.5 transition hover:bg-teal-100 dark:hover:bg-teal-800"
+                    aria-label={`Remove ${place}`}
+                  >
+                    <X className="h-3 w-3" />
+                  </button>
+                </span>
+              ))}
+              <span className="flex min-w-24 flex-1 items-center gap-2">
+                <input
+                  value={whereQuery}
+                  onChange={(e) => setWhereQuery(e.target.value)}
+                  onFocus={() => setField("where")}
+                  placeholder={where.length ? "Add another" : "Search destinations"}
+                  aria-label="Search by destination"
+                  className="w-full min-w-0 bg-transparent py-0.5 text-sm text-slate-800 outline-none placeholder:text-slate-400 dark:text-slate-100 dark:placeholder:text-slate-600"
+                />
+                {(where.length > 0 || whereQuery) && (
+                  <button
+                    type="button"
+                    onMouseDown={(e) => e.preventDefault()}
+                    onClick={() => {
+                      setWhere([])
+                      setWhereQuery("")
+                    }}
+                    className="rounded-full p-1 text-slate-400 transition hover:bg-slate-100 hover:text-slate-600 dark:hover:bg-slate-800"
+                    aria-label="Clear destinations"
+                  >
+                    <X className="h-3.5 w-3.5" />
+                  </button>
+                )}
+              </span>
             </span>
           </label>
 
@@ -569,6 +673,30 @@ export default function AlbumNavigation() {
         </div>
       </div>
 
+      {mode === "collapsed" && (
+        <motion.div
+          initial={{ opacity: 0, y: 6 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.35, delay: 0.1 }}
+          className="mt-4 flex flex-wrap items-center gap-3"
+        >
+          <button
+            onClick={() => openView("map")}
+            className="flex items-center gap-2 rounded-full border border-slate-200 bg-white/70 px-4 py-2 text-sm font-medium text-slate-600 shadow-sm transition hover:border-teal-300 hover:text-teal-700 dark:border-slate-700 dark:bg-slate-950/60 dark:text-slate-300 dark:hover:border-teal-700 dark:hover:text-teal-300"
+          >
+            <MapIcon className="h-4 w-4" />
+            Explore the constellation map
+          </button>
+          <button
+            onClick={() => openView("timeline")}
+            className="flex items-center gap-2 rounded-full border border-slate-200 bg-white/70 px-4 py-2 text-sm font-medium text-slate-600 shadow-sm transition hover:border-teal-300 hover:text-teal-700 dark:border-slate-700 dark:bg-slate-950/60 dark:text-slate-300 dark:hover:border-teal-700 dark:hover:text-teal-300"
+          >
+            <Timer className="h-4 w-4" />
+            Walk the timeline
+          </button>
+        </motion.div>
+      )}
+
       {mode === "results" && (
         <motion.div
           initial={{ opacity: 0, y: 8 }}
@@ -582,7 +710,7 @@ export default function AlbumNavigation() {
               {activeChips.map((chip) => (
                 <FilterChip key={chip.key} label={chip.label} onRemove={chip.remove} />
               ))}
-              {(activeChips.length > 0 || mode === "results") && (
+              {activeChips.length > 0 && (
                 <button
                   onClick={resetAll}
                   className="flex items-center gap-1.5 rounded-full border border-slate-200 px-3 py-1.5 text-xs font-medium text-slate-500 transition hover:border-slate-300 hover:text-slate-700 dark:border-slate-700 dark:text-slate-400 dark:hover:text-slate-200"
@@ -591,6 +719,14 @@ export default function AlbumNavigation() {
                   Clear search
                 </button>
               )}
+              <button
+                onClick={closeResults}
+                className="flex items-center gap-1.5 rounded-full border border-slate-200 px-3 py-1.5 text-xs font-medium text-slate-500 transition hover:border-slate-300 hover:text-slate-700 dark:border-slate-700 dark:text-slate-400 dark:hover:text-slate-200"
+                aria-label="Close this view"
+              >
+                <ChevronUp className="h-3 w-3" />
+                Close view
+              </button>
             </div>
           </div>
 

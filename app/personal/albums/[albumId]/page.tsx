@@ -203,6 +203,17 @@ export default function AlbumDetailPage() {
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
         {/* Header */}
         <div className="mb-10">
+          <button
+            type="button"
+            onClick={() => {
+              if (window.history.length > 1) router.back()
+              else router.push("/personal/imagery")
+            }}
+            className="mb-6 inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-600 shadow-sm transition hover:border-teal-300 hover:text-teal-700 dark:border-slate-700 dark:bg-slate-950/60 dark:text-slate-300 dark:hover:border-teal-700 dark:hover:text-teal-300"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            Back to search and views
+          </button>
           <div className="inline-flex h-11 w-11 items-center justify-center rounded-2xl border border-slate-200 bg-white text-blue-700 shadow-sm dark:border-slate-800 dark:bg-slate-950 dark:text-blue-300">
             <span className="text-lg font-semibold">📷</span>
           </div>
