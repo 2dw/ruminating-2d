@@ -8,6 +8,7 @@ import { Camera } from "lucide-react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { DynamicFrame } from "@/components/dynamic-frame"
 import { useAlbums } from "@/contexts/albums-context"
+import AlbumNavigation from "@/components/album-navigation"
 
 export default function PersonalImageryPage() {
   const router = useRouter()
@@ -75,6 +76,8 @@ export default function PersonalImageryPage() {
               </p>
             </div>
           </div>
+
+          <AlbumNavigation />
 
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
             {albums.map((album) => (
