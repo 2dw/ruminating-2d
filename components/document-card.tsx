@@ -58,6 +58,7 @@ export function DocumentCard({ title, description, type, url, src, icon, color, 
   }
 
   const handleDownload = () => {
+    if (!documentUrl) return
     window.open(documentUrl, "_blank")
   }
 
