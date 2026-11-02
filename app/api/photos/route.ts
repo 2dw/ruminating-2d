@@ -1,4 +1,5 @@
 import { S3Client, ListObjectsV2Command, GetObjectCommand } from "@aws-sdk/client-s3"
+import { ASSETS_BASE } from "@/lib/assets"
 
 export const dynamic = "force-dynamic"
 
@@ -21,32 +22,6 @@ function getMediaType(filename: string): string {
   if (["pptx", "ppt"].includes(ext)) return "slide"
   if (["svg"].includes(ext)) return "image"
   return "unknown"
-}
-
-function getBaseUrl() {
-  const customEndpoint = process.env.R2_CUSTOM_ENDPOINT
-  const endpoint = process.env.R2_ENDPOINT
-  const bucket = process.env.R2_BUCKET_NAME || ""
-  const accountId = process.env.R2_ACCOUNT_ID
-
-  if (customEndpoint) return customEndpoint
-
-  if (endpoint && bucket) {
-    try {
-      const endpointUrl = new URL(endpoint)
-      endpointUrl.hostname = `${bucket}.${endpointUrl.hostname}`
-      endpointUrl.pathname = ""
-      return endpointUrl.toString().replace(/\/$/, "")
-    } catch {
-      return endpoint
-    }
-  }
-
-  if (bucket && accountId) {
-    return `https://${bucket}.${accountId}.r2.cloudflarestorage.com`
-  }
-
-  return ""
 }
 
 export async function GET(request: Request) {
@@ -72,8 +47,6 @@ export async function GET(request: Request) {
       allContents.push(...(response.Contents || []))
       continuationToken = response.IsTruncated ? response.NextContinuationToken : undefined
     } while (continuationToken)
-
-    const baseUrl = getBaseUrl()
 
     const files = allContents
       .filter((obj) => {
@@ -102,7 +75,7 @@ export async function GET(request: Request) {
       .map((obj) => {
         const filename = obj.Key?.split("/").pop() || ""
         const encodedKey = encodeURI(obj.Key || "")
-        const url = baseUrl ? new URL(encodedKey, baseUrl).toString() : encodedKey
+        const url = new URL(encodedKey, ASSETS_BASE).toString()
         const mediaType = getMediaType(filename)
 
         return {
