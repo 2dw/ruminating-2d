@@ -30,6 +30,8 @@ import SmartScheduler from "@/components/energy/SmartScheduler"
 import ForecastChart from "@/components/energy/ForecastChart"
 import RateHeatmap from "@/components/energy/RateHeatmap"
 import DailySummaryChart from "@/components/energy/DailySummaryChart"
+import { DerInfoCard } from "@/components/energy/DerInfoCard"
+import { MICROGRID_DERS, type MicrogridDerId } from "@/config/microgrid-ders"
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -57,7 +59,7 @@ const ago = (iso: string) => {
   return `${Math.floor(s / 3600)}h ago`
 }
 const hhmm = (m: number) => {
-  if (!m) return "—"
+  if (!m) return ":"
   const h = Math.floor(m / 60), mm = m % 60
   return h === 0 ? `${mm}m` : mm === 0 ? `${h}h` : `${h}h ${mm}m`
 }
@@ -148,8 +150,104 @@ function Flow({ live, dark }: { live: Live | null; dark: boolean }) {
   const dim = dark ? "#1f2937" : "#e2e8f0"
   const mu  = dark ? "rgba(255,255,255,0.3)" : "rgba(0,0,0,0.4)"
   const spd = (w: number, b = 400) => Math.max(0.6, 2.8 - w / b)
+
+  // DER info cards: opened by hovering or clicking an info icon or DER node in the diagram.
+  const wrapRef = useRef<HTMLDivElement>(null)
+  const [info, setInfo] = useState<{ id: MicrogridDerId; x: number; y: number; w: number } | null>(null)
+
+  // Measures where the card should sit relative to the diagram container.
+  const measureInfo = (id: MicrogridDerId, el: Element) => {
+    const wrap = wrapRef.current
+    if (!wrap) return null
+    const r = el.getBoundingClientRect()
+    const c = wrap.getBoundingClientRect()
+    const cardW = Math.min(380, Math.max(290, c.width - 24))
+    let x = r.left - c.left + r.width / 2 - cardW / 2
+    x = Math.max(12, Math.min(x, c.width - cardW - 12))
+    const y = 12
+    return { id, x, y, w: cardW }
+  }
+
+  const openInfo = (id: MicrogridDerId, el: Element) => {
+    const pos = measureInfo(id, el)
+    if (pos) setInfo(pos)
+  }
+
+  const toggleInfo = (id: MicrogridDerId, el: Element) => {
+    const pos = measureInfo(id, el)
+    setInfo((prev) => (prev?.id === id ? null : pos))
+  }
+
+  useEffect(() => {
+    if (!info) return
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setInfo(null)
+    }
+    window.addEventListener("keydown", handleKeyDown)
+    return () => window.removeEventListener("keydown", handleKeyDown)
+  }, [info])
+
+  const infoIcon = (id: MicrogridDerId, cx: number, cy: number) => {
+    const der = MICROGRID_DERS[id]
+    const accent = der.accent
+    const active = info?.id === id
+    return (
+      <g
+        key={id}
+        role="button"
+        tabIndex={0}
+        aria-label={`${der.title} specifications and photos`}
+        className="cursor-pointer group"
+        onPointerEnter={(e) => {
+          if (e.pointerType !== "touch") openInfo(id, e.currentTarget)
+        }}
+        onClick={(e) => toggleInfo(id, e.currentTarget)}
+        onFocus={(e) => openInfo(id, e.currentTarget)}
+        onBlur={(e) => {
+          if (!wrapRef.current?.contains(e.relatedTarget as Node | null)) setInfo(null)
+        }}
+      >
+        <circle cx={cx} cy={cy} r={16} fill="transparent" />
+        <circle
+          cx={cx}
+          cy={cy}
+          r={active ? 12.5 : 10}
+          fill={active ? `${accent}20` : "transparent"}
+          stroke={accent}
+          strokeWidth={active ? 1.5 : 0.8}
+          strokeOpacity={active ? 0.9 : 0.35}
+          className="transition-all duration-200"
+        />
+        <circle
+          cx={cx}
+          cy={cy}
+          r={8}
+          fill="rgba(255,255,255,0.95)"
+          stroke={accent}
+          strokeWidth={active ? 1.8 : 1.2}
+          strokeOpacity={active ? 1 : 0.75}
+          filter="drop-shadow(0 1px 2px rgba(0,0,0,0.18))"
+          className="transition-transform duration-200 group-hover:scale-110"
+        />
+        <text
+          x={cx}
+          y={cy + 3.5}
+          textAnchor="middle"
+          fontSize={11}
+          fontWeight={700}
+          fontFamily="system-ui, -apple-system, sans-serif"
+          fontStyle="italic"
+          fill={accent}
+          style={{ pointerEvents: "none", userSelect: "none" }}
+        >
+          i
+        </text>
+      </g>
+    )
+  }
+
   return (
-    <div className="w-full">
+    <div className="w-full relative" ref={wrapRef} onMouseLeave={() => setInfo(null)}>
       <style>{`
         @keyframes efd{from{stroke-dashoffset:48}to{stroke-dashoffset:0}}
         @keyframes efp{0%,100%{opacity:1}50%{opacity:0.5}}
@@ -166,8 +264,13 @@ function Flow({ live, dark }: { live: Live | null; dark: boolean }) {
           style={hl?{animation:`efd ${spd(aout,1800)}s linear infinite`}:{}}/>
         {hl&&<text x="338" y="216" fill={col} fontSize="9" fontFamily="monospace">{aout.toFixed(0)}W</text>}
         <path d="M 348 250 Q 480 260 510 96" fill="none" stroke="rgba(167,139,250,0.15)" strokeWidth="1.5" strokeDasharray="5 10"/>
+        
         {/* Solar node */}
-        <g>
+        <g
+          className="cursor-pointer"
+          onClick={(e) => toggleInfo("solar", e.currentTarget)}
+          onPointerEnter={(e) => { if (e.pointerType !== "touch") openInfo("solar", e.currentTarget) }}
+        >
           {hs&&<circle cx="80" cy="70" r="46" fill="none" stroke="#fbbf24" strokeWidth="1" strokeOpacity=".3" style={{animation:"efp 2s ease-in-out infinite"}}/>}
           <circle cx="80" cy="70" r="38" fill={dark?"#0f0a00":"#fefce8"} stroke="#fbbf24" strokeWidth={hs?2:1} strokeOpacity={hs?1:0.3}/>
           {hs&&[0,45,90,135,180,225,270,315].map(a=><line key={a} x1={80+32*Math.cos(a*Math.PI/180)} y1={70+32*Math.sin(a*Math.PI/180)} x2={80+42*Math.cos(a*Math.PI/180)} y2={70+42*Math.sin(a*Math.PI/180)} stroke="#fbbf24" strokeWidth="1.5" strokeOpacity=".5"/>)}
@@ -175,8 +278,14 @@ function Flow({ live, dark }: { live: Live | null; dark: boolean }) {
           <text x="80" y="123" textAnchor="middle" fill="#d97706" fontSize="10" fontFamily="monospace" opacity={hs?1:.35}>☀ Solar</text>
           <text x="80" y="136" textAnchor="middle" fill="#d97706" fontSize="9" fontFamily="monospace" opacity={hs?.8:.25}>{sol.toFixed(0)} W</text>
         </g>
+        {infoIcon("solar", 122, 120)}
+
         {/* Battery node */}
-        <g>
+        <g
+          className="cursor-pointer"
+          onClick={(e) => toggleInfo("battery", e.currentTarget)}
+          onPointerEnter={(e) => { if (e.pointerType !== "touch") openInfo("battery", e.currentTarget) }}
+        >
           <circle cx="320" cy="150" r="52" fill="none" stroke={col} strokeWidth="1" strokeOpacity=".2" style={{animation:"efp 3s ease-in-out infinite"}}/>
           <circle cx="320" cy="150" r="44" fill={dark?"#080d10":"#f0fdf4"} stroke={col} strokeWidth="2.5"/>
           {(()=>{
@@ -194,6 +303,8 @@ function Flow({ live, dark }: { live: Live | null; dark: boolean }) {
           <text x="320" y="160" textAnchor="middle" fill={mu} fontSize="8" fontFamily="monospace">SOC · SOH {live?.soh??100}%</text>
           <text x="320" y="205" textAnchor="middle" fill={mu} fontSize="9" fontFamily="monospace">⚡ Delta Pro 3 · 4096 Wh</text>
         </g>
+        {infoIcon("battery", 416, 202)}
+
         {/* Grid node */}
         <g>
           {hg&&<circle cx="560" cy="70" r="46" fill="none" stroke="#60a5fa" strokeWidth="1" strokeOpacity=".25" style={{animation:"efp 2.5s ease-in-out infinite"}}/>}
@@ -202,6 +313,7 @@ function Flow({ live, dark }: { live: Live | null; dark: boolean }) {
           <text x="560" y="123" textAnchor="middle" fill="#2563eb" fontSize="10" fontFamily="monospace" opacity={hg?1:.3}>⚡ Grid</text>
           <text x="560" y="136" textAnchor="middle" fill="#2563eb" fontSize="9" fontFamily="monospace" opacity={hg?.8:.22}>{hg?`${gin.toFixed(0)} W`:"standby"}</text>
         </g>
+
         {/* House node */}
         <g>
           <circle cx="320" cy="263" r="28" fill={dark?"#0a0010":"#faf5ff"} stroke="#7c3aed" strokeWidth="2" strokeOpacity={hl?1:.3}/>
@@ -210,16 +322,28 @@ function Flow({ live, dark }: { live: Live | null; dark: boolean }) {
           {hl&&<rect x="317" y="262" width="6" height="5" fill="#7c3aed" fillOpacity=".35"/>}
           <text x="320" y="302" textAnchor="middle" fill="#7c3aed" fontSize="9" fontFamily="monospace">🏠 {aout.toFixed(0)} W</text>
         </g>
+
         {/* Status strips */}
         <rect x="8" y="282" width="220" height="14" rx="7" fill="rgba(148,163,184,.08)"/>
         <text x="118" y="293" textAnchor="middle" fill={mu} fontSize="8" fontFamily="monospace">
-          {net>0?"↑ charging":"↓ discharging"} · {live?ago(live.timestamp_iso):"—"}
+          {net>0?"↑ charging":"↓ discharging"} · {live?ago(live.timestamp_iso):"syncing"}
         </text>
         <rect x="420" y="282" width="212" height="14" rx="7" fill={isPeak()?"rgba(239,68,68,.1)":"rgba(34,197,94,.1)"}/>
         <text x="526" y="293" textAnchor="middle" fill={isPeak()?"#dc2626":"#16a34a"} fontSize="8" fontFamily="monospace">
-          {isPeak()?"⚠ peak":"✓ off-peak"} · ${getRate().toFixed(3)}/kWh
+          {isPeak()?"⚠ on peak":"✓ off peak"} · ${getRate().toFixed(3)}/kWh
         </text>
       </svg>
+
+      {info && (
+        <DerInfoCard
+          derId={info.id}
+          left={info.x}
+          top={info.y}
+          width={info.w}
+          dark={dark}
+          onClose={() => setInfo(null)}
+        />
+      )}
     </div>
   )
 }
@@ -298,7 +422,7 @@ function SyncedCharts({ history, dark, show, live, minS, maxS, socMin, socMax, w
   const rangeStart = history[safeStart]?.timestamp_iso ?? ""
   const rangeEnd   = history[safeEnd]?.timestamp_iso ?? ""
 
-  // Synced Brush handler — clamp to valid range, skip if unchanged to prevent loop
+  // Synced Brush handler : clamp to valid range, skip if unchanged to prevent loop
   const handleBrushChange = (range: any) => {
     if (range && typeof range.startIndex === "number" && typeof range.endIndex === "number") {
       const s = Math.max(0, Math.min(range.startIndex, len - 1))
@@ -366,7 +490,7 @@ function SyncedCharts({ history, dark, show, live, minS, maxS, socMin, socMax, w
     interval: "preserveStartEnd" as const,
     minTickGap: 50,
     tickFormatter: (val: string) => {
-      // val is the full label like "Aug 12, 14:30" — trim to time-only when zoomed in
+      // val is the full label like "Aug 12, 14:30" : trim to time-only when zoomed in
       if (visibleDays <= 1.5) {
         const parts = val.split(", ")
         return parts.length > 1 ? parts[1] : val
@@ -378,7 +502,7 @@ function SyncedCharts({ history, dark, show, live, minS, maxS, socMin, socMax, w
   const sharedCursor = { stroke: dark ? "rgba(255,255,255,0.15)" : "rgba(0,0,0,0.1)", strokeWidth: 1, strokeDasharray: "4 2" }
   const sharedLegend = { style: { fontSize: 10, fontFamily: "JetBrains Mono, monospace" } }
 
-  // Responsive brush sizing — bigger for touch on mobile
+  // Responsive brush sizing : bigger for touch on mobile
   const [isMobile, setIsMobile] = useState(false)
   useEffect(() => {
     const check = () => setIsMobile(window.innerWidth < 640)
@@ -410,11 +534,11 @@ function SyncedCharts({ history, dark, show, live, minS, maxS, socMin, socMax, w
         <div className="flex items-center gap-2 text-xs">
           <span className="text-slate-400 font-mono">Viewing:</span>
           <span className="font-mono text-slate-600 dark:text-slate-300">
-            {rangeStart ? fmtTime(rangeStart) : "—"}
+            {rangeStart ? fmtTime(rangeStart) : ":"}
           </span>
           <span className="text-slate-400">→</span>
           <span className="font-mono text-slate-600 dark:text-slate-300">
-            {rangeEnd ? fmtTime(rangeEnd) : "—"}
+            {rangeEnd ? fmtTime(rangeEnd) : ":"}
           </span>
           <span className="text-slate-400 font-mono">
             ({brushEnd - brushStart} pts · {visibleDays.toFixed(1)}d)
@@ -661,7 +785,7 @@ function EnergyDashboardContent() {
                 )}
               </div>
               <p className="mt-2 max-w-2xl text-sm text-slate-500 dark:text-slate-400">
-                EcoFlow Delta Pro 3 · solar · PG&E E-TOU-C · Cloudflare Worker → R2 · polled every 30 min
+                EcoFlow Delta Pro 3 · solar · PG&E E TOU C rate plan · Cloudflare Worker → R2 · polled every 30 min
               </p>
             </div>
             <div className="shrink-0 flex items-center gap-2">
@@ -790,7 +914,7 @@ function EnergyDashboardContent() {
                       Battery Time Series
                     </CardTitle>
                     <p className="text-xs text-slate-400">
-                      scroll to zoom · drag to pan · hover for crosshair · red bands = peak hours (4–9 PM)
+                      scroll to zoom · drag to pan · hover for crosshair · red bands = peak hours (4 to 9 PM)
                     </p>
                   </div>
                   <div className="flex items-center gap-2">
@@ -879,7 +1003,7 @@ function EnergyDashboardContent() {
             </div>
           )}
 
-          {/* Value stacking — full width */}
+          {/* Value stacking : full width */}
           <Card className="border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950/40">
             <CardHeader className="pb-2">
               <div className="flex items-center gap-2">
@@ -916,7 +1040,7 @@ function EnergyDashboardContent() {
                   </span>
                 </div>
                 <p className={`text-xs ${isPeak()?"text-red-600 dark:text-red-400":"text-green-600 dark:text-green-400"}`}>
-                  {isPeak()?"⚠ Peak 4–9 PM · discharge battery to offset grid costs":"✓ Off-peak · good window to charge from grid if needed"}
+                  {isPeak()?"⚠ Peak 4 to 9 PM · discharge battery to offset grid costs":"✓ Off peak · good window to charge from grid if needed"}
                 </p>
               </div>
               <div className="grid grid-cols-2 gap-1.5 text-xs font-mono">
@@ -935,11 +1059,11 @@ function EnergyDashboardContent() {
           {/* Footer */}
           <Card className="border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950/30">
             <CardContent className="pt-5 grid md:grid-cols-2 gap-5 text-sm text-slate-600 dark:text-slate-400 leading-relaxed">
-              <p>A live platform integrating distributed optimization and control principles from two decades of DER work at Heila, GELI, and EPRI. Running on an EcoFlow Delta Pro 3, rooftop solar, and eight years of PG&E interval data, it demonstrates how intelligent scheduling of distributed resources can respond dynamically to grid conditions while respecting the functional requirements of local assets.</p>
+              <p>A live platform integrating distributed optimization and control principles from two decades of DER work at Heila, GELI, and EPRI. Running on an EcoFlow Delta Pro 3, balcony solar, and eight years of PG&E interval data, it demonstrates how intelligent scheduling of distributed resources can respond dynamically to grid conditions while respecting the functional requirements of local assets.</p>
               <ul className="space-y-1 text-xs text-slate-500">
-                <li>⚡ EcoFlow Open API (HMAC-SHA256) · api-a.ecoflow.com</li>
-                <li>☀️ Open-Meteo solar irradiance · no API key</li>
-                <li>⚙️ Web admin controls · EcoFlow DP3 API · HMAC-SHA256</li>
+                <li>⚡ EcoFlow Open API (HMAC SHA256) · api-a.ecoflow.com</li>
+                <li>☀️ Open Meteo solar irradiance · no API key</li>
+                <li>⚙️ Web admin controls · EcoFlow DP3 API · HMAC SHA256</li>
                 <li>☁️ Cloudflare Worker + R2 · serverless 24/7 archival</li>
                 <li>📊 SQLite + Ridge regression · counterfactual PG&E baseline</li>
                 <li>⚡ PG&E interval data · 282,880 rows · Apr 2018 → Jul 2026</li>
