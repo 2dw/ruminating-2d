@@ -36,7 +36,7 @@ type AlbumMeta = {
   dateRange: { start: string; end?: string; ongoing?: boolean } | null
 }
 
-function getAlbumMeta(album: { id: string; title: string; meta?: AlbumMeta | null }): AlbumMeta {
+function getAlbumMeta(album: { id: string; title: string; year?: number; meta?: AlbumMeta | null }): AlbumMeta {
   if (album.meta) return album.meta
   return resolveAlbumMeta(album)
 }
@@ -305,12 +305,19 @@ export default function AlbumNavigation() {
     [items, where, when],
   )
 
+  // Safety net: albums the map or timeline cannot place still need a visible,
+  // clickable home so they are never silently dropped from these views.
+  const unmapped = useMemo(() => filtered.filter((item) => !item.meta.location), [filtered])
+  const undated = useMemo(() => filtered.filter((item) => !item.meta.dateRange), [filtered])
+
   const stats = useMemo(() => {
     let min = Number.MAX_SAFE_INTEGER
     let max = Number.MIN_SAFE_INTEGER
     const places = new Set<string>()
+    let withoutMapPin = 0
     for (const { meta } of items) {
       if (meta.location) places.add(meta.location.label)
+      else withoutMapPin++
       if (meta.dateRange) {
         min = Math.min(min, parseInt(meta.dateRange.start, 10))
         max = Math.max(max, parseInt(meta.dateRange.end || meta.dateRange.start, 10))
@@ -319,6 +326,7 @@ export default function AlbumNavigation() {
     return {
       total: items.length,
       places: places.size,
+      unmapped: withoutMapPin,
       span: min <= max ? `${min} to ${max}` : "",
     }
   }, [items])
@@ -761,6 +769,14 @@ export default function AlbumNavigation() {
                 {stats.span}
                 <br />
                 {stats.places} destinations
+                {stats.unmapped > 0 && (
+                  <>
+                    <br />
+                    <span className="text-amber-500 dark:text-amber-400">
+                      {stats.unmapped} still to place on the map
+                    </span>
+                  </>
+                )}
               </>
             )}
           </div>
@@ -838,6 +854,7 @@ export default function AlbumNavigation() {
               </button>
             </div>
           ) : view === "map" ? (
+            <>
             <div className="relative w-full overflow-hidden rounded-2xl border border-slate-200 bg-[#060a0f] dark:border-slate-700">
               <svg
                 ref={mapSvgRef}
@@ -1031,7 +1048,39 @@ export default function AlbumNavigation() {
                 Scroll to zoom, drag to pan. Hover for details, click to open the album
               </div>
             </div>
+
+            {unmapped.length > 0 && (
+              <div className="mt-3 rounded-2xl border border-dashed border-amber-300/70 px-4 py-3 dark:border-amber-500/40">
+                <div className="mb-2 flex items-center gap-2 text-[10px] font-semibold uppercase tracking-[0.16em] text-amber-600 dark:text-amber-400">
+                  <MapPin className="h-3.5 w-3.5" />
+                  {unmapped.length} {unmapped.length === 1 ? "album" : "albums"} still to place on the map
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {unmapped.map(({ album, meta }) => (
+                    <button
+                      key={album.id}
+                      type="button"
+                      onClick={() => openAlbum(album.id)}
+                      className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white/70 px-3 py-1.5 text-xs font-medium text-slate-600 transition hover:border-teal-300 hover:text-teal-700 dark:border-slate-700 dark:bg-slate-950/60 dark:text-slate-300 dark:hover:border-teal-600 dark:hover:text-teal-300"
+                    >
+                      <MapPin className="h-3 w-3 text-amber-500 dark:text-amber-400" />
+                      <span>{album.title}</span>
+                      {meta.dateRange && (
+                        <span className="text-slate-400 dark:text-slate-500">
+                          {formatDateRange(meta.dateRange)}
+                        </span>
+                      )}
+                    </button>
+                  ))}
+                </div>
+                <p className="mt-2 text-[11px] text-slate-500 dark:text-slate-400">
+                  These albums have no coordinates yet, so the map cannot show them. They stay one click away here.
+                </p>
+              </div>
+            )}
+            </>
           ) : timeline ? (
+            <>
             <div className="relative w-full overflow-x-auto rounded-2xl border border-slate-200 bg-[#060a0f] p-4 dark:border-slate-700 sm:p-6">
               <div className="relative" style={{ minWidth: 720 }}>
                 <svg
@@ -1167,6 +1216,35 @@ export default function AlbumNavigation() {
                 <span>Hover for details, click to open the album</span>
               </div>
             </div>
+
+            {undated.length > 0 && (
+              <div className="mt-3 rounded-2xl border border-dashed border-amber-300/70 px-4 py-3 dark:border-amber-500/40">
+                <div className="mb-2 flex items-center gap-2 text-[10px] font-semibold uppercase tracking-[0.16em] text-amber-600 dark:text-amber-400">
+                  <Timer className="h-3.5 w-3.5" />
+                  {undated.length} {undated.length === 1 ? "album" : "albums"} still to place on the timeline
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {undated.map(({ album, meta }) => (
+                    <button
+                      key={album.id}
+                      type="button"
+                      onClick={() => openAlbum(album.id)}
+                      className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white/70 px-3 py-1.5 text-xs font-medium text-slate-600 transition hover:border-teal-300 hover:text-teal-700 dark:border-slate-700 dark:bg-slate-950/60 dark:text-slate-300 dark:hover:border-teal-600 dark:hover:text-teal-300"
+                    >
+                      <Timer className="h-3 w-3 text-amber-500 dark:text-amber-400" />
+                      <span>{album.title}</span>
+                      {meta.location && (
+                        <span className="text-slate-400 dark:text-slate-500">{meta.location.label}</span>
+                      )}
+                    </button>
+                  ))}
+                </div>
+                <p className="mt-2 text-[11px] text-slate-500 dark:text-slate-400">
+                  These albums carry no year yet, so the timeline cannot place them. They stay one click away here.
+                </p>
+              </div>
+            )}
+            </>
           ) : null}
         </motion.div>
       )}
