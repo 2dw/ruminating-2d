@@ -44,9 +44,13 @@ export const MICROGRID_DERS: Record<MicrogridDerId, MicrogridDer> = {
     statusBadge: "Balcony Solar Array",
     accent: "#d97706",
     photos: [
-      toPhotoItem("pv_7866.jpg", "Array balcony mounting and tilt orientation"),
-      toPhotoItem("pv_7873.jpg", "Bifacial TOPCon solar module cell surface"),
-      toPhotoItem("pv_9387.jpg", "Array wiring, junction, and lead connections"),
+      toPhotoItem("pv_8702.webp", "Three panel balcony array overlooking garden greenery"),
+      toPhotoItem("pv_8436.jpg", "Bifacial modular panels angled for midday solar capture"),
+      toPhotoItem("pv_9405.webp", "Custom strut mounting frame clamped to balcony railing"),
+      toPhotoItem("pv_7866.jpg", "Adjustable tilt brackets and rear bifacial cell surface"),
+      toPhotoItem("pv_9387.jpg", "Array rail structure and panel surface under clear skies"),
+      toPhotoItem("pv_8699.webp", "Underside balcony framing and mountain horizon view"),
+      toPhotoItem("pv_1360.webp", "Balcony array at night illuminated by city lights"),
     ],
     specs: [
       { label: "Array capacity", value: "375 W nominal generation" },
@@ -71,8 +75,8 @@ export const MICROGRID_DERS: Record<MicrogridDerId, MicrogridDer> = {
     statusBadge: "Primary Storage Asset",
     accent: "#16a34a",
     photos: [
-      toPhotoItem("delta_pro_3_7869.jpg", "Delta Pro 3 front console display and ports"),
-      toPhotoItem("delta_pro_3_7881.jpg", "Delta Pro 3 side profile, wheels, and handles"),
+      toPhotoItem("delta_pro_3_7869.jpg", "Delta Pro 3 unit and DC lead from balcony solar array"),
+      toPhotoItem("delta_pro_3_7881.jpg", "Active front console display showing SOC and AC output"),
     ],
     specs: [
       { label: "Capacity", value: "4,096 Wh (4.096 kWh) LiFePO4" },
