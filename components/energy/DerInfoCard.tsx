@@ -1,7 +1,7 @@
 "use client"
 // Translucent mouse over info card for the distributed energy resources on the
 // microgrid schematic. Shows full nameplate technical specifications, field
-// photos hosted on R2 with direct URL links, and operational status.
+// photos in webp and jpeg formats with full size links, and operational status.
 import { ExternalLink, X } from "lucide-react"
 import {
   MICROGRID_DERS,
@@ -37,15 +37,15 @@ export function DerInfoCard({
         top,
         width,
         background: dark
-          ? "rgba(255, 255, 255, 0.08)"
-          : "rgba(255, 255, 255, 0.68)",
+          ? "rgba(255, 255, 255, 0.12)"
+          : "rgba(255, 255, 255, 0.72)",
         backdropFilter: "blur(24px) saturate(190%)",
         WebkitBackdropFilter: "blur(24px) saturate(190%)",
         border: dark
-          ? "1px solid rgba(255, 255, 255, 0.22)"
+          ? "1px solid rgba(255, 255, 255, 0.25)"
           : "1px solid rgba(255, 255, 255, 0.85)",
         boxShadow: dark
-          ? "0 24px 60px rgba(0, 0, 0, 0.55), inset 0 1px 0 rgba(255, 255, 255, 0.35)"
+          ? "0 24px 60px rgba(0, 0, 0, 0.55), inset 0 1px 0 rgba(255, 255, 255, 0.4)"
           : "0 24px 60px rgba(15, 23, 42, 0.16), inset 0 1px 0 rgba(255, 255, 255, 0.95)",
         color: dark ? "#ffffff" : "#0f172a",
       }}
@@ -56,7 +56,7 @@ export function DerInfoCard({
         className="flex items-start justify-between gap-2 px-4 pt-3.5 pb-2.5"
         style={{
           background: dark
-            ? "rgba(255, 255, 255, 0.05)"
+            ? "rgba(255, 255, 255, 0.04)"
             : "rgba(255, 255, 255, 0.45)",
           borderBottom: dark
             ? "1px solid rgba(255, 255, 255, 0.12)"
@@ -117,41 +117,44 @@ export function DerInfoCard({
         )}
       </div>
 
-      <div className="max-h-[380px] overflow-y-auto px-4 py-3 space-y-3 scrollbar-thin">
-        {/* Photo Gallery with URL Links */}
+      <div className="max-h-[380px] overflow-y-auto px-4 py-3 space-y-3.5 scrollbar-thin">
+        {/* Photo Gallery with Descriptive Captions */}
         <div>
-          <div className="flex items-center justify-between mb-1.5">
+          <div className="flex items-center justify-between mb-2">
             <span
               className={`text-[10px] uppercase font-bold tracking-wider font-mono ${
                 dark ? "text-slate-300" : "text-slate-600"
               }`}
             >
-              Field Asset Photos
+              Field Asset Gallery
             </span>
             <span
               className={`text-[10px] font-mono ${
                 dark ? "text-slate-400" : "text-slate-500"
               }`}
             >
-              assets.trudie.dpdns.org
+              click to enlarge
             </span>
           </div>
 
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
             {der.photos.map((photo) => (
-              <div key={photo.filename} className="space-y-1">
-                <a
-                  href={photo.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  title={`Open ${photo.caption} full size`}
-                  className="group relative block h-20 overflow-hidden rounded-lg shadow-sm"
+              <a
+                key={photo.url}
+                href={photo.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                title={`Open ${photo.caption} full size`}
+                className="group block space-y-1"
+              >
+                <div
+                  className="relative h-20 overflow-hidden rounded-lg shadow-sm"
                   style={{
                     border: dark
-                      ? "1px solid rgba(255, 255, 255, 0.18)"
+                      ? "1px solid rgba(255, 255, 255, 0.2)"
                       : "1px solid rgba(226, 232, 240, 0.9)",
                     background: dark
-                      ? "rgba(255, 255, 255, 0.04)"
+                      ? "rgba(255, 255, 255, 0.05)"
                       : "rgba(255, 255, 255, 0.5)",
                   }}
                 >
@@ -167,21 +170,17 @@ export function DerInfoCard({
                       <ExternalLink className="h-3 w-3" />
                     </span>
                   </div>
-                </a>
-                <a
-                  href={photo.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className={`block text-[9px] font-mono hover:underline truncate font-semibold ${
+                </div>
+                <p
+                  className={`text-[9.5px] leading-tight line-clamp-2 transition-colors ${
                     dark
-                      ? "text-sky-300 hover:text-sky-200"
-                      : "text-blue-700 hover:text-blue-900"
+                      ? "text-slate-300 group-hover:text-white"
+                      : "text-slate-600 group-hover:text-slate-950"
                   }`}
-                  title={photo.url}
                 >
-                  {photo.filename}
-                </a>
-              </div>
+                  {photo.caption}
+                </p>
+              </a>
             ))}
           </div>
         </div>
