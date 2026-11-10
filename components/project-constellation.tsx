@@ -547,7 +547,7 @@ export function ProjectConstellation({
                    width: size,
                    height: size,
                    zIndex: highlighted ? 20 : 10,
-                   opacity: clusterActive || isHovered ? 1 : 0.4,
+                   opacity: clusterActive || isHovered ? 1 : 0.12,
                  }}
                  aria-label={titleFor(photo)}
               >
