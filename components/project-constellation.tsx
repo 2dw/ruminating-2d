@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import Image from "next/image"
 import { motion, AnimatePresence } from "framer-motion"
-import { X, ChevronLeft, ChevronRight, RefreshCw, FileText, Film, Presentation, File } from "lucide-react"
+import { X, ChevronLeft, ChevronRight, RefreshCw, FileText, Film, Presentation, File, MapPin } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 
@@ -13,16 +13,40 @@ interface Photo {
   url: string
   mediaType?: string
   lastModified?: string
+  /** Set when the photo was loaded as part of a star cluster. */
+  clusterId?: string
+}
+
+/** A labelled group of photos rendered as its own region of the night sky. */
+export interface ConstellationCluster {
+  id: string
+  /** Place name shown on the cluster label, e.g. "San Bruno". */
+  label: string
+  /** When the photos were taken, e.g. "May 26, 2007". */
+  date: string
+  /** Short setting note, e.g. "Flat tar-and-gravel roof". */
+  detail?: string
+  /** Full R2 prefix for this cluster's folder. */
+  prefix: string
+  mediaFilter?: string[]
 }
 
 interface ProjectConstellationProps {
   prefix: string
+  /** When provided, photos are grouped into labelled clusters instead of one loose field. */
+  clusters?: ConstellationCluster[]
   captions?: Record<string, string>
   className?: string
   mediaPrefix?: string
   mediaFilter?: string[]
   noMediaMessage?: string
 }
+
+const FIELD_HEIGHT = 620
+const SOLO_FIELD_WIDTH = 900
+const SOLO_LAYOUT_WIDTH = 800
+const CLUSTER_FIELD_WIDTH = 1000
+const EXCLUDED_EXTENSIONS = [".docx", ".doc", ".txt", ".md", ".rtf", ".pptx", ".ppt"]
 
 function generateStars(count: number) {
   return Array.from({ length: count }, (_, i) => ({
@@ -77,6 +101,23 @@ function calculateStarSize(count: number, area: number): number {
   if (targetDensity < 3) return 80
   if (targetDensity < 6) return 72
   if (targetDensity < 10) return 64
+  return 56
+}
+
+/**
+ * Largest star size from the standard ladder that can plausibly fit `count`
+ * stars inside one cluster's zone without overlapping. Keeps dense clusters
+ * legible while letting sparse ones keep big, bright stars.
+ */
+function fitStarSize(count: number, zoneWidth: number, zoneHeight: number): number {
+  if (count === 0) return 80
+  for (const size of [80, 72, 64, 56]) {
+    const margin = size / 2 + 16
+    const minDistance = size + 12
+    const cols = Math.max(1, Math.floor((zoneWidth - margin * 2) / minDistance) + 1)
+    const rows = Math.max(1, Math.floor((zoneHeight - margin * 2) / minDistance) + 1)
+    if (cols * rows >= count * 1.15) return size
+  }
   return 56
 }
 
@@ -184,22 +225,29 @@ function buildConstellationLines(
   return lines
 }
 
-export function ProjectConstellation({ prefix, captions = {}, className, mediaPrefix, mediaFilter, noMediaMessage }: ProjectConstellationProps) {
+export function ProjectConstellation({
+  prefix,
+  clusters,
+  captions = {},
+  className,
+  mediaPrefix,
+  mediaFilter,
+  noMediaMessage,
+}: ProjectConstellationProps) {
   const [photos, setPhotos] = useState<Photo[]>([])
   const [activeIndex, setActiveIndex] = useState<number | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null)
+  const [focusedCluster, setFocusedCluster] = useState<string | null>(null)
   const containerRef = useRef<HTMLDivElement>(null)
 
   const stars = useMemo(() => generateStars(60), [])
 
-  const loadPhotos = useCallback(async () => {
-    setIsLoading(true)
-    setError(null)
+  const isClustered = (clusters?.length ?? 0) > 0
 
-    try {
-      const requestPrefix = mediaPrefix || prefix
+  const loadFromPrefix = useCallback(
+    async (requestPrefix: string, filters?: string[]): Promise<Photo[]> => {
       const response = await fetch(`/api/photos?prefix=${encodeURIComponent(requestPrefix)}`, {
         cache: "no-store",
       })
@@ -207,48 +255,143 @@ export function ProjectConstellation({ prefix, captions = {}, className, mediaPr
       const data = await response.json()
       if (!data.success) throw new Error(data.message || "Failed to load photos")
 
-      let loaded = (Array.isArray(data.photos) ? data.photos : []).sort(
+      let loaded: Photo[] = (Array.isArray(data.photos) ? data.photos : []).sort(
         (a: Photo, b: Photo) => (a.name || "").localeCompare(b.name || ""),
       )
 
-      if (mediaFilter && mediaFilter.length > 0) {
-        const lowerFilters = mediaFilter.map((f) => f.toLowerCase())
-        loaded = loaded.filter((photo: Photo) => {
+      if (filters && filters.length > 0) {
+        const lowerFilters = filters.map((f) => f.toLowerCase())
+        loaded = loaded.filter((photo) => {
           const name = photo.name.toLowerCase()
           return lowerFilters.some((f) => name.includes(f))
         })
       }
 
-      const EXCLUDED_EXTENSIONS = [".docx", ".doc", ".txt", ".md", ".rtf", ".pptx", ".ppt"]
-      loaded = loaded.filter((photo: Photo) => {
+      loaded = loaded.filter((photo) => {
         const lower = photo.name.toLowerCase()
         return !EXCLUDED_EXTENSIONS.some((ext) => lower.endsWith(ext))
       })
 
-      setPhotos(orderByFilename(loaded))
+      return orderByFilename(loaded)
+    },
+    [],
+  )
+
+  const loadPhotos = useCallback(async () => {
+    setIsLoading(true)
+    setError(null)
+
+    try {
+      const clusterList = clusters && clusters.length > 0 ? clusters : null
+
+      if (clusterList) {
+        const results = await Promise.all(
+          clusterList.map(async (cluster) => ({
+            cluster,
+            photos: await loadFromPrefix(cluster.prefix, cluster.mediaFilter),
+          })),
+        )
+        const grouped: Photo[] = []
+        for (const { cluster, photos: clusterPhotos } of results) {
+          for (const photo of clusterPhotos) grouped.push({ ...photo, clusterId: cluster.id })
+        }
+        setPhotos(grouped)
+      } else {
+        setPhotos(await loadFromPrefix(mediaPrefix || prefix, mediaFilter))
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Could not load project media")
     } finally {
       setIsLoading(false)
     }
-  }, [prefix, mediaPrefix, mediaFilter])
+  }, [prefix, mediaPrefix, mediaFilter, clusters, loadFromPrefix])
 
   useEffect(() => {
     loadPhotos()
   }, [loadPhotos])
 
-  const containerArea = 900 * 620
-  const starSize = useMemo(() => calculateStarSize(photos.length, containerArea), [photos.length])
+  const layout = useMemo(() => {
+    if (clusters && clusters.length > 0 && photos.length > 0) {
+      const zoneWidth = CLUSTER_FIELD_WIDTH / clusters.length
+      const groupIndices = new Map<string, number[]>()
+      photos.forEach((photo, index) => {
+        const key = photo.clusterId ?? ""
+        const bucket = groupIndices.get(key)
+        if (bucket) bucket.push(index)
+        else groupIndices.set(key, [index])
+      })
 
-  const positions = useMemo(() => {
-    if (photos.length === 0) return []
-    return distributePositions(photos.length, 800, 620, starSize / 2)
-  }, [photos.length, starSize])
+      const positions: { x: number; y: number }[] = []
+      const starSizes: number[] = []
+      const lines: [number, number][] = []
 
-  const lines = useMemo(() => buildConstellationLines(positions), [positions])
+      clusters.forEach((cluster, zone) => {
+        const indices = groupIndices.get(cluster.id) ?? []
+        const size = fitStarSize(indices.length, zoneWidth, FIELD_HEIGHT)
+        const local = distributePositions(indices.length, zoneWidth, FIELD_HEIGHT, size / 2)
+
+        indices.forEach((photoIndex, i) => {
+          positions[photoIndex] = { x: zone * zoneWidth + local[i].x, y: local[i].y }
+          starSizes[photoIndex] = size
+        })
+
+        for (const [a, b] of buildConstellationLines(local)) {
+          const from = indices[a]
+          const to = indices[b]
+          if (from !== undefined && to !== undefined) lines.push([from, to])
+        }
+      })
+
+      // Stitch neighbouring clusters together through their closest pair of
+      // stars, so the journey across locations reads as one constellation.
+      for (let zone = 0; zone < clusters.length - 1; zone++) {
+        const left = groupIndices.get(clusters[zone].id) ?? []
+        const right = groupIndices.get(clusters[zone + 1].id) ?? []
+        let closest: [number, number] | null = null
+        let closestDistance = Number.POSITIVE_INFINITY
+        for (const i of left) {
+          for (const j of right) {
+            const a = positions[i]
+            const b = positions[j]
+            if (!a || !b) continue
+            const distance = Math.hypot(a.x - b.x, a.y - b.y)
+            if (distance < closestDistance) {
+              closestDistance = distance
+              closest = [i, j]
+            }
+          }
+        }
+        if (closest) lines.push(closest)
+      }
+
+      return { positions, starSizes, lines }
+    }
+
+    const starSize = calculateStarSize(photos.length, SOLO_FIELD_WIDTH * FIELD_HEIGHT)
+    const positions =
+      photos.length > 0
+        ? distributePositions(photos.length, SOLO_LAYOUT_WIDTH, FIELD_HEIGHT, starSize / 2)
+        : []
+    return {
+      positions,
+      starSizes: photos.map(() => starSize),
+      lines: buildConstellationLines(positions),
+    }
+  }, [photos, clusters])
 
   const activePhoto = activeIndex !== null ? photos[activeIndex] : null
+  const activeCluster = activePhoto?.clusterId
+    ? clusters?.find((cluster) => cluster.id === activePhoto.clusterId)
+    : undefined
   const hasMultiple = photos.length > 1
+
+  const titleFor = (photo: Photo) => {
+    const label = photo.clusterId
+      ? clusters?.find((cluster) => cluster.id === photo.clusterId)?.label
+      : undefined
+    const title = getPhotoTitle(photo.name)
+    return label ? `${label} · ${title}` : title
+  }
 
   const goNext = useCallback(() => {
     setActiveIndex((prev) => (prev !== null ? (prev + 1) % photos.length : 0))
@@ -331,33 +474,45 @@ export function ProjectConstellation({ prefix, captions = {}, className, mediaPr
           className="absolute inset-0 h-full w-full"
           style={{ filter: "drop-shadow(0 0 3px rgba(96, 165, 250, 0.12))" }}
         >
-          {lines.map(([i, j], idx) => (
-            <motion.line
-              key={idx}
-              x1={positions[i].x}
-              y1={positions[i].y}
-              x2={positions[j].x}
-              y2={positions[j].y}
-              className="text-blue-500/20"
-              stroke="currentColor"
-              strokeWidth="1"
-              strokeDasharray="3 5"
-              initial={{ pathLength: 0, opacity: 0 }}
-              animate={{ pathLength: 1, opacity: 1 }}
-              transition={{ duration: 0.8, delay: idx * 0.02, ease: "easeOut" }}
-            />
-          ))}
+          {layout.lines.map(([i, j], idx) => {
+            const from = layout.positions[i]
+            const to = layout.positions[j]
+            if (!from || !to) return null
+            return (
+              <motion.line
+                key={idx}
+                x1={from.x}
+                y1={from.y}
+                x2={to.x}
+                y2={to.y}
+                className="text-blue-500/20"
+                stroke="currentColor"
+                strokeWidth="1"
+                strokeDasharray="3 5"
+                initial={{ pathLength: 0, opacity: 0 }}
+                animate={{ pathLength: 1, opacity: 1 }}
+                transition={{ duration: 0.8, delay: idx * 0.02, ease: "easeOut" }}
+              />
+            )
+          })}
         </svg>
 
         <div
           className="relative z-10 mx-auto"
-          style={{ height: "620px", width: "100%", maxWidth: "900px" }}
+          style={{
+            height: FIELD_HEIGHT,
+            width: "100%",
+            maxWidth: isClustered ? CLUSTER_FIELD_WIDTH : SOLO_FIELD_WIDTH,
+          }}
         >
           {photos.map((photo, index) => {
-            const pos = positions[index]
+            const pos = layout.positions[index]
+            if (!pos) return null
+            const size = layout.starSizes[index] ?? 64
             const isActive = activeIndex === index
             const isHovered = hoveredIndex === index
             const highlighted = isActive || isHovered
+            const dimmed = focusedCluster !== null && photo.clusterId !== focusedCluster
 
             return (
               <button
@@ -366,16 +521,16 @@ export function ProjectConstellation({ prefix, captions = {}, className, mediaPr
                 onClick={() => setActiveIndex(index)}
                 onMouseEnter={() => setHoveredIndex(index)}
                 onMouseLeave={() => setHoveredIndex(null)}
-                className="absolute"
+                className={cn("absolute transition-opacity duration-300", dimmed && "opacity-25")}
                 style={{
                   left: pos.x,
                   top: pos.y,
-                  width: starSize,
-                  height: starSize,
+                  width: size,
+                  height: size,
                   transform: "translate(-50%, -50%)",
                   zIndex: highlighted ? 20 : 10,
                 }}
-                aria-label={getPhotoTitle(photo.name)}
+                aria-label={titleFor(photo)}
               >
                 <motion.div
                   className="relative h-full w-full"
@@ -403,7 +558,7 @@ export function ProjectConstellation({ prefix, captions = {}, className, mediaPr
                         fill
                         draggable={false}
                         className="object-cover"
-                        sizes={`${starSize}px`}
+                        sizes={`${size}px`}
                       />
                     ) : (
                       <div className="flex h-full w-full items-center justify-center bg-slate-800/80">
@@ -430,7 +585,57 @@ export function ProjectConstellation({ prefix, captions = {}, className, mediaPr
           })}
         </div>
 
-        {hasMultiple && (
+        {isClustered && clusters && (
+          <div
+            className="relative z-10 mx-auto px-4 pb-5"
+            style={{ width: "100%", maxWidth: CLUSTER_FIELD_WIDTH }}
+          >
+            <div
+              className="grid gap-2 sm:gap-3"
+              style={{ gridTemplateColumns: `repeat(${clusters.length}, minmax(0, 1fr))` }}
+            >
+              {clusters.map((cluster) => {
+                const count = photos.filter((photo) => photo.clusterId === cluster.id).length
+                const isActive = focusedCluster === cluster.id
+                const isDimmed = focusedCluster !== null && !isActive
+
+                return (
+                  <button
+                    key={cluster.id}
+                    type="button"
+                    onClick={() => setFocusedCluster(isActive ? null : cluster.id)}
+                    aria-pressed={isActive}
+                    className={cn(
+                      "rounded-2xl border px-3 py-2.5 text-center transition-all duration-300",
+                      isActive
+                        ? "border-blue-400/60 bg-blue-500/15 shadow-[0_0_18px_rgba(96,165,250,0.25)]"
+                        : "border-blue-400/10 bg-white/[0.03] hover:border-blue-400/40 hover:bg-blue-500/10",
+                      isDimmed && "opacity-40",
+                    )}
+                  >
+                    <span className="flex items-center justify-center gap-1.5 text-sm font-medium text-white/90">
+                      <MapPin className="h-3.5 w-3.5 text-blue-300/70" />
+                      {cluster.label}
+                    </span>
+                    <span className="mt-1 block text-xs text-blue-200/70">{cluster.date}</span>
+                    {cluster.detail && (
+                      <span className="mt-0.5 block text-[11px] text-slate-400">{cluster.detail}</span>
+                    )}
+                    <span className="mt-1 block text-[11px] tracking-wide text-blue-300/50">
+                      {count} {count === 1 ? "photo" : "photos"}
+                    </span>
+                  </button>
+                )
+              })}
+            </div>
+            <p className="mt-3 text-center text-xs tracking-wide text-blue-300/40">
+              {photos.length} stars &middot; {clusters.length} rooftops &middot; ordered by date &middot;
+              click any star to explore
+            </p>
+          </div>
+        )}
+
+        {!isClustered && hasMultiple && (
           <div className="relative z-10 pb-5 text-center">
             <p className="text-xs text-blue-300/40 tracking-wide">
               {photos.length} stars &middot; click any star to explore
@@ -446,13 +651,16 @@ export function ProjectConstellation({ prefix, captions = {}, className, mediaPr
             transition={{ duration: 0.15 }}
             className="pointer-events-none absolute z-30"
             style={{
-              left: positions[hoveredIndex].x,
-              top: positions[hoveredIndex].y - starSize / 2 - 12,
+              left: layout.positions[hoveredIndex]?.x,
+              top:
+                (layout.positions[hoveredIndex]?.y ?? 0) -
+                (layout.starSizes[hoveredIndex] ?? 64) / 2 -
+                12,
               transform: "translate(-50%, -100%)",
             }}
           >
             <div className="whitespace-nowrap rounded-lg bg-slate-800/90 px-3 py-1.5 text-xs text-white/80 backdrop-blur-sm border border-slate-700/50 shadow-lg">
-              {captions[photos[hoveredIndex].key] || getPhotoTitle(photos[hoveredIndex].name)}
+              {captions[photos[hoveredIndex].key] || titleFor(photos[hoveredIndex])}
             </div>
           </motion.div>
         )}
@@ -570,6 +778,9 @@ export function ProjectConstellation({ prefix, captions = {}, className, mediaPr
                   />
                 )}
                 <p className="mt-3 text-center text-sm text-white/60">
+                  {activeCluster && (
+                    <span className="text-blue-300/70">{activeCluster.label} &middot; </span>
+                  )}
                   {getPhotoTitle(activePhoto.name)}
                 </p>
               </motion.div>

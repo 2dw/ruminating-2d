@@ -8,9 +8,54 @@ import { useParams, useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { LazyProjectConstellation } from "@/components/lazy-project-constellation"
 import { LazyUnderConstruction } from "@/components/lazy-under-construction"
-import { getCreativeProjectConfig, type CreativeProjectConfig } from "@/config/creative-projects"
+import { getCreativeProjectConfig, type CreativeProjectConfig, type ProjectStarCluster } from "@/config/creative-projects"
 import { UNDER_CONSTRUCTION_PROJECTS } from "@/config/under-construction"
 import { useProjects } from "@/contexts/projects-context"
+
+/** Stable empty list so configs without star clusters never retrigger fetches. */
+const EMPTY_STAR_CLUSTERS: ProjectStarCluster[] = []
+
+const US_FLAG_STARS = (() => {
+  const rows = [6, 5, 6, 5, 6, 5, 6, 5, 6]
+  const cantonWidth = 12
+  const cantonHeight = (20 / 13) * 7
+  return rows.flatMap((count, row) => {
+    const cy = (cantonHeight / (rows.length + 1)) * (row + 1)
+    const start = count === 6 ? 1.1 : 2.0
+    const end = count === 6 ? cantonWidth - 1.1 : cantonWidth - 2.0
+    return Array.from({ length: count }, (_, i) => ({
+      cx: start + ((end - start) * i) / (count - 1),
+      cy,
+    }))
+  })
+})()
+
+function UsFlagSvg() {
+  const stripeHeight = 20 / 13
+  return (
+    <svg
+      className="h-3 w-4"
+      viewBox="0 0 30 20"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+      aria-hidden="true"
+    >
+      {Array.from({ length: 13 }, (_, i) => (
+        <rect
+          key={i}
+          y={i * stripeHeight}
+          width="30"
+          height={stripeHeight}
+          fill={i % 2 === 0 ? "#B22234" : "#FFFFFF"}
+        />
+      ))}
+      <rect width="12" height={(20 / 13) * 7} fill="#3C3B6E" />
+      {US_FLAG_STARS.map((star, i) => (
+        <circle key={i} cx={star.cx} cy={star.cy} r="0.4" fill="#FFFFFF" />
+      ))}
+    </svg>
+  )
+}
 
 export default function CreativeProjectPage() {
   const router = useRouter()
@@ -35,7 +80,25 @@ export default function CreativeProjectPage() {
   const mission = projectConfig?.mission
   const milestones = projectConfig?.milestones ?? []
   const subprojects = projectConfig?.subprojects ?? []
+  const starClusters = projectConfig?.starClusters ?? EMPTY_STAR_CLUSTERS
   const [expandedSub, setExpandedSub] = useState<string | null>(null)
+
+  // Resolve each star cluster against the project's own R2 prefix so the
+  // parent path only ever lives in one place (the auto-discovered prefix).
+  const resolvedClusters = useMemo(
+    () =>
+      project
+        ? starClusters.map((cluster) => ({
+            id: cluster.id,
+            label: cluster.label,
+            date: cluster.date,
+            detail: cluster.detail,
+            mediaFilter: cluster.mediaFilter,
+            prefix: `${project.prefix}${cluster.folder}/`,
+          }))
+        : [],
+    [project, starClusters],
+  )
 
   // If this project is flagged as under construction, show placeholder and stop
   if (projectId && UNDER_CONSTRUCTION_PROJECTS.has(projectId)) {
@@ -186,19 +249,22 @@ export default function CreativeProjectPage() {
                           {milestone.location ? (
                             <span className="group/pin relative inline-flex items-center gap-1 text-xs font-medium tracking-wider text-blue-500">
                               <Building2 className="h-3.5 w-3.5" />
-                              <svg className="h-3 w-4" viewBox="0 0 30 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                <rect width="30" height="20" rx="1" fill="#DE2910" />
-                                <g transform="translate(15,10)">
-                                  <g fill="white">
-                                    <ellipse cx="0" cy="-5" rx="1.8" ry="4" transform="rotate(0)" />
-                                    <ellipse cx="0" cy="-5" rx="1.8" ry="4" transform="rotate(72)" />
-                                    <ellipse cx="0" cy="-5" rx="1.8" ry="4" transform="rotate(144)" />
-                                    <ellipse cx="0" cy="-5" rx="1.8" ry="4" transform="rotate(216)" />
-                                    <ellipse cx="0" cy="-5" rx="1.8" ry="4" transform="rotate(288)" />
+                              {milestone.flag === "cn" && (
+                                <svg className="h-3 w-4" viewBox="0 0 30 20" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                                  <rect width="30" height="20" rx="1" fill="#DE2910" />
+                                  <g transform="translate(15,10)">
+                                    <g fill="white">
+                                      <ellipse cx="0" cy="-5" rx="1.8" ry="4" transform="rotate(0)" />
+                                      <ellipse cx="0" cy="-5" rx="1.8" ry="4" transform="rotate(72)" />
+                                      <ellipse cx="0" cy="-5" rx="1.8" ry="4" transform="rotate(144)" />
+                                      <ellipse cx="0" cy="-5" rx="1.8" ry="4" transform="rotate(216)" />
+                                      <ellipse cx="0" cy="-5" rx="1.8" ry="4" transform="rotate(288)" />
+                                    </g>
+                                    <circle cx="0" cy="0" r="1.5" fill="#DE2910" />
                                   </g>
-                                  <circle cx="0" cy="0" r="1.5" fill="#DE2910" />
-                                </g>
-                              </svg>
+                                </svg>
+                              )}
+                              {milestone.flag === "us" && <UsFlagSvg />}
                               <span className="pointer-events-none absolute -top-8 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-md bg-slate-800 px-2.5 py-1 text-[11px] text-white opacity-0 shadow-lg transition-opacity duration-150 group-hover/pin:opacity-100">
                                 {milestone.location}
                               </span>
@@ -228,6 +294,32 @@ export default function CreativeProjectPage() {
                   )
                 })}
               </div>
+            </motion.div>
+          )}
+
+          {/* Star clusters: photos grouped by location and ordered by date */}
+          {resolvedClusters.length > 0 && project && (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.35 }}
+              className="space-y-4"
+            >
+              <div>
+                <h2 className="font-serif text-2xl font-semibold text-slate-900 dark:text-white">
+                  The Rooftops
+                </h2>
+                <p className="mt-1 text-sm leading-relaxed text-slate-500 dark:text-slate-400">
+                  Every star is a photo from one of {resolvedClusters.length} volunteer installs,
+                  grouped by location and ordered by date. Select a rooftop below to focus it, or
+                  click any star to open it.
+                </p>
+              </div>
+              <LazyProjectConstellation
+                prefix={project.prefix}
+                clusters={resolvedClusters}
+                noMediaMessage="No installation photos yet"
+              />
             </motion.div>
           )}
 
@@ -300,14 +392,14 @@ export default function CreativeProjectPage() {
             </motion.div>
           )}
 
-          {/* Main project constellation (only for projects without subprojects) */}
-          {project && subprojects.length === 0 && (
+          {/* Main project constellation (only for projects without subprojects or star clusters) */}
+          {project && subprojects.length === 0 && resolvedClusters.length === 0 && (
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.4 }}
             >
-              <ProjectConstellation prefix={project.prefix} />
+              <LazyProjectConstellation prefix={project.prefix} />
             </motion.div>
           )}
 

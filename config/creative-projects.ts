@@ -3,6 +3,8 @@ export interface ProjectMilestone {
   title: string
   description: string
   location?: string
+  /** Two-letter flag drawn next to the location pin. Omit for no flag. */
+  flag?: "cn" | "us"
 }
 
 export interface SubProject {
@@ -11,6 +13,22 @@ export interface SubProject {
   summary?: string
   journey?: string
   mediaPrefix?: string
+  mediaFilter?: string[]
+}
+
+/**
+ * One cluster in a star-grouped constellation: photos from a subfolder of the
+ * project prefix, shown together and labelled with where and when it happened.
+ * `folder` is relative to the project's own R2 prefix, so the parent path is
+ * only ever written in one place (the auto-discovered prefix).
+ */
+export interface ProjectStarCluster {
+  id: string
+  label: string
+  date: string
+  /** Short rooftop/setting note shown under the label, e.g. "Steep asphalt-shingle roof". */
+  detail?: string
+  folder: string
   mediaFilter?: string[]
 }
 
@@ -27,6 +45,7 @@ export interface CreativeProjectConfig {
   }
   milestones?: ProjectMilestone[]
   subprojects?: SubProject[]
+  starClusters?: ProjectStarCluster[]
 }
 
 export const creativeProjectOverrides: Record<string, CreativeProjectConfig> = {
@@ -50,6 +69,7 @@ export const creativeProjectOverrides: Record<string, CreativeProjectConfig> = {
         description:
           "After witnessing the winds of Inner Mongolia and observing renewable energy technologies gain momentum globally, I embarked upon my first independent endeavor in sustainability.",
         location: "High School, Hong Kong",
+        flag: "cn",
       },
       {
         date: "High School",
@@ -57,6 +77,7 @@ export const creativeProjectOverrides: Record<string, CreativeProjectConfig> = {
         description:
           "Designed, carved and assembled a wind turbine from carbon fiber, undertaking the full engineering lifecycle from concept to fabrication.",
         location: "High School, Hong Kong",
+        flag: "cn",
       },
       {
         date: "High School",
@@ -64,6 +85,7 @@ export const creativeProjectOverrides: Record<string, CreativeProjectConfig> = {
         description:
           "Though limited by the resources available to a high school student, the experience proved foundational. It established the trajectory for a lifelong commitment to building technologies that democratize access to clean energy.",
         location: "High School, Hong Kong",
+        flag: "cn",
       },
     ],
   },
@@ -125,6 +147,70 @@ export const creativeProjectOverrides: Record<string, CreativeProjectConfig> = {
         summary: "Inspired by Sola-Afghanistan and the women who make up half the sky",
         mediaPrefix: "projects/tunneling visions into graphite, cellulose and lignin/",
         mediaFilter: ["women fight back"],
+      },
+    ],
+  },
+  "grid-alternatives-habitat-for-humanity": {
+    title: "Rooftops for Neighbors",
+    subtitle: "Three volunteer solar installs, 2007",
+    tags: ["solar", "volunteering", "community solar", "nonprofit", "installation"],
+    description:
+      "Volunteer solar installations completed with Grid Alternatives and Habitat for Humanity between May and September of 2007: a flat gravel roof in San Bruno, a steep shingle pitch in Yolo County, and a brand new Habitat build in Santa Cruz.",
+    inspiration: {
+      narrative:
+        "Solar is only ever installed on an actual roof, and the roofs that would benefit the most are frequently the last in line. Grid Alternatives and Habitat for Humanity were both working to open that line up, pairing volunteer labor with homes that needed it, and I wanted to learn the trade with my hands rather than from a manual.",
+    },
+    mission: {
+      narrative:
+        "These were long days of carrying rails up ladders, torquing mounts in the sun, and landing the final connection in a garage, given freely beside crews of neighbors. Nearly two decades on, every array in this set is still lowering somebody's electric bill, and the habit of building access one rooftop at a time has stayed with me ever since.",
+    },
+    milestones: [
+      {
+        date: "May 26, 2007",
+        title: "The Flat Roof",
+        description:
+          "The first install of the set went onto a flat tar-and-gravel roof above a hillside neighborhood. Rails were laid low across the gravel and the modules bolted down row by row, with the crew in matching volunteer shirts by the time the array was producing.",
+        location: "San Bruno, California",
+        flag: "us",
+      },
+      {
+        date: "July 28, 2007",
+        title: "The Steep Pitch",
+        description:
+          "Midsummer moved the work to a steep asphalt-shingle roof in Yolo County, where everyone clipped into fall-arrest harnesses before stepping onto the pitch. Rails were leveled and torqued through the heat, and the inverter came open at the end of the day for commissioning.",
+        location: "Yolo County, California",
+        flag: "us",
+      },
+      {
+        date: "September 8, 2007",
+        title: "The New Build",
+        description:
+          "The final install landed on a freshly shingled Habitat build in Santa Cruz. Modules went up the ladder by hand, and the day closed in the garage with a string inverter, an AC disconnect, and the panel tie-in that put the system into service.",
+        location: "Santa Cruz, California",
+        flag: "us",
+      },
+    ],
+    starClusters: [
+      {
+        id: "san-bruno",
+        label: "San Bruno",
+        date: "May 26, 2007",
+        detail: "Flat tar-and-gravel roof",
+        folder: "San Bruno 5-26-07",
+      },
+      {
+        id: "yolo-county",
+        label: "Yolo County",
+        date: "July 28, 2007",
+        detail: "Steep asphalt-shingle roof",
+        folder: "Yolo County 7-28-07",
+      },
+      {
+        id: "santa-cruz",
+        label: "Santa Cruz",
+        date: "September 8, 2007",
+        detail: "New-build shingle roof",
+        folder: "Habitat Santa Cruz 9-8-07",
       },
     ],
   },

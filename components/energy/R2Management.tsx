@@ -35,7 +35,7 @@ export default function R2Management({ dark = false }: { dark?: boolean }) {
       </CardHeader>
       <CardContent className="space-y-4">
         {stats && <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-          {[["Files", stats.total_files], ["Storage", `${stats.total_mb} MB`], ["Oldest", stats.telemetry_oldest?.split("/")[3] || "—"], ["Newest", stats.telemetry_newest?.split("/")[3] || "—"]].map(([l, v]) => (
+          {[["Files", stats.total_files], ["Storage", `${stats.total_mb} MB`], ["Oldest", stats.telemetry_oldest?.split("/")[3] || "n/a"], ["Newest", stats.telemetry_newest?.split("/")[3] || "n/a"]].map(([l, v]) => (
             <div key={l} className="p-2 rounded-lg bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800"><p className="text-[10px] text-slate-400 uppercase">{l}</p><p className="text-sm font-bold font-mono">{v}</p></div>
           ))}
         </div>}
