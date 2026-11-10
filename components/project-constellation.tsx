@@ -183,6 +183,37 @@ function distributePositions(
   return positions
 }
 
+function buildFlowPath(from: { x: number; y: number }, to: { x: number; y: number }): string {
+  const dx = to.x - from.x
+  const dy = to.y - from.y
+  const len = Math.hypot(dx, dy) || 1
+  const nx = -dy / len
+  const ny = dx / len
+  const steps = 14
+  const pts: { x: number; y: number }[] = []
+  for (let i = 0; i <= steps; i++) {
+    const t = i / steps
+    const baseX = from.x + dx * t
+    const baseY = from.y + dy * t
+    const wave = Math.sin(t * Math.PI * 3) * (len * 0.16) + Math.cos(t * Math.PI * 5) * (len * 0.06)
+    pts.push({ x: baseX + nx * wave, y: baseY + ny * wave })
+  }
+  // Catmull-Rom-ish smooth path through the points.
+  let d = `M ${pts[0].x.toFixed(1)} ${pts[0].y.toFixed(1)}`
+  for (let i = 0; i < pts.length - 1; i++) {
+    const p0 = pts[Math.max(0, i - 1)]
+    const p1 = pts[i]
+    const p2 = pts[i + 1]
+    const p3 = pts[Math.min(pts.length - 1, i + 2)]
+    const cp1x = p1.x + (p2.x - p0.x) / 6
+    const cp1y = p1.y + (p2.y - p0.y) / 6
+    const cp2x = p2.x - (p3.x - p1.x) / 6
+    const cp2y = p2.y - (p3.y - p1.y) / 6
+    d += ` C ${cp1x.toFixed(1)} ${cp1y.toFixed(1)}, ${cp2x.toFixed(1)} ${cp2y.toFixed(1)}, ${p2.x.toFixed(1)} ${p2.y.toFixed(1)}`
+  }
+  return d
+}
+
 function buildConstellationLines(
   positions: { x: number; y: number }[],
 ): [number, number][] {
@@ -493,16 +524,28 @@ export function ProjectConstellation({
           preserveAspectRatio="xMidYMid meet"
           style={{ filter: "drop-shadow(0 0 3px rgba(96, 165, 250, 0.12))" }}
         >
-          <defs>
-            <marker id="flow-arrow" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto" markerUnits="strokeWidth">
-              <path d="M0,0 L8,4 L0,8 z" fill="rgba(96, 165, 250, 0.85)" />
-            </marker>
-          </defs>
           {layout.lines.map(([i, j], idx) => {
             const from = layout.positions[i]
             const to = layout.positions[j]
             if (!from || !to) return null
             const isFlow = /making of/i.test(photos[i]?.name ?? '') && !/making of/i.test(photos[j]?.name ?? '')
+            if (isFlow) {
+              const pathD = buildFlowPath(from, to)
+              return (
+                <motion.path
+                  d={pathD}
+                  fill="none"
+                  className="text-blue-400/70"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeDasharray="5 6"
+                  strokeLinecap="round"
+                  initial={{ pathLength: 0, opacity: 0 }}
+                  animate={{ pathLength: 1, opacity: 1 }}
+                  transition={{ duration: 1.2, delay: idx * 0.02, ease: "easeOut" }}
+                />
+              )
+            }
             return (
               <motion.line
                 key={idx}
@@ -510,11 +553,10 @@ export function ProjectConstellation({
                 y1={from.y}
                 x2={to.x}
                 y2={to.y}
-                className={isFlow ? "text-blue-400/80" : "text-blue-500/20"}
+                className="text-blue-500/20"
                 stroke="currentColor"
-                strokeWidth={isFlow ? "2" : "1"}
-                strokeDasharray={isFlow ? "0" : "3 5"}
-                markerEnd={isFlow ? "url(#flow-arrow)" : undefined}
+                strokeWidth="1"
+                strokeDasharray="3 5"
                 initial={{ pathLength: 0, opacity: 0 }}
                 animate={{ pathLength: 1, opacity: 1 }}
                 transition={{ duration: 0.8, delay: idx * 0.02, ease: "easeOut" }}
@@ -618,6 +660,35 @@ export function ProjectConstellation({
               </motion.button>
             )
           })}
+          {layout.lines.map(([i, j], idx) => {
+            const from = layout.positions[i]
+            const to = layout.positions[j]
+            if (!from || !to) return null
+            const isFlow = /making of/i.test(photos[i]?.name ?? "") && !/making of/i.test(photos[j]?.name ?? "")
+            if (!isFlow) return null
+            const midX = (from.x + to.x) / 2
+            const midY = (from.y + to.y) / 2
+            const angle = (Math.atan2(to.y - from.y, to.x - from.x) * 180) / Math.PI
+            return (
+              <motion.div
+                key={`rocket-${idx}`}
+                className="pointer-events-none absolute z-20"
+                style={{
+                  left: (midX / CLUSTER_FIELD_WIDTH) * 100 + "%",
+                  top: (midY / FIELD_HEIGHT) * 100 + "%",
+                  transform: `translate(-50%, -50%) rotate(${angle}deg)`,
+                }}
+                animate={{ y: [0, -5, 0] }}
+                transition={{ duration: 2.2, repeat: Infinity, ease: "easeInOut" }}
+              >
+                <svg width="22" height="22" viewBox="-11 -11 22 22" style={{ overflow: "visible" }}>
+                  <path d="M -7 -4 L 7 0 L -7 4 L -3 0 Z" fill="rgba(96, 165, 250, 0.95)" stroke="rgba(191, 219, 254, 0.9)" strokeWidth="0.8" />
+                  <circle cx="-3" cy="0" r="1.6" fill="rgba(15, 23, 42, 0.9)" />
+                </svg>
+              </motion.div>
+            )
+          })}
+
         </div>
 
         {isClustered && clusters && (
