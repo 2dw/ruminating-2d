@@ -328,19 +328,20 @@ export function ProjectConstellation({
       const starSizes: number[] = []
       const lines: [number, number][] = []
 
-      // Compact clouds: every cluster starts as a small, translucent blob in
-      // the same central spot. The active cluster expands into a full
-      // constellation while the others stay as faint clouds.
+      // Three compact, faded clusters distributed across the sky panel. The
+      // active one expands into a full constellation; the others stay faint.
+      const zoneWidth = CLUSTER_FIELD_WIDTH / clusters.length
       const compactW = 160
       const compactH = 160
-      const compactOffsetX = (CLUSTER_FIELD_WIDTH - compactW) / 2
-      const compactOffsetY = (FIELD_HEIGHT - compactH) / 2
 
-      clusters.forEach((cluster) => {
+      clusters.forEach((cluster, zone) => {
         const indices = groupIndices.get(cluster.id) ?? []
         const isActive = activeCluster === cluster.id
         const expandedSize = calculateStarSize(indices.length, SOLO_LAYOUT_WIDTH * FIELD_HEIGHT)
         const compactSize = 48
+
+        const compactOffsetX = zone * zoneWidth + (zoneWidth - compactW) / 2
+        const compactOffsetY = (FIELD_HEIGHT - compactH) / 2
 
         const compactLocal = distributePositions(indices.length, compactW, compactH, compactSize / 2)
         const expandedLocal = distributePositions(indices.length, SOLO_LAYOUT_WIDTH, FIELD_HEIGHT, expandedSize / 2)
