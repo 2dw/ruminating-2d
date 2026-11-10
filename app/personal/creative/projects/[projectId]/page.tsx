@@ -99,7 +99,9 @@ export default function CreativeProjectPage() {
             date: cluster.date,
             detail: cluster.detail,
             mediaFilter: cluster.mediaFilter,
-            prefix: `${project.prefix}${cluster.folder}/`,
+            prefix: cluster.folder
+              ? `${project.prefix}${cluster.folder}/`
+              : project.prefix,
           }))
         : [],
     [project, starClusters],

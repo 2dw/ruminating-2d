@@ -34,7 +34,8 @@ export interface ProjectStarCluster {
   date: string
   /** Short rooftop/setting note shown under the label, e.g. "Steep asphalt-shingle roof". */
   detail?: string
-  folder: string
+  /** Subfolder relative to the project's own R2 prefix. Omit when the cluster's photos live directly in the project root folder (use mediaFilter to pick them out of the shared folder). */
+  folder?: string
   mediaFilter?: string[]
 }
 
@@ -139,19 +140,35 @@ export const creativeProjectOverrides: Record<string, CreativeProjectConfig> = {
       narrative:
         "Collecting the planet's inspirations and using my pencil to serve as their megaphone. Through graphite, cellulose, and lignin, these drawings amplify voices of empowerment and revolution.",
     },
-    subprojects: [
+    milestones: [
       {
-        id: "women-renewable-energy",
-        title: "Women Empowering with Renewable Energy",
-        summary: "Inspired by Barefoot Grandmothers",
-        mediaPrefix: "projects/tunneling visions into graphite, cellulose and lignin/",
+        date: "2023",
+        title: "Women and Watts",
+        description:
+          "Inspired by Barefoot Grandmothers — women empowering communities with renewable energy. Graphite on paper, signed 2023.",
+        clusterId: "women-and-watts",
+      },
+      {
+        date: "2024",
+        title: "Women Fight Back",
+        description:
+          "Inspired by Sola-Afghanistan and the women who make up half the sky. Graphite on paper, signed 2024.",
+        clusterId: "women-fight-back",
+      },
+    ],
+    starClusters: [
+      {
+        id: "women-and-watts",
+        label: "Women and Watts",
+        date: "2023",
+        detail: "Graphite on paper",
         mediaFilter: ["women and watts"],
       },
       {
-        id: "feminine-revolution",
-        title: "Feminine Revolution",
-        summary: "Inspired by Sola-Afghanistan and the women who make up half the sky",
-        mediaPrefix: "projects/tunneling visions into graphite, cellulose and lignin/",
+        id: "women-fight-back",
+        label: "Women Fight Back",
+        date: "2024",
+        detail: "Graphite on paper",
         mediaFilter: ["women fight back"],
       },
     ],
