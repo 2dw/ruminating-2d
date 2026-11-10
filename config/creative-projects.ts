@@ -5,6 +5,12 @@ export interface ProjectMilestone {
   location?: string
   /** Two-letter flag drawn next to the location pin. Omit for no flag. */
   flag?: "cn" | "us"
+  /**
+   * When set, the milestone becomes a jump target: clicking it focuses the
+   * matching star cluster and scrolls to its photos. Must match a
+   * `starClusters[].id` on the same config, otherwise the milestone stays plain.
+   */
+  clusterId?: string
 }
 
 export interface SubProject {
@@ -172,6 +178,7 @@ export const creativeProjectOverrides: Record<string, CreativeProjectConfig> = {
           "The first install of the set went onto a flat tar-and-gravel roof above a hillside neighborhood. Rails were laid low across the gravel and the modules bolted down row by row, with the crew in matching volunteer shirts by the time the array was producing.",
         location: "San Bruno, California",
         flag: "us",
+        clusterId: "san-bruno",
       },
       {
         date: "July 28, 2007",
@@ -180,6 +187,7 @@ export const creativeProjectOverrides: Record<string, CreativeProjectConfig> = {
           "Midsummer moved the work to a steep asphalt-shingle roof in Yolo County, where everyone clipped into fall-arrest harnesses before stepping onto the pitch. Rails were leveled and torqued through the heat, and the inverter came open at the end of the day for commissioning.",
         location: "Yolo County, California",
         flag: "us",
+        clusterId: "yolo-county",
       },
       {
         date: "September 8, 2007",
@@ -188,6 +196,7 @@ export const creativeProjectOverrides: Record<string, CreativeProjectConfig> = {
           "The final install landed on a freshly shingled Habitat build in Santa Cruz. Modules went up the ladder by hand, and the day closed in the garage with a string inverter, an AC disconnect, and the panel tie-in that put the system into service.",
         location: "Santa Cruz, California",
         flag: "us",
+        clusterId: "santa-cruz",
       },
     ],
     starClusters: [

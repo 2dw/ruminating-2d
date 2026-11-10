@@ -1,8 +1,8 @@
 "use client"
 
-import { useMemo, useState } from "react"
+import { useMemo, useRef, useState } from "react"
 import { motion } from "framer-motion"
-import { ArrowLeft, FolderKanban, Sparkles, Target, Tags as TagsIcon, Star, MapPin, Building2, ChevronDown, ChevronRight } from "lucide-react"
+import { ArrowLeft, ArrowRight, FolderKanban, Sparkles, Target, Tags as TagsIcon, Star, MapPin, Building2, ChevronDown, ChevronRight } from "lucide-react"
 import { useParams, useRouter } from "next/navigation"
 
 import { Button } from "@/components/ui/button"
@@ -11,6 +11,7 @@ import { LazyUnderConstruction } from "@/components/lazy-under-construction"
 import { getCreativeProjectConfig, type CreativeProjectConfig, type ProjectStarCluster } from "@/config/creative-projects"
 import { UNDER_CONSTRUCTION_PROJECTS } from "@/config/under-construction"
 import { useProjects } from "@/contexts/projects-context"
+import { cn } from "@/lib/utils"
 
 /** Stable empty list so configs without star clusters never retrigger fetches. */
 const EMPTY_STAR_CLUSTERS: ProjectStarCluster[] = []
@@ -82,6 +83,10 @@ export default function CreativeProjectPage() {
   const subprojects = projectConfig?.subprojects ?? []
   const starClusters = projectConfig?.starClusters ?? EMPTY_STAR_CLUSTERS
   const [expandedSub, setExpandedSub] = useState<string | null>(null)
+  // Which rooftop the sky is focused on. Driven by the cluster labels in the
+  // sky and by the journey milestones above it.
+  const [focusedCluster, setFocusedCluster] = useState<string | null>(null)
+  const constellationRef = useRef<HTMLDivElement>(null)
 
   // Resolve each star cluster against the project's own R2 prefix so the
   // parent path only ever lives in one place (the auto-discovered prefix).
@@ -99,6 +104,13 @@ export default function CreativeProjectPage() {
         : [],
     [project, starClusters],
   )
+
+  // Clicking a journey milestone focuses its rooftop in the sky and brings the
+  // photos into view.
+  const jumpToCluster = (clusterId: string) => {
+    setFocusedCluster(clusterId)
+    constellationRef.current?.scrollIntoView({ behavior: "smooth", block: "start" })
+  }
 
   // If this project is flagged as under construction, show placeholder and stop
   if (projectId && UNDER_CONSTRUCTION_PROJECTS.has(projectId)) {
@@ -241,45 +253,88 @@ export default function CreativeProjectPage() {
 
                 {milestones.map((milestone, index) => {
                   const isLeft = index % 2 === 0
+                  // A milestone pointing at one of this project's rooftops
+                  // becomes a jump target for the star sky below.
+                  const jumpTarget =
+                    milestone.clusterId &&
+                    resolvedClusters.some((cluster) => cluster.id === milestone.clusterId)
+                      ? milestone.clusterId
+                      : null
+                  const isFocused = jumpTarget !== null && focusedCluster === jumpTarget
+
+                  const milestoneBody = (
+                    <>
+                      {milestone.location ? (
+                        <span className="group/pin relative inline-flex items-center gap-1 text-xs font-medium tracking-wider text-blue-500">
+                          <Building2 className="h-3.5 w-3.5" />
+                          {milestone.flag === "cn" && (
+                            <svg className="h-3 w-4" viewBox="0 0 30 20" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                              <rect width="30" height="20" rx="1" fill="#DE2910" />
+                              <g transform="translate(15,10)">
+                                <g fill="white">
+                                  <ellipse cx="0" cy="-5" rx="1.8" ry="4" transform="rotate(0)" />
+                                  <ellipse cx="0" cy="-5" rx="1.8" ry="4" transform="rotate(72)" />
+                                  <ellipse cx="0" cy="-5" rx="1.8" ry="4" transform="rotate(144)" />
+                                  <ellipse cx="0" cy="-5" rx="1.8" ry="4" transform="rotate(216)" />
+                                  <ellipse cx="0" cy="-5" rx="1.8" ry="4" transform="rotate(288)" />
+                                </g>
+                                <circle cx="0" cy="0" r="1.5" fill="#DE2910" />
+                              </g>
+                            </svg>
+                          )}
+                          {milestone.flag === "us" && <UsFlagSvg />}
+                          <span className="pointer-events-none absolute -top-8 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-md bg-slate-800 px-2.5 py-1 text-[11px] text-white opacity-0 shadow-lg transition-opacity duration-150 group-hover/pin:opacity-100">
+                            {milestone.location}
+                          </span>
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center gap-1 text-xs font-medium tracking-wider text-blue-500">
+                          <MapPin className="h-3.5 w-3.5" />
+                        </span>
+                      )}
+                      <h3 className="mt-1 font-serif text-lg font-semibold text-slate-900 dark:text-white">
+                        {milestone.title}
+                      </h3>
+                      <p className="mt-2 text-sm leading-relaxed text-slate-600 dark:text-slate-400">
+                        {milestone.description}
+                      </p>
+                      {jumpTarget && (
+                        <span
+                          className={cn(
+                            "mt-3 inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-[11px] font-medium tracking-wide transition-colors duration-200",
+                            isFocused
+                              ? "border-blue-400/60 bg-blue-500/20 text-blue-700 dark:text-blue-200"
+                              : "border-blue-400/20 bg-blue-500/10 text-blue-600 dark:text-blue-300",
+                          )}
+                        >
+                          View photos
+                          <ArrowRight className="h-3 w-3" />
+                        </span>
+                      )}
+                    </>
+                  )
 
                   return (
                     <div key={index} className="relative mb-10 last:mb-0">
                       <div className={`flex items-start ${isLeft ? "flex-row" : "flex-row-reverse"}`}>
                         <div className={`w-1/2 ${isLeft ? "pr-8 text-right" : "pl-8 text-left"}`}>
-                          {milestone.location ? (
-                            <span className="group/pin relative inline-flex items-center gap-1 text-xs font-medium tracking-wider text-blue-500">
-                              <Building2 className="h-3.5 w-3.5" />
-                              {milestone.flag === "cn" && (
-                                <svg className="h-3 w-4" viewBox="0 0 30 20" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-                                  <rect width="30" height="20" rx="1" fill="#DE2910" />
-                                  <g transform="translate(15,10)">
-                                    <g fill="white">
-                                      <ellipse cx="0" cy="-5" rx="1.8" ry="4" transform="rotate(0)" />
-                                      <ellipse cx="0" cy="-5" rx="1.8" ry="4" transform="rotate(72)" />
-                                      <ellipse cx="0" cy="-5" rx="1.8" ry="4" transform="rotate(144)" />
-                                      <ellipse cx="0" cy="-5" rx="1.8" ry="4" transform="rotate(216)" />
-                                      <ellipse cx="0" cy="-5" rx="1.8" ry="4" transform="rotate(288)" />
-                                    </g>
-                                    <circle cx="0" cy="0" r="1.5" fill="#DE2910" />
-                                  </g>
-                                </svg>
+                          {jumpTarget ? (
+                            <button
+                              type="button"
+                              onClick={() => jumpToCluster(jumpTarget)}
+                              className={cn(
+                                "-mx-2 w-full cursor-pointer rounded-2xl px-2 py-2 text-left transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400/60",
+                                isLeft && "text-right",
+                                isFocused
+                                  ? "bg-blue-500/10 shadow-[0_0_0_1px_rgba(96,165,250,0.35)]"
+                                  : "hover:bg-blue-500/[0.06] focus-visible:bg-blue-500/[0.06]",
                               )}
-                              {milestone.flag === "us" && <UsFlagSvg />}
-                              <span className="pointer-events-none absolute -top-8 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-md bg-slate-800 px-2.5 py-1 text-[11px] text-white opacity-0 shadow-lg transition-opacity duration-150 group-hover/pin:opacity-100">
-                                {milestone.location}
-                              </span>
-                            </span>
+                            >
+                              {milestoneBody}
+                            </button>
                           ) : (
-                            <span className="inline-flex items-center gap-1 text-xs font-medium tracking-wider text-blue-500">
-                              <MapPin className="h-3.5 w-3.5" />
-                            </span>
+                            milestoneBody
                           )}
-                          <h3 className="mt-1 font-serif text-lg font-semibold text-slate-900 dark:text-white">
-                            {milestone.title}
-                          </h3>
-                          <p className="mt-2 text-sm leading-relaxed text-slate-600 dark:text-slate-400">
-                            {milestone.description}
-                          </p>
                         </div>
 
                         <div className="flex shrink-0 items-start justify-center" style={{ width: "32px" }}>
@@ -300,10 +355,11 @@ export default function CreativeProjectPage() {
           {/* Star clusters: photos grouped by location and ordered by date */}
           {resolvedClusters.length > 0 && project && (
             <motion.div
+              ref={constellationRef}
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.35 }}
-              className="space-y-4"
+              className="space-y-4 scroll-mt-24"
             >
               <div>
                 <h2 className="font-serif text-2xl font-semibold text-slate-900 dark:text-white">
@@ -311,13 +367,15 @@ export default function CreativeProjectPage() {
                 </h2>
                 <p className="mt-1 text-sm leading-relaxed text-slate-500 dark:text-slate-400">
                   Every star is a photo from one of {resolvedClusters.length} volunteer installs,
-                  grouped by location and ordered by date. Select a rooftop below to focus it, or
-                  click any star to open it.
+                  grouped by location and ordered by date. Jump to a rooftop from a milestone above,
+                  select one below to focus it, or click any star to open it.
                 </p>
               </div>
               <LazyProjectConstellation
                 prefix={project.prefix}
                 clusters={resolvedClusters}
+                focusedCluster={focusedCluster}
+                onFocusedClusterChange={setFocusedCluster}
                 noMediaMessage="No installation photos yet"
               />
             </motion.div>

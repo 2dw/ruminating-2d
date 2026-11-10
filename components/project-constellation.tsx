@@ -40,6 +40,13 @@ interface ProjectConstellationProps {
   mediaPrefix?: string
   mediaFilter?: string[]
   noMediaMessage?: string
+  /**
+   * Externally controlled focus, e.g. a journey milestone jumping to its
+   * rooftop. When passed, the sky no longer keeps its own focus state.
+   */
+  focusedCluster?: string | null
+  /** Reports focus changes back to the owner while focus is controlled. */
+  onFocusedClusterChange?: (clusterId: string | null) => void
 }
 
 const FIELD_HEIGHT = 620
@@ -106,17 +113,18 @@ function calculateStarSize(count: number, area: number): number {
 
 /**
  * Largest star size from the standard ladder that can plausibly fit `count`
- * stars inside one cluster's zone without overlapping. Keeps dense clusters
- * legible while letting sparse ones keep big, bright stars.
+ * stars inside one cluster's zone without overlapping. Sparse clusters climb
+ * to the top of the ladder and grow into their zone, while dense ones step
+ * down until every star still has room.
  */
 function fitStarSize(count: number, zoneWidth: number, zoneHeight: number): number {
   if (count === 0) return 80
-  for (const size of [80, 72, 64, 56]) {
+  for (const size of [112, 96, 80, 72, 64, 56]) {
     const margin = size / 2 + 16
     const minDistance = size + 12
     const cols = Math.max(1, Math.floor((zoneWidth - margin * 2) / minDistance) + 1)
     const rows = Math.max(1, Math.floor((zoneHeight - margin * 2) / minDistance) + 1)
-    if (cols * rows >= count * 1.15) return size
+    if (cols * rows >= count + 1) return size
   }
   return 56
 }
@@ -193,6 +201,71 @@ function distributePositions(
   return positions
 }
 
+/**
+ * Even placement for a cluster's zone: stars sit on a jittered grid sized to
+ * the count, so a sparse cluster spreads across its whole zone rather than
+ * clumping into one corner, and the larger sizes from `fitStarSize` never
+ * overlap. Falls back to the loose scatter when no grid can hold every star.
+ */
+function distributeOnGrid(
+  count: number,
+  width: number,
+  height: number,
+  starRadius: number,
+): { x: number; y: number }[] {
+  if (count === 0) return []
+  if (count === 1) return [{ x: width / 2, y: height / 2 }]
+
+  const margin = starRadius + 16
+  const minDistance = starRadius * 2 + 12
+  const usableWidth = width - margin * 2
+  const usableHeight = height - margin * 2
+  if (usableWidth <= 0 || usableHeight <= 0) {
+    return distributePositions(count, width, height, starRadius)
+  }
+
+  const maxCols = Math.max(1, Math.floor(usableWidth / minDistance) + 1)
+  const maxRows = Math.max(1, Math.floor(usableHeight / minDistance) + 1)
+
+  // Smallest grid that holds every star, preferring the fewest empty slots and
+  // cells whose shape matches the zone so the field reads as evenly filled.
+  const zoneAspect = width / height
+  let best: { cols: number; rows: number; waste: number; aspect: number } | null = null
+  for (let cols = 1; cols <= maxCols; cols++) {
+    const rows = Math.ceil(count / cols)
+    if (rows > maxRows) continue
+    const waste = cols * rows - count
+    const aspect = Math.abs(
+      Math.log(usableWidth / cols / (usableHeight / rows) / zoneAspect),
+    )
+    if (!best || waste < best.waste || (waste === best.waste && aspect < best.aspect)) {
+      best = { cols, rows, waste, aspect }
+    }
+  }
+  if (!best) return distributePositions(count, width, height, starRadius)
+
+  const { cols, rows } = best
+  const spacingX = cols > 1 ? usableWidth / (cols - 1) : 0
+  const spacingY = rows > 1 ? usableHeight / (rows - 1) : 0
+  // Slack per axis shared between neighbours, so jitter can never close a gap
+  // below the minimum distance.
+  const jitterX = cols > 1 ? (spacingX - minDistance) * 0.3 : 0
+  const jitterY = rows > 1 ? (spacingY - minDistance) * 0.3 : 0
+  const slots = cols * rows
+
+  return Array.from({ length: count }, (_, i) => {
+    const slot = Math.floor((i * slots) / count)
+    const col = slot % cols
+    const row = Math.floor(slot / cols)
+    const baseX = cols > 1 ? margin + col * spacingX : margin + usableWidth / 2
+    const baseY = rows > 1 ? margin + row * spacingY : margin + usableHeight / 2
+    return {
+      x: Math.min(width - margin, Math.max(margin, baseX + (Math.random() * 2 - 1) * jitterX)),
+      y: Math.min(height - margin, Math.max(margin, baseY + (Math.random() * 2 - 1) * jitterY)),
+    }
+  })
+}
+
 function buildConstellationLines(
   positions: { x: number; y: number }[],
 ): [number, number][] {
@@ -233,14 +306,28 @@ export function ProjectConstellation({
   mediaPrefix,
   mediaFilter,
   noMediaMessage,
+  focusedCluster,
+  onFocusedClusterChange,
 }: ProjectConstellationProps) {
   const [photos, setPhotos] = useState<Photo[]>([])
   const [activeIndex, setActiveIndex] = useState<number | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null)
-  const [focusedCluster, setFocusedCluster] = useState<string | null>(null)
+  const [internalFocus, setInternalFocus] = useState<string | null>(null)
   const containerRef = useRef<HTMLDivElement>(null)
+
+  // Focus is owned by the page when it drives it (milestone jumps), otherwise
+  // the sky keeps its own state so standalone callers behave as before.
+  const isFocusControlled = focusedCluster !== undefined
+  const activeFocus = isFocusControlled ? focusedCluster : internalFocus
+  const setFocus = useCallback(
+    (clusterId: string | null) => {
+      if (isFocusControlled) onFocusedClusterChange?.(clusterId)
+      else setInternalFocus(clusterId)
+    },
+    [isFocusControlled, onFocusedClusterChange],
+  )
 
   const stars = useMemo(() => generateStars(60), [])
 
@@ -328,7 +415,7 @@ export function ProjectConstellation({
       clusters.forEach((cluster, zone) => {
         const indices = groupIndices.get(cluster.id) ?? []
         const size = fitStarSize(indices.length, zoneWidth, FIELD_HEIGHT)
-        const local = distributePositions(indices.length, zoneWidth, FIELD_HEIGHT, size / 2)
+        const local = distributeOnGrid(indices.length, zoneWidth, FIELD_HEIGHT, size / 2)
 
         indices.forEach((photoIndex, i) => {
           positions[photoIndex] = { x: zone * zoneWidth + local[i].x, y: local[i].y }
@@ -400,6 +487,12 @@ export function ProjectConstellation({
   const goPrev = useCallback(() => {
     setActiveIndex((prev) => (prev !== null ? (prev - 1 + photos.length) % photos.length : 0))
   }, [photos.length])
+
+  // Hover captions sit above their star, but the top row has no room for one
+  // inside the clipped sky, so those flip below the star instead.
+  const hoveredPos = hoveredIndex !== null ? layout.positions[hoveredIndex] : undefined
+  const hoveredSize = hoveredIndex !== null ? (layout.starSizes[hoveredIndex] ?? 64) : 64
+  const tooltipAbove = hoveredPos !== undefined && hoveredPos.y - hoveredSize / 2 - 12 >= 36
 
   useEffect(() => {
     const handleKey = (e: KeyboardEvent) => {
@@ -512,7 +605,7 @@ export function ProjectConstellation({
             const isActive = activeIndex === index
             const isHovered = hoveredIndex === index
             const highlighted = isActive || isHovered
-            const dimmed = focusedCluster !== null && photo.clusterId !== focusedCluster
+            const dimmed = activeFocus !== null && photo.clusterId !== activeFocus
 
             return (
               <button
@@ -596,14 +689,14 @@ export function ProjectConstellation({
             >
               {clusters.map((cluster) => {
                 const count = photos.filter((photo) => photo.clusterId === cluster.id).length
-                const isActive = focusedCluster === cluster.id
-                const isDimmed = focusedCluster !== null && !isActive
+                const isActive = activeFocus === cluster.id
+                const isDimmed = activeFocus !== null && !isActive
 
                 return (
                   <button
                     key={cluster.id}
                     type="button"
-                    onClick={() => setFocusedCluster(isActive ? null : cluster.id)}
+                    onClick={() => setFocus(isActive ? null : cluster.id)}
                     aria-pressed={isActive}
                     className={cn(
                       "rounded-2xl border px-3 py-2.5 text-center transition-all duration-300",
@@ -651,15 +744,20 @@ export function ProjectConstellation({
             transition={{ duration: 0.15 }}
             className="pointer-events-none absolute z-30"
             style={{
-              left: layout.positions[hoveredIndex]?.x,
-              top:
-                (layout.positions[hoveredIndex]?.y ?? 0) -
-                (layout.starSizes[hoveredIndex] ?? 64) / 2 -
-                12,
-              transform: "translate(-50%, -100%)",
+              left: hoveredPos?.x,
+              top: tooltipAbove
+                ? (hoveredPos?.y ?? 0) - hoveredSize / 2 - 12
+                : (hoveredPos?.y ?? 0) + hoveredSize / 2 + 12,
             }}
           >
-            <div className="whitespace-nowrap rounded-lg bg-slate-800/90 px-3 py-1.5 text-xs text-white/80 backdrop-blur-sm border border-slate-700/50 shadow-lg">
+            <div
+              className={cn(
+                "whitespace-nowrap rounded-lg border border-slate-700/50 bg-slate-800/90 px-3 py-1.5 text-xs text-white/80 shadow-lg backdrop-blur-sm",
+                // Anchored here rather than on the motion wrapper, whose
+                // transform Framer Motion owns while it animates.
+                tooltipAbove ? "-translate-x-1/2 -translate-y-full" : "-translate-x-1/2",
+              )}
+            >
               {captions[photos[hoveredIndex].key] || titleFor(photos[hoveredIndex])}
             </div>
           </motion.div>
