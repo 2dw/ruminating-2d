@@ -529,7 +529,7 @@ export function ProjectConstellation({
                 key={photo.key}
                 type="button"
                 onClick={() => {
-                  if (clusterActive) setActiveIndex(index)
+                  if (!isClustered || clusterActive) setActiveIndex(index)
                   else setActive(photo.clusterId ?? null)
                 }}
                 onMouseEnter={() => setHoveredIndex(index)}
