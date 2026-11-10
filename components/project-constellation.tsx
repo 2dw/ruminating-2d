@@ -111,24 +111,6 @@ function calculateStarSize(count: number, area: number): number {
   return 56
 }
 
-/**
- * Largest star size from the standard ladder that can plausibly fit `count`
- * stars inside one cluster's zone without overlapping. Sparse clusters climb
- * to the top of the ladder and grow into their zone, while dense ones step
- * down until every star still has room.
- */
-function fitStarSize(count: number, zoneWidth: number, zoneHeight: number): number {
-  if (count === 0) return 80
-  for (const size of [112, 96, 80, 72, 64, 56]) {
-    const margin = size / 2 + 16
-    const minDistance = size + 12
-    const cols = Math.max(1, Math.floor((zoneWidth - margin * 2) / minDistance) + 1)
-    const rows = Math.max(1, Math.floor((zoneHeight - margin * 2) / minDistance) + 1)
-    if (cols * rows >= count + 1) return size
-  }
-  return 56
-}
-
 function distributePositions(
   count: number,
   width: number,
@@ -201,71 +183,6 @@ function distributePositions(
   return positions
 }
 
-/**
- * Even placement for a cluster's zone: stars sit on a jittered grid sized to
- * the count, so a sparse cluster spreads across its whole zone rather than
- * clumping into one corner, and the larger sizes from `fitStarSize` never
- * overlap. Falls back to the loose scatter when no grid can hold every star.
- */
-function distributeOnGrid(
-  count: number,
-  width: number,
-  height: number,
-  starRadius: number,
-): { x: number; y: number }[] {
-  if (count === 0) return []
-  if (count === 1) return [{ x: width / 2, y: height / 2 }]
-
-  const margin = starRadius + 16
-  const minDistance = starRadius * 2 + 12
-  const usableWidth = width - margin * 2
-  const usableHeight = height - margin * 2
-  if (usableWidth <= 0 || usableHeight <= 0) {
-    return distributePositions(count, width, height, starRadius)
-  }
-
-  const maxCols = Math.max(1, Math.floor(usableWidth / minDistance) + 1)
-  const maxRows = Math.max(1, Math.floor(usableHeight / minDistance) + 1)
-
-  // Smallest grid that holds every star, preferring the fewest empty slots and
-  // cells whose shape matches the zone so the field reads as evenly filled.
-  const zoneAspect = width / height
-  let best: { cols: number; rows: number; waste: number; aspect: number } | null = null
-  for (let cols = 1; cols <= maxCols; cols++) {
-    const rows = Math.ceil(count / cols)
-    if (rows > maxRows) continue
-    const waste = cols * rows - count
-    const aspect = Math.abs(
-      Math.log(usableWidth / cols / (usableHeight / rows) / zoneAspect),
-    )
-    if (!best || waste < best.waste || (waste === best.waste && aspect < best.aspect)) {
-      best = { cols, rows, waste, aspect }
-    }
-  }
-  if (!best) return distributePositions(count, width, height, starRadius)
-
-  const { cols, rows } = best
-  const spacingX = cols > 1 ? usableWidth / (cols - 1) : 0
-  const spacingY = rows > 1 ? usableHeight / (rows - 1) : 0
-  // Slack per axis shared between neighbours, so jitter can never close a gap
-  // below the minimum distance.
-  const jitterX = cols > 1 ? (spacingX - minDistance) * 0.3 : 0
-  const jitterY = rows > 1 ? (spacingY - minDistance) * 0.3 : 0
-  const slots = cols * rows
-
-  return Array.from({ length: count }, (_, i) => {
-    const slot = Math.floor((i * slots) / count)
-    const col = slot % cols
-    const row = Math.floor(slot / cols)
-    const baseX = cols > 1 ? margin + col * spacingX : margin + usableWidth / 2
-    const baseY = rows > 1 ? margin + row * spacingY : margin + usableHeight / 2
-    return {
-      x: Math.min(width - margin, Math.max(margin, baseX + (Math.random() * 2 - 1) * jitterX)),
-      y: Math.min(height - margin, Math.max(margin, baseY + (Math.random() * 2 - 1) * jitterY)),
-    }
-  })
-}
-
 function buildConstellationLines(
   positions: { x: number; y: number }[],
 ): [number, number][] {
@@ -314,19 +231,19 @@ export function ProjectConstellation({
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null)
-  const [internalFocus, setInternalFocus] = useState<string | null>(null)
+  const [internalActive, setInternalActive] = useState<string | null>(null)
   const containerRef = useRef<HTMLDivElement>(null)
 
-  // Focus is owned by the page when it drives it (milestone jumps), otherwise
-  // the sky keeps its own state so standalone callers behave as before.
-  const isFocusControlled = focusedCluster !== undefined
-  const activeFocus = isFocusControlled ? focusedCluster : internalFocus
-  const setFocus = useCallback(
+  // Active cluster is owned by the page when it drives it (milestone jumps),
+  // otherwise the sky keeps its own state so standalone callers behave as before.
+  const isControlled = focusedCluster !== undefined
+  const activeCluster = isControlled ? focusedCluster : internalActive
+  const setActive = useCallback(
     (clusterId: string | null) => {
-      if (isFocusControlled) onFocusedClusterChange?.(clusterId)
-      else setInternalFocus(clusterId)
+      if (isControlled) onFocusedClusterChange?.(clusterId)
+      else setInternalActive(clusterId)
     },
-    [isFocusControlled, onFocusedClusterChange],
+    [isControlled, onFocusedClusterChange],
   )
 
   const stars = useMemo(() => generateStars(60), [])
@@ -399,7 +316,6 @@ export function ProjectConstellation({
 
   const layout = useMemo(() => {
     if (clusters && clusters.length > 0 && photos.length > 0) {
-      const zoneWidth = CLUSTER_FIELD_WIDTH / clusters.length
       const groupIndices = new Map<string, number[]>()
       photos.forEach((photo, index) => {
         const key = photo.clusterId ?? ""
@@ -412,44 +328,44 @@ export function ProjectConstellation({
       const starSizes: number[] = []
       const lines: [number, number][] = []
 
-      clusters.forEach((cluster, zone) => {
+      // Compact clouds: every cluster starts as a small, translucent blob in
+      // the same central spot. The active cluster expands into a full
+      // constellation while the others stay as faint clouds.
+      const compactW = 160
+      const compactH = 160
+      const compactOffsetX = (CLUSTER_FIELD_WIDTH - compactW) / 2
+      const compactOffsetY = (FIELD_HEIGHT - compactH) / 2
+
+      clusters.forEach((cluster) => {
         const indices = groupIndices.get(cluster.id) ?? []
-        const size = fitStarSize(indices.length, zoneWidth, FIELD_HEIGHT)
-        const local = distributeOnGrid(indices.length, zoneWidth, FIELD_HEIGHT, size / 2)
+        const isActive = activeCluster === cluster.id
+        const expandedSize = calculateStarSize(indices.length, SOLO_LAYOUT_WIDTH * FIELD_HEIGHT)
+        const compactSize = 48
+
+        const compactLocal = distributePositions(indices.length, compactW, compactH, compactSize / 2)
+        const expandedLocal = distributePositions(indices.length, SOLO_LAYOUT_WIDTH, FIELD_HEIGHT, expandedSize / 2)
 
         indices.forEach((photoIndex, i) => {
-          positions[photoIndex] = { x: zone * zoneWidth + local[i].x, y: local[i].y }
-          starSizes[photoIndex] = size
+          if (isActive) {
+            positions[photoIndex] = { x: 100 + expandedLocal[i].x, y: expandedLocal[i].y }
+            starSizes[photoIndex] = expandedSize
+          } else {
+            positions[photoIndex] = {
+              x: compactOffsetX + compactLocal[i].x,
+              y: compactOffsetY + compactLocal[i].y,
+            }
+            starSizes[photoIndex] = compactSize
+          }
         })
 
-        for (const [a, b] of buildConstellationLines(local)) {
-          const from = indices[a]
-          const to = indices[b]
-          if (from !== undefined && to !== undefined) lines.push([from, to])
-        }
-      })
-
-      // Stitch neighbouring clusters together through their closest pair of
-      // stars, so the journey across locations reads as one constellation.
-      for (let zone = 0; zone < clusters.length - 1; zone++) {
-        const left = groupIndices.get(clusters[zone].id) ?? []
-        const right = groupIndices.get(clusters[zone + 1].id) ?? []
-        let closest: [number, number] | null = null
-        let closestDistance = Number.POSITIVE_INFINITY
-        for (const i of left) {
-          for (const j of right) {
-            const a = positions[i]
-            const b = positions[j]
-            if (!a || !b) continue
-            const distance = Math.hypot(a.x - b.x, a.y - b.y)
-            if (distance < closestDistance) {
-              closestDistance = distance
-              closest = [i, j]
-            }
+        if (isActive) {
+          for (const [a, b] of buildConstellationLines(expandedLocal)) {
+            const from = indices[a]
+            const to = indices[b]
+            if (from !== undefined && to !== undefined) lines.push([from, to])
           }
         }
-        if (closest) lines.push(closest)
-      }
+      })
 
       return { positions, starSizes, lines }
     }
@@ -464,10 +380,10 @@ export function ProjectConstellation({
       starSizes: photos.map(() => starSize),
       lines: buildConstellationLines(positions),
     }
-  }, [photos, clusters])
+  }, [photos, clusters, activeCluster])
 
   const activePhoto = activeIndex !== null ? photos[activeIndex] : null
-  const activeCluster = activePhoto?.clusterId
+  const activePhotoCluster = activePhoto?.clusterId
     ? clusters?.find((cluster) => cluster.id === activePhoto.clusterId)
     : undefined
   const hasMultiple = photos.length > 1
@@ -605,30 +521,39 @@ export function ProjectConstellation({
             const isActive = activeIndex === index
             const isHovered = hoveredIndex === index
             const highlighted = isActive || isHovered
-            const dimmed = activeFocus !== null && photo.clusterId !== activeFocus
+            const clusterActive = activeCluster === photo.clusterId
 
             return (
-              <button
+              <motion.button
                 key={photo.key}
                 type="button"
-                onClick={() => setActiveIndex(index)}
+                onClick={() => {
+                  if (clusterActive) setActiveIndex(index)
+                  else setActive(photo.clusterId ?? null)
+                }}
                 onMouseEnter={() => setHoveredIndex(index)}
                 onMouseLeave={() => setHoveredIndex(null)}
-                className={cn("absolute transition-opacity duration-300", dimmed && "opacity-25")}
-                style={{
-                  left: pos.x,
-                  top: pos.y,
-                  width: size,
-                  height: size,
-                  transform: "translate(-50%, -50%)",
-                  zIndex: highlighted ? 20 : 10,
-                }}
-                aria-label={titleFor(photo)}
+                transformTemplate={({ x, y }) =>
+                  `translate(-50%, -50%) translate(${x ?? "0px"}, ${y ?? "0px"})`
+                }
+                 initial={{ x: pos.x, y: pos.y }}
+                 animate={{ x: pos.x, y: pos.y }}
+                 transition={{ type: "spring", stiffness: 120, damping: 18 }}
+                 className="absolute transition-opacity duration-300"
+                 style={{
+                   left: 0,
+                   top: 0,
+                   width: size,
+                   height: size,
+                   zIndex: highlighted ? 20 : 10,
+                   opacity: clusterActive || isHovered ? 1 : 0.4,
+                 }}
+                 aria-label={titleFor(photo)}
               >
                 <motion.div
                   className="relative h-full w-full"
-                  whileHover={{ scale: 1.2 }}
                   animate={{ scale: isActive ? 1.2 : 1 }}
+                  whileHover={{ scale: 1.15 }}
                   transition={{ type: "spring", stiffness: 250, damping: 16 }}
                 >
                   <div
@@ -673,7 +598,7 @@ export function ProjectConstellation({
                     )}
                   </div>
                 </motion.div>
-              </button>
+              </motion.button>
             )
           })}
         </div>
@@ -689,14 +614,14 @@ export function ProjectConstellation({
             >
               {clusters.map((cluster) => {
                 const count = photos.filter((photo) => photo.clusterId === cluster.id).length
-                const isActive = activeFocus === cluster.id
-                const isDimmed = activeFocus !== null && !isActive
+                const isActive = activeCluster === cluster.id
+                const isDimmed = activeCluster !== null && !isActive
 
                 return (
                   <button
                     key={cluster.id}
                     type="button"
-                    onClick={() => setFocus(isActive ? null : cluster.id)}
+                    onClick={() => setActive(isActive ? null : cluster.id)}
                     aria-pressed={isActive}
                     className={cn(
                       "rounded-2xl border px-3 py-2.5 text-center transition-all duration-300",
@@ -876,8 +801,8 @@ export function ProjectConstellation({
                   />
                 )}
                 <p className="mt-3 text-center text-sm text-white/60">
-                  {activeCluster && (
-                    <span className="text-blue-300/70">{activeCluster.label} &middot; </span>
+                  {activePhotoCluster && (
+                    <span className="text-blue-300/70">{activePhotoCluster.label} &middot; </span>
                   )}
                   {getPhotoTitle(activePhoto.name)}
                 </p>

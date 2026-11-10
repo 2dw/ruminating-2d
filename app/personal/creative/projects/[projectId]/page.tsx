@@ -108,7 +108,7 @@ export default function CreativeProjectPage() {
   // Clicking a journey milestone focuses its rooftop in the sky and brings the
   // photos into view.
   const jumpToCluster = (clusterId: string) => {
-    setFocusedCluster(clusterId)
+    setFocusedCluster((prev) => (prev === clusterId ? null : clusterId))
     constellationRef.current?.scrollIntoView({ behavior: "smooth", block: "start" })
   }
 
@@ -368,7 +368,7 @@ export default function CreativeProjectPage() {
                 <p className="mt-1 text-sm leading-relaxed text-slate-500 dark:text-slate-400">
                   Every star is a photo from one of {resolvedClusters.length} volunteer installs,
                   grouped by location and ordered by date. Jump to a rooftop from a milestone above,
-                  select one below to focus it, or click any star to open it.
+                  select one below to expand it, or click any star to open it.
                 </p>
               </div>
               <LazyProjectConstellation
