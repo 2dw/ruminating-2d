@@ -335,7 +335,11 @@ export function ProjectConstellation({
       const compactH = 160
 
       clusters.forEach((cluster, zone) => {
-        const indices = groupIndices.get(cluster.id) ?? []
+        const indices = (groupIndices.get(cluster.id) ?? []).slice().sort((a, b) => {
+          const aMaking = /making of/i.test(photos[a]?.name ?? '') ? 0 : 1
+          const bMaking = /making of/i.test(photos[b]?.name ?? '') ? 0 : 1
+          return aMaking - bMaking
+        })
         const isActive = activeCluster === cluster.id
         const expandedSize = calculateStarSize(indices.length, SOLO_LAYOUT_WIDTH * FIELD_HEIGHT)
         const compactSize = 48
@@ -344,7 +348,10 @@ export function ProjectConstellation({
         const compactOffsetY = (FIELD_HEIGHT - compactH) / 2
 
         const compactLocal = distributePositions(indices.length, compactW, compactH, compactSize / 2)
-        const expandedLocal = distributePositions(indices.length, SOLO_LAYOUT_WIDTH, FIELD_HEIGHT, expandedSize / 2)
+        const expandedLocal =
+          indices.length === 2
+            ? [{ x: SOLO_LAYOUT_WIDTH * 0.28, y: FIELD_HEIGHT / 2 }, { x: SOLO_LAYOUT_WIDTH * 0.72, y: FIELD_HEIGHT / 2 }]
+            : distributePositions(indices.length, SOLO_LAYOUT_WIDTH, FIELD_HEIGHT, expandedSize / 2)
 
         indices.forEach((photoIndex, i) => {
           if (isActive) {
@@ -482,12 +489,20 @@ export function ProjectConstellation({
 
         <svg
           className="absolute inset-0 h-full w-full"
+          viewBox="0 0 1000 620"
+          preserveAspectRatio="xMidYMid meet"
           style={{ filter: "drop-shadow(0 0 3px rgba(96, 165, 250, 0.12))" }}
         >
+          <defs>
+            <marker id="flow-arrow" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto" markerUnits="strokeWidth">
+              <path d="M0,0 L8,4 L0,8 z" fill="rgba(96, 165, 250, 0.85)" />
+            </marker>
+          </defs>
           {layout.lines.map(([i, j], idx) => {
             const from = layout.positions[i]
             const to = layout.positions[j]
             if (!from || !to) return null
+            const isFlow = /making of/i.test(photos[i]?.name ?? '') && !/making of/i.test(photos[j]?.name ?? '')
             return (
               <motion.line
                 key={idx}
@@ -495,10 +510,11 @@ export function ProjectConstellation({
                 y1={from.y}
                 x2={to.x}
                 y2={to.y}
-                className="text-blue-500/20"
+                className={isFlow ? "text-blue-400/80" : "text-blue-500/20"}
                 stroke="currentColor"
-                strokeWidth="1"
-                strokeDasharray="3 5"
+                strokeWidth={isFlow ? "2" : "1"}
+                strokeDasharray={isFlow ? "0" : "3 5"}
+                markerEnd={isFlow ? "url(#flow-arrow)" : undefined}
                 initial={{ pathLength: 0, opacity: 0 }}
                 animate={{ pathLength: 1, opacity: 1 }}
                 transition={{ duration: 0.8, delay: idx * 0.02, ease: "easeOut" }}
@@ -534,21 +550,19 @@ export function ProjectConstellation({
                 }}
                 onMouseEnter={() => setHoveredIndex(index)}
                 onMouseLeave={() => setHoveredIndex(null)}
-                transformTemplate={({ x, y }) =>
-                  `translate(-50%, -50%) translate(${x ?? "0px"}, ${y ?? "0px"})`
-                }
-                 initial={{ x: pos.x, y: pos.y }}
-                 animate={{ x: pos.x, y: pos.y }}
+                 initial={{ left: (pos.x / CLUSTER_FIELD_WIDTH * 100) + "%", top: (pos.y / FIELD_HEIGHT * 100) + "%" }}
+                 animate={{ left: (pos.x / CLUSTER_FIELD_WIDTH * 100) + "%", top: (pos.y / FIELD_HEIGHT * 100) + "%" }}
                  transition={{ type: "spring", stiffness: 120, damping: 18 }}
                  className="absolute transition-opacity duration-300"
                  style={{
-                   left: 0,
-                   top: 0,
+                   left: (pos.x / CLUSTER_FIELD_WIDTH * 100) + "%",
+                   top: (pos.y / FIELD_HEIGHT * 100) + "%",
                    width: size,
                    height: size,
                    zIndex: highlighted ? 20 : 10,
                    opacity: clusterActive || isHovered ? 1 : 0.08,
                    filter: clusterActive || isHovered ? "none" : "grayscale(1) brightness(0.6)",
+                   transform: "translate(-50%, -50%)",
                  }}
                  aria-label={titleFor(photo)}
               >
@@ -579,6 +593,7 @@ export function ProjectConstellation({
                         draggable={false}
                         className="object-cover"
                         sizes={`${size}px`}
+                        unoptimized={photo.mediaType === "animation"}
                       />
                     ) : (
                       <div className="flex h-full w-full items-center justify-center bg-slate-800/80">
@@ -671,10 +686,12 @@ export function ProjectConstellation({
             transition={{ duration: 0.15 }}
             className="pointer-events-none absolute z-30"
             style={{
-              left: hoveredPos?.x,
-              top: tooltipAbove
-                ? (hoveredPos?.y ?? 0) - hoveredSize / 2 - 12
-                : (hoveredPos?.y ?? 0) + hoveredSize / 2 + 12,
+              left: hoveredPos ? (hoveredPos.x / CLUSTER_FIELD_WIDTH * 100) + "%" : undefined,
+              top: hoveredPos
+                ? (tooltipAbove
+                    ? (hoveredPos.y / FIELD_HEIGHT * 100) - (hoveredSize / 2 + 12) / FIELD_HEIGHT * 100
+                    : (hoveredPos.y / FIELD_HEIGHT * 100) + (hoveredSize / 2 + 12) / FIELD_HEIGHT * 100) + "%"
+                : undefined,
             }}
           >
             <div
