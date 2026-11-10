@@ -189,16 +189,17 @@ function buildFlowPath(from: { x: number; y: number }, to: { x: number; y: numbe
   const len = Math.hypot(dx, dy) || 1
   const nx = -dy / len
   const ny = dx / len
-  const steps = 14
+  const steps = 32
   const pts: { x: number; y: number }[] = []
   for (let i = 0; i <= steps; i++) {
     const t = i / steps
     const baseX = from.x + dx * t
     const baseY = from.y + dy * t
-    const wave = Math.sin(t * Math.PI * 3) * (len * 0.16) + Math.cos(t * Math.PI * 5) * (len * 0.06)
+    // Envelope strictly enforces wave is 0 at both endpoints (t=0 and t=1)
+    const envelope = Math.sin(t * Math.PI)
+    const wave = envelope * Math.sin(t * Math.PI * 2) * (len * 0.18)
     pts.push({ x: baseX + nx * wave, y: baseY + ny * wave })
   }
-  // Catmull-Rom-ish smooth path through the points.
   let d = `M ${pts[0].x.toFixed(1)} ${pts[0].y.toFixed(1)}`
   for (let i = 0; i < pts.length - 1; i++) {
     const p0 = pts[Math.max(0, i - 1)]
@@ -280,6 +281,7 @@ export function ProjectConstellation({
   const stars = useMemo(() => generateStars(60), [])
 
   const isClustered = (clusters?.length ?? 0) > 0
+  const fieldWidth = isClustered ? CLUSTER_FIELD_WIDTH : SOLO_FIELD_WIDTH
 
   const loadFromPrefix = useCallback(
     async (requestPrefix: string, filters?: string[]): Promise<Photo[]> => {
@@ -518,168 +520,203 @@ export function ProjectConstellation({
           />
         ))}
 
-        <svg
-          className="absolute inset-0 h-full w-full"
-          viewBox="0 0 1000 620"
-          preserveAspectRatio="xMidYMid meet"
-          style={{ filter: "drop-shadow(0 0 3px rgba(96, 165, 250, 0.12))" }}
-        >
-          <defs>
-            {layout.lines.map(([i, j], idx) => {
-              const from = layout.positions[i]
-              const to = layout.positions[j]
-              if (!from || !to) return null
-              const isFlow = /making of/i.test(photos[i]?.name ?? '') && !/making of/i.test(photos[j]?.name ?? '')
-              if (!isFlow) return null
-              return (
-                <linearGradient key={`grad-${idx}`} id={`trail-grad-${idx}`} gradientUnits="userSpaceOnUse"
-                  x1={from.x} y1={from.y} x2={to.x} y2={to.y}>
-                  <stop offset="0%" stopColor="rgba(96,165,250,0)" />
-                  <stop offset="30%" stopColor="rgba(96,165,250,0.18)" />
-                  <stop offset="70%" stopColor="rgba(147,210,255,0.55)" />
-                  <stop offset="88%" stopColor="rgba(224,242,254,0.85)" />
-                  <stop offset="100%" stopColor="rgba(255,255,255,0)" />
-                </linearGradient>
-              )
-            })}
-            <symbol id="rocket-symbol" viewBox="-10 -7 20 14" overflow="visible">
-              <path d="M -6 -3.5 L 7.5 0 L -6 3.5 L -2.5 0 Z"
-                fill="rgba(224,242,254,0.95)" stroke="rgba(96,165,250,0.9)" strokeWidth="0.6" />
-              <circle cx="-1" cy="0" r="1.5" fill="rgba(15,23,42,0.85)" stroke="rgba(147,210,255,0.6)" strokeWidth="0.5" />
-              <path d="M -6 -3.5 L -9 -7 L -4 -3.5 Z" fill="rgba(96,165,250,0.8)" />
-              <path d="M -6 3.5 L -9 7 L -4 3.5 Z" fill="rgba(96,165,250,0.8)" />
-              <ellipse cx="-7.5" cy="0" rx="3" ry="1.4" fill="rgba(251,191,36,0.55)" />
-              <ellipse cx="-6.5" cy="0" rx="1.8" ry="0.8" fill="rgba(252,211,77,0.75)" />
-            </symbol>
-          </defs>
-
-          {layout.lines.map(([i, j], idx) => {
-            const from = layout.positions[i]
-            const to = layout.positions[j]
-            if (!from || !to) return null
-            const isFlow = /making of/i.test(photos[i]?.name ?? '') && !/making of/i.test(photos[j]?.name ?? '')
-            if (isFlow) {
-              const pathD = buildFlowPath(from, to)
-              const sparkles = Array.from({ length: 18 }, (_, k) => {
-                const t = (k + 0.5) / 18
-                const dx = to.x - from.x, dy = to.y - from.y
-                const len = Math.hypot(dx, dy) || 1
-                const nx = -dy / len, ny = dx / len
-                const wave = Math.sin(t * Math.PI * 3) * (len * 0.16) + Math.cos(t * Math.PI * 5) * (len * 0.06)
-                const jitter = (Math.sin(k * 7.3 + 1.2) * 0.5 + Math.cos(k * 3.7) * 0.5) * 14
-                return {
-                  x: from.x + dx * t + nx * (wave + jitter),
-                  y: from.y + dy * t + ny * (wave + jitter),
-                  r: 0.6 + Math.abs(Math.sin(k * 2.1)) * 1.4,
-                  opacity: 0.25 + Math.abs(Math.cos(k * 1.9)) * 0.65,
-                  delay: t * 1.4 + idx * 0.02,
-                }
-              })
-              const pathId = `flow-path-${idx}`
-              return (
-                <g key={`flow-${idx}`}>
-                  <path id={pathId} d={pathD} fill="none" stroke="none" />
-                  <motion.path
-                    d={pathD}
-                    fill="none"
-                    stroke={`url(#trail-grad-${idx})`}
-                    strokeWidth="2.5"
-                    strokeLinecap="round"
-                    initial={{ pathLength: 0, opacity: 0 }}
-                    animate={{ pathLength: 1, opacity: 1 }}
-                    transition={{ duration: 1.4, delay: idx * 0.02, ease: "easeOut" }}
-                  />
-                  <motion.path
-                    d={pathD}
-                    fill="none"
-                    stroke="rgba(96,165,250,0.12)"
-                    strokeWidth="8"
-                    strokeLinecap="round"
-                    initial={{ pathLength: 0, opacity: 0 }}
-                    animate={{ pathLength: 1, opacity: 1 }}
-                    transition={{ duration: 1.4, delay: idx * 0.02, ease: "easeOut" }}
-                  />
-                  {sparkles.map((sp, k) => (
-                    <motion.circle
-                      key={k}
-                      cx={sp.x}
-                      cy={sp.y}
-                      r={sp.r}
-                      fill="white"
-                      initial={{ opacity: 0, scale: 0 }}
-                      animate={{ opacity: [0, sp.opacity, sp.opacity * 0.5, sp.opacity, 0], scale: [0, 1, 0.7, 1, 0] }}
-                      transition={{
-                        duration: 2.8 + Math.abs(Math.sin(k)) * 1.2,
-                        delay: sp.delay,
-                        repeat: Infinity,
-                        ease: "easeInOut",
-                      }}
-                    />
-                  ))}
-                  <motion.g
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ duration: 0.4, delay: 1.2 }}
-                  >
-                    <use href="#rocket-symbol">
-                      <animateMotion
-                        dur="6s"
-                        repeatCount="indefinite"
-                        rotate="auto"
-                        keyPoints="0;1"
-                        keyTimes="0;1"
-                        calcMode="spline"
-                        keySplines="0.4 0 0.6 1"
-                      >
-                        <mpath href={`#${pathId}`} />
-                      </animateMotion>
-                    </use>
-                    <circle r="4" fill="rgba(251,191,36,0.3)">
-                      <animate attributeName="r" values="3;6;3" dur="0.8s" repeatCount="indefinite" />
-                      <animate attributeName="opacity" values="0.4;0.15;0.4" dur="0.8s" repeatCount="indefinite" />
-                      <animateMotion
-                        dur="6s"
-                        repeatCount="indefinite"
-                        rotate="auto"
-                        keyPoints="0;1"
-                        keyTimes="0;1"
-                        calcMode="spline"
-                        keySplines="0.4 0 0.6 1"
-                      >
-                        <mpath href={`#${pathId}`} />
-                      </animateMotion>
-                    </circle>
-                  </motion.g>
-                </g>
-              )
-            }
-            return (
-              <motion.line
-                key={idx}
-                x1={from.x}
-                y1={from.y}
-                x2={to.x}
-                y2={to.y}
-                className="text-blue-500/20"
-                stroke="currentColor"
-                strokeWidth="1"
-                strokeDasharray="3 5"
-                initial={{ pathLength: 0, opacity: 0 }}
-                animate={{ pathLength: 1, opacity: 1 }}
-                transition={{ duration: 0.8, delay: idx * 0.02, ease: "easeOut" }}
-              />
-            )
-          })}
-        </svg>
-
         <div
           className="relative z-10 mx-auto"
           style={{
             height: FIELD_HEIGHT,
             width: "100%",
-            maxWidth: isClustered ? CLUSTER_FIELD_WIDTH : SOLO_FIELD_WIDTH,
+            maxWidth: fieldWidth,
           }}
         >
+          <svg
+            className="pointer-events-none absolute inset-0 h-full w-full"
+            viewBox={`0 0 ${fieldWidth} ${FIELD_HEIGHT}`}
+            preserveAspectRatio="none"
+            style={{ filter: "drop-shadow(0 0 3px rgba(96, 165, 250, 0.12))" }}
+          >
+            <defs>
+              {layout.lines.map(([i, j], idx) => {
+                const from = layout.positions[i]
+                const to = layout.positions[j]
+                if (!from || !to) return null
+                const isFlow = /making of/i.test(photos[i]?.name ?? '') && !/making of/i.test(photos[j]?.name ?? '')
+                if (!isFlow) return null
+                return (
+                  <linearGradient
+                    key={`grad-${idx}`}
+                    id={`trail-grad-${idx}`}
+                    gradientUnits="userSpaceOnUse"
+                    x1={from.x}
+                    y1={from.y}
+                    x2={to.x}
+                    y2={to.y}
+                  >
+                    <stop offset="0%" stopColor="#38bdf8" stopOpacity="0.2" />
+                    <stop offset="25%" stopColor="#60a5fa" stopOpacity="0.75" />
+                    <stop offset="60%" stopColor="#a78bfa" stopOpacity="0.85" />
+                    <stop offset="85%" stopColor="#e0f2fe" stopOpacity="0.95" />
+                    <stop offset="100%" stopColor="#ffffff" stopOpacity="0.4" />
+                  </linearGradient>
+                )
+              })}
+            </defs>
+
+            {layout.lines.map(([i, j], idx) => {
+              const from = layout.positions[i]
+              const to = layout.positions[j]
+              if (!from || !to) return null
+              const isFlow = /making of/i.test(photos[i]?.name ?? '') && !/making of/i.test(photos[j]?.name ?? '')
+              if (isFlow) {
+                const pathD = buildFlowPath(from, to)
+                const pathId = `flow-path-${idx}`
+                const sparkles = Array.from({ length: 22 }, (_, k) => {
+                  const t = 0.12 + (k / 21) * 0.76
+                  const envelope = Math.sin(t * Math.PI)
+                  const dx = to.x - from.x, dy = to.y - from.y
+                  const len = Math.hypot(dx, dy) || 1
+                  const nx = -dy / len, ny = dx / len
+                  const wave = envelope * Math.sin(t * Math.PI * 2) * (len * 0.18)
+                  const scatter = (Math.sin(k * 4.7) * 0.7 + Math.cos(k * 2.3) * 0.3) * 14 * envelope
+                  const x = from.x + dx * t + nx * (wave + scatter)
+                  const y = from.y + dy * t + ny * (wave + scatter)
+                  const r = 0.7 + (k % 3 === 0 ? 1.1 : k % 2 === 0 ? 0.6 : 0.3)
+                  const isGold = k % 5 === 0
+                  const isCyan = k % 3 === 1
+                  const color = isGold ? "#fde68a" : isCyan ? "#a5f3fc" : "#ffffff"
+                  return { x, y, r, color, delay: (k * 0.23) % 2.5, dur: 1.8 + (k % 4) * 0.5 }
+                })
+                return (
+                  <g key={`flow-${idx}`}>
+                    <path id={pathId} d={pathD} fill="none" stroke="none" />
+
+                    {/* Wide cosmic dust glow */}
+                    <motion.path
+                      d={pathD}
+                      fill="none"
+                      stroke="rgba(147, 197, 253, 0.16)"
+                      strokeWidth="10"
+                      strokeLinecap="round"
+                      initial={{ pathLength: 0, opacity: 0 }}
+                      animate={{ pathLength: 1, opacity: 1 }}
+                      transition={{ duration: 1.4, delay: idx * 0.02, ease: "easeOut" }}
+                    />
+
+                    {/* Glowing starry trail */}
+                    <motion.path
+                      d={pathD}
+                      fill="none"
+                      stroke={`url(#trail-grad-${idx})`}
+                      strokeWidth="2.5"
+                      strokeLinecap="round"
+                      initial={{ pathLength: 0, opacity: 0 }}
+                      animate={{ pathLength: 1, opacity: 1 }}
+                      transition={{ duration: 1.4, delay: idx * 0.02, ease: "easeOut" }}
+                    />
+
+                    {/* Starlight dashed core */}
+                    <motion.path
+                      d={pathD}
+                      fill="none"
+                      stroke="rgba(255, 255, 255, 0.9)"
+                      strokeWidth="1"
+                      strokeDasharray="3 5"
+                      strokeLinecap="round"
+                      initial={{ pathLength: 0, opacity: 0 }}
+                      animate={{ pathLength: 1, opacity: 1 }}
+                      transition={{ duration: 1.4, delay: idx * 0.02, ease: "easeOut" }}
+                    />
+
+                    {/* Twinkling star particles */}
+                    {sparkles.map((sp, k) => (
+                      <g key={k}>
+                        <circle cx={sp.x} cy={sp.y} r={sp.r} fill={sp.color}>
+                          <animate
+                            attributeName="opacity"
+                            values="0.2;0.95;0.2"
+                            dur={`${sp.dur}s`}
+                            begin={`${sp.delay}s`}
+                            repeatCount="indefinite"
+                          />
+                          <animate
+                            attributeName="r"
+                            values={`${sp.r * 0.6};${sp.r * 1.3};${sp.r * 0.6}`}
+                            dur={`${sp.dur}s`}
+                            begin={`${sp.delay}s`}
+                            repeatCount="indefinite"
+                          />
+                        </circle>
+                        {k % 4 === 0 && (
+                          <path
+                            d={`M ${sp.x - sp.r * 2.5} ${sp.y} L ${sp.x + sp.r * 2.5} ${sp.y} M ${sp.x} ${sp.y - sp.r * 2.5} L ${sp.x} ${sp.y + sp.r * 2.5}`}
+                            stroke={sp.color}
+                            strokeWidth="0.6"
+                            opacity="0.8"
+                          >
+                            <animate
+                              attributeName="opacity"
+                              values="0.1;0.9;0.1"
+                              dur={`${sp.dur}s`}
+                              begin={`${sp.delay}s`}
+                              repeatCount="indefinite"
+                            />
+                          </path>
+                        )}
+                      </g>
+                    ))}
+
+                    {/* Proportional whimsical rocket ship (14px by 9px) */}
+                    <g>
+                      <ellipse cx="-6" cy="0" rx="3.5" ry="1.2" fill="#f59e0b" opacity="0.85">
+                        <animate attributeName="rx" values="2.5;4.5;2.5" dur="0.25s" repeatCount="indefinite" />
+                        <animate attributeName="opacity" values="0.7;1;0.7" dur="0.25s" repeatCount="indefinite" />
+                      </ellipse>
+                      <ellipse cx="-4.5" cy="0" rx="1.8" ry="0.6" fill="#fef08a" opacity="0.95" />
+
+                      <path
+                        d="M -4 -2.8 L 7.5 0 L -4 2.8 L -2 0 Z"
+                        fill="#e0f2fe"
+                        stroke="#60a5fa"
+                        strokeWidth="0.7"
+                      />
+
+                      <path d="M -3 -2.8 L -6 -5 L -1.5 -2.8 Z" fill="#60a5fa" />
+                      <path d="M -3 2.8 L -6 5 L -1.5 2.8 Z" fill="#60a5fa" />
+
+                      <circle cx="1" cy="0" r="1.1" fill="#0f172a" stroke="#93c5fd" strokeWidth="0.5" />
+
+                      <animateMotion
+                        dur="5.5s"
+                        repeatCount="indefinite"
+                        rotate="auto"
+                        keyPoints="0;1"
+                        keyTimes="0;1"
+                        calcMode="spline"
+                        keySplines="0.4 0 0.6 1"
+                      >
+                        <mpath href={`#${pathId}`} />
+                      </animateMotion>
+                    </g>
+                  </g>
+                )
+              }
+              return (
+                <motion.line
+                  key={idx}
+                  x1={from.x}
+                  y1={from.y}
+                  x2={to.x}
+                  y2={to.y}
+                  className="text-blue-500/20"
+                  stroke="currentColor"
+                  strokeWidth="1"
+                  strokeDasharray="3 5"
+                  initial={{ pathLength: 0, opacity: 0 }}
+                  animate={{ pathLength: 1, opacity: 1 }}
+                  transition={{ duration: 0.8, delay: idx * 0.02, ease: "easeOut" }}
+                />
+              )
+            })}
+          </svg>
           {photos.map((photo, index) => {
             const pos = layout.positions[index]
             if (!pos) return null
@@ -699,13 +736,13 @@ export function ProjectConstellation({
                 }}
                 onMouseEnter={() => setHoveredIndex(index)}
                 onMouseLeave={() => setHoveredIndex(null)}
-                 initial={{ left: (pos.x / CLUSTER_FIELD_WIDTH * 100) + "%", top: (pos.y / FIELD_HEIGHT * 100) + "%" }}
-                 animate={{ left: (pos.x / CLUSTER_FIELD_WIDTH * 100) + "%", top: (pos.y / FIELD_HEIGHT * 100) + "%" }}
+                 initial={{ left: `${(pos.x / fieldWidth) * 100}%`, top: `${(pos.y / FIELD_HEIGHT) * 100}%` }}
+                 animate={{ left: `${(pos.x / fieldWidth) * 100}%`, top: `${(pos.y / FIELD_HEIGHT) * 100}%` }}
                  transition={{ type: "spring", stiffness: 120, damping: 18 }}
                  className="absolute transition-opacity duration-300"
                  style={{
-                   left: (pos.x / CLUSTER_FIELD_WIDTH * 100) + "%",
-                   top: (pos.y / FIELD_HEIGHT * 100) + "%",
+                   left: `${(pos.x / fieldWidth) * 100}%`,
+                   top: `${(pos.y / FIELD_HEIGHT) * 100}%`,
                    width: size,
                    height: size,
                    zIndex: highlighted ? 20 : 10,
@@ -837,7 +874,7 @@ export function ProjectConstellation({
             transition={{ duration: 0.15 }}
             className="pointer-events-none absolute z-30"
             style={{
-              left: hoveredPos ? (hoveredPos.x / CLUSTER_FIELD_WIDTH * 100) + "%" : undefined,
+              left: hoveredPos ? `${(hoveredPos.x / fieldWidth) * 100}%` : undefined,
               top: hoveredPos
                 ? (tooltipAbove
                     ? (hoveredPos.y / FIELD_HEIGHT * 100) - (hoveredSize / 2 + 12) / FIELD_HEIGHT * 100
