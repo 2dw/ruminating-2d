@@ -524,6 +524,35 @@ export function ProjectConstellation({
           preserveAspectRatio="xMidYMid meet"
           style={{ filter: "drop-shadow(0 0 3px rgba(96, 165, 250, 0.12))" }}
         >
+          <defs>
+            {layout.lines.map(([i, j], idx) => {
+              const from = layout.positions[i]
+              const to = layout.positions[j]
+              if (!from || !to) return null
+              const isFlow = /making of/i.test(photos[i]?.name ?? '') && !/making of/i.test(photos[j]?.name ?? '')
+              if (!isFlow) return null
+              return (
+                <linearGradient key={`grad-${idx}`} id={`trail-grad-${idx}`} gradientUnits="userSpaceOnUse"
+                  x1={from.x} y1={from.y} x2={to.x} y2={to.y}>
+                  <stop offset="0%" stopColor="rgba(96,165,250,0)" />
+                  <stop offset="30%" stopColor="rgba(96,165,250,0.18)" />
+                  <stop offset="70%" stopColor="rgba(147,210,255,0.55)" />
+                  <stop offset="88%" stopColor="rgba(224,242,254,0.85)" />
+                  <stop offset="100%" stopColor="rgba(255,255,255,0)" />
+                </linearGradient>
+              )
+            })}
+            <symbol id="rocket-symbol" viewBox="-10 -7 20 14" overflow="visible">
+              <path d="M -6 -3.5 L 7.5 0 L -6 3.5 L -2.5 0 Z"
+                fill="rgba(224,242,254,0.95)" stroke="rgba(96,165,250,0.9)" strokeWidth="0.6" />
+              <circle cx="-1" cy="0" r="1.5" fill="rgba(15,23,42,0.85)" stroke="rgba(147,210,255,0.6)" strokeWidth="0.5" />
+              <path d="M -6 -3.5 L -9 -7 L -4 -3.5 Z" fill="rgba(96,165,250,0.8)" />
+              <path d="M -6 3.5 L -9 7 L -4 3.5 Z" fill="rgba(96,165,250,0.8)" />
+              <ellipse cx="-7.5" cy="0" rx="3" ry="1.4" fill="rgba(251,191,36,0.55)" />
+              <ellipse cx="-6.5" cy="0" rx="1.8" ry="0.8" fill="rgba(252,211,77,0.75)" />
+            </symbol>
+          </defs>
+
           {layout.lines.map(([i, j], idx) => {
             const from = layout.positions[i]
             const to = layout.positions[j]
@@ -531,19 +560,97 @@ export function ProjectConstellation({
             const isFlow = /making of/i.test(photos[i]?.name ?? '') && !/making of/i.test(photos[j]?.name ?? '')
             if (isFlow) {
               const pathD = buildFlowPath(from, to)
+              const sparkles = Array.from({ length: 18 }, (_, k) => {
+                const t = (k + 0.5) / 18
+                const dx = to.x - from.x, dy = to.y - from.y
+                const len = Math.hypot(dx, dy) || 1
+                const nx = -dy / len, ny = dx / len
+                const wave = Math.sin(t * Math.PI * 3) * (len * 0.16) + Math.cos(t * Math.PI * 5) * (len * 0.06)
+                const jitter = (Math.sin(k * 7.3 + 1.2) * 0.5 + Math.cos(k * 3.7) * 0.5) * 14
+                return {
+                  x: from.x + dx * t + nx * (wave + jitter),
+                  y: from.y + dy * t + ny * (wave + jitter),
+                  r: 0.6 + Math.abs(Math.sin(k * 2.1)) * 1.4,
+                  opacity: 0.25 + Math.abs(Math.cos(k * 1.9)) * 0.65,
+                  delay: t * 1.4 + idx * 0.02,
+                }
+              })
+              const pathId = `flow-path-${idx}`
               return (
-                <motion.path
-                  d={pathD}
-                  fill="none"
-                  className="text-blue-400/70"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeDasharray="5 6"
-                  strokeLinecap="round"
-                  initial={{ pathLength: 0, opacity: 0 }}
-                  animate={{ pathLength: 1, opacity: 1 }}
-                  transition={{ duration: 1.2, delay: idx * 0.02, ease: "easeOut" }}
-                />
+                <g key={`flow-${idx}`}>
+                  <path id={pathId} d={pathD} fill="none" stroke="none" />
+                  <motion.path
+                    d={pathD}
+                    fill="none"
+                    stroke={`url(#trail-grad-${idx})`}
+                    strokeWidth="2.5"
+                    strokeLinecap="round"
+                    initial={{ pathLength: 0, opacity: 0 }}
+                    animate={{ pathLength: 1, opacity: 1 }}
+                    transition={{ duration: 1.4, delay: idx * 0.02, ease: "easeOut" }}
+                  />
+                  <motion.path
+                    d={pathD}
+                    fill="none"
+                    stroke="rgba(96,165,250,0.12)"
+                    strokeWidth="8"
+                    strokeLinecap="round"
+                    initial={{ pathLength: 0, opacity: 0 }}
+                    animate={{ pathLength: 1, opacity: 1 }}
+                    transition={{ duration: 1.4, delay: idx * 0.02, ease: "easeOut" }}
+                  />
+                  {sparkles.map((sp, k) => (
+                    <motion.circle
+                      key={k}
+                      cx={sp.x}
+                      cy={sp.y}
+                      r={sp.r}
+                      fill="white"
+                      initial={{ opacity: 0, scale: 0 }}
+                      animate={{ opacity: [0, sp.opacity, sp.opacity * 0.5, sp.opacity, 0], scale: [0, 1, 0.7, 1, 0] }}
+                      transition={{
+                        duration: 2.8 + Math.abs(Math.sin(k)) * 1.2,
+                        delay: sp.delay,
+                        repeat: Infinity,
+                        ease: "easeInOut",
+                      }}
+                    />
+                  ))}
+                  <motion.g
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ duration: 0.4, delay: 1.2 }}
+                  >
+                    <use href="#rocket-symbol">
+                      <animateMotion
+                        dur="6s"
+                        repeatCount="indefinite"
+                        rotate="auto"
+                        keyPoints="0;1"
+                        keyTimes="0;1"
+                        calcMode="spline"
+                        keySplines="0.4 0 0.6 1"
+                      >
+                        <mpath href={`#${pathId}`} />
+                      </animateMotion>
+                    </use>
+                    <circle r="4" fill="rgba(251,191,36,0.3)">
+                      <animate attributeName="r" values="3;6;3" dur="0.8s" repeatCount="indefinite" />
+                      <animate attributeName="opacity" values="0.4;0.15;0.4" dur="0.8s" repeatCount="indefinite" />
+                      <animateMotion
+                        dur="6s"
+                        repeatCount="indefinite"
+                        rotate="auto"
+                        keyPoints="0;1"
+                        keyTimes="0;1"
+                        calcMode="spline"
+                        keySplines="0.4 0 0.6 1"
+                      >
+                        <mpath href={`#${pathId}`} />
+                      </animateMotion>
+                    </circle>
+                  </motion.g>
+                </g>
               )
             }
             return (
@@ -660,34 +767,7 @@ export function ProjectConstellation({
               </motion.button>
             )
           })}
-          {layout.lines.map(([i, j], idx) => {
-            const from = layout.positions[i]
-            const to = layout.positions[j]
-            if (!from || !to) return null
-            const isFlow = /making of/i.test(photos[i]?.name ?? "") && !/making of/i.test(photos[j]?.name ?? "")
-            if (!isFlow) return null
-            const midX = (from.x + to.x) / 2
-            const midY = (from.y + to.y) / 2
-            const angle = (Math.atan2(to.y - from.y, to.x - from.x) * 180) / Math.PI
-            return (
-              <motion.div
-                key={`rocket-${idx}`}
-                className="pointer-events-none absolute z-20"
-                style={{
-                  left: (midX / CLUSTER_FIELD_WIDTH) * 100 + "%",
-                  top: (midY / FIELD_HEIGHT) * 100 + "%",
-                  transform: `translate(-50%, -50%) rotate(${angle}deg)`,
-                }}
-                animate={{ y: [0, -5, 0] }}
-                transition={{ duration: 2.2, repeat: Infinity, ease: "easeInOut" }}
-              >
-                <svg width="22" height="22" viewBox="-11 -11 22 22" style={{ overflow: "visible" }}>
-                  <path d="M -7 -4 L 7 0 L -7 4 L -3 0 Z" fill="rgba(96, 165, 250, 0.95)" stroke="rgba(191, 219, 254, 0.9)" strokeWidth="0.8" />
-                  <circle cx="-3" cy="0" r="1.6" fill="rgba(15, 23, 42, 0.9)" />
-                </svg>
-              </motion.div>
-            )
-          })}
+
 
         </div>
 
