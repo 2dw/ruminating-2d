@@ -299,7 +299,7 @@ function buildMeanderingFlowPath(
     const r = 0.5 + (k % 3 === 0 ? 0.7 : k % 2 === 0 ? 0.4 : 0.2)
     const isGold = k % 5 === 0
     const isCyan = k % 3 === 1
-    const color = isGold ? "rgba(253, 230, 138, 0.45)" : isCyan ? "rgba(165, 243, 252, 0.45)" : "rgba(224, 242, 254, 0.45)"
+    const color = isGold ? "rgba(253, 230, 138, 0.35)" : isCyan ? "rgba(165, 243, 252, 0.35)" : "rgba(224, 242, 254, 0.35)"
     return { x, y, r, color, delay: (k * 0.25) % 2.5, dur: 2.0 + (k % 4) * 0.5 }
   })
 
@@ -679,11 +679,11 @@ export function ProjectConstellation({
                     x2={to.x}
                     y2={to.y}
                   >
-                    <stop offset="0%" stopColor="#60a5fa" stopOpacity="0.04" />
-                    <stop offset="30%" stopColor="#60a5fa" stopOpacity="0.20" />
-                    <stop offset="70%" stopColor="#93c5fd" stopOpacity="0.32" />
-                    <stop offset="90%" stopColor="#bae6fd" stopOpacity="0.38" />
-                    <stop offset="100%" stopColor="#bae6fd" stopOpacity="0.15" />
+                    <stop offset="0%" stopColor="#60a5fa" stopOpacity="0.02" />
+                    <stop offset="25%" stopColor="#60a5fa" stopOpacity="0.12" />
+                    <stop offset="65%" stopColor="#93c5fd" stopOpacity="0.22" />
+                    <stop offset="85%" stopColor="#bae6fd" stopOpacity="0.26" />
+                    <stop offset="100%" stopColor="#bae6fd" stopOpacity="0.08" />
                   </linearGradient>
                 )
               })}
@@ -705,12 +705,12 @@ export function ProjectConstellation({
                     <motion.path
                       d={pathD}
                       fill="none"
-                      stroke="rgba(96, 165, 250, 0.08)"
-                      strokeWidth="8"
+                      stroke="rgba(96, 165, 250, 0.04)"
+                      strokeWidth="6"
                       strokeLinecap="round"
                       initial={{ pathLength: 0, opacity: 0 }}
                       animate={{ pathLength: 1, opacity: 1 }}
-                      transition={{ duration: 1.2, delay: 0.45, ease: "easeOut" }}
+                      transition={{ duration: 2.2, delay: 0.08, ease: "easeInOut" }}
                     />
 
                     {/* Faded translucent shooting-star trail */}
@@ -718,38 +718,38 @@ export function ProjectConstellation({
                       d={pathD}
                       fill="none"
                       stroke={`url(#trail-grad-${idx})`}
-                      strokeWidth="1.8"
+                      strokeWidth="1.4"
                       strokeLinecap="round"
                       initial={{ pathLength: 0, opacity: 0 }}
                       animate={{ pathLength: 1, opacity: 1 }}
-                      transition={{ duration: 1.2, delay: 0.45, ease: "easeOut" }}
+                      transition={{ duration: 2.2, delay: 0.08, ease: "easeInOut" }}
                     />
 
                     {/* Faded dashed constellation starlight thread (like grid-alternatives 20% opacity) */}
                     <motion.path
                       d={pathD}
                       fill="none"
-                      stroke="rgba(147, 197, 253, 0.28)"
-                      strokeWidth="1"
-                      strokeDasharray="3 5"
+                      stroke="rgba(147, 197, 253, 0.18)"
+                      strokeWidth="0.8"
+                      strokeDasharray="2 5"
                       strokeLinecap="round"
                       initial={{ pathLength: 0, opacity: 0 }}
                       animate={{ pathLength: 1, opacity: 1 }}
-                      transition={{ duration: 1.2, delay: 0.45, ease: "easeOut" }}
+                      transition={{ duration: 2.2, delay: 0.08, ease: "easeInOut" }}
                     />
 
                     {/* Delicate translucent sparkles fading in as path forms */}
                     <motion.g
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
-                      transition={{ delay: 0.65, duration: 0.7 }}
+                      transition={{ delay: 0.20, duration: 1.8, ease: "easeInOut" }}
                     >
                       {sparkles.map((sp, k) => (
                       <g key={k}>
                         <circle cx={sp.x} cy={sp.y} r={sp.r} fill={sp.color}>
                           <animate
                             attributeName="opacity"
-                            values="0.08;0.45;0.08"
+                            values="0.05;0.32;0.05"
                             dur={`${sp.dur}s`}
                             begin={`${sp.delay}s`}
                             repeatCount="indefinite"
@@ -771,7 +771,7 @@ export function ProjectConstellation({
                           >
                             <animate
                               attributeName="opacity"
-                              values="0.05;0.40;0.05"
+                              values="0.03;0.25;0.03"
                               dur={`${sp.dur}s`}
                               begin={`${sp.delay}s`}
                               repeatCount="indefinite"
@@ -787,7 +787,7 @@ export function ProjectConstellation({
                     <motion.g
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
-                      transition={{ delay: 0.55, duration: 0.4 }}
+                      transition={{ delay: 0.15, duration: 1.0, ease: "easeInOut" }}
                     >
                       <ellipse cx="-6" cy="0" rx="3.5" ry="1.2" fill="#f59e0b" opacity="0.85">
                         <animate attributeName="rx" values="2.5;4.5;2.5" dur="0.25s" repeatCount="indefinite" />
@@ -809,7 +809,7 @@ export function ProjectConstellation({
 
                       <animateMotion
                         dur="5.5s"
-                        begin="0.55s"
+                        begin="0.15s"
                         repeatCount="indefinite"
                         rotate="auto"
                         keyPoints="0;1"
@@ -830,13 +830,13 @@ export function ProjectConstellation({
                   y1={from.y}
                   x2={to.x}
                   y2={to.y}
-                  className="text-blue-500/20"
+                  className="text-blue-500/15"
                   stroke="currentColor"
-                  strokeWidth="1"
-                  strokeDasharray="3 5"
+                  strokeWidth="0.9"
+                  strokeDasharray="2 5"
                   initial={{ pathLength: 0, opacity: 0 }}
                   animate={{ pathLength: 1, opacity: 1 }}
-                  transition={{ duration: 0.8, delay: 0.40 + idx * 0.03, ease: "easeOut" }}
+                  transition={{ duration: 1.8, delay: 0.08 + idx * 0.02, ease: "easeInOut" }}
                 />
               )
             })}</svg>
