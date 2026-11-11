@@ -299,7 +299,7 @@ function buildMeanderingFlowPath(
     const r = 0.5 + (k % 3 === 0 ? 0.7 : k % 2 === 0 ? 0.4 : 0.2)
     const isGold = k % 5 === 0
     const isCyan = k % 3 === 1
-    const color = isGold ? "rgba(253, 230, 138, 0.35)" : isCyan ? "rgba(165, 243, 252, 0.35)" : "rgba(224, 242, 254, 0.35)"
+    const color = isGold ? "rgba(253, 230, 138, 0.25)" : isCyan ? "rgba(165, 243, 252, 0.25)" : "rgba(224, 242, 254, 0.25)"
     return { x, y, r, color, delay: (k * 0.25) % 2.5, dur: 2.0 + (k % 4) * 0.5 }
   })
 
@@ -656,7 +656,6 @@ export function ProjectConstellation({
           }}
         >
           <svg
-            key={`sky-${activeCluster ?? 'none'}-${expansionSeed}`}
             className="pointer-events-none absolute inset-0 h-full w-full"
             viewBox={`0 0 ${fieldWidth} ${FIELD_HEIGHT}`}
             preserveAspectRatio="none"
@@ -679,11 +678,11 @@ export function ProjectConstellation({
                     x2={to.x}
                     y2={to.y}
                   >
-                    <stop offset="0%" stopColor="#60a5fa" stopOpacity="0.02" />
-                    <stop offset="25%" stopColor="#60a5fa" stopOpacity="0.12" />
-                    <stop offset="65%" stopColor="#93c5fd" stopOpacity="0.22" />
-                    <stop offset="85%" stopColor="#bae6fd" stopOpacity="0.26" />
-                    <stop offset="100%" stopColor="#bae6fd" stopOpacity="0.08" />
+                    <stop offset="0%" stopColor="#60a5fa" stopOpacity="0.0" />
+                    <stop offset="25%" stopColor="#60a5fa" stopOpacity="0.08" />
+                    <stop offset="65%" stopColor="#93c5fd" stopOpacity="0.16" />
+                    <stop offset="85%" stopColor="#bae6fd" stopOpacity="0.20" />
+                    <stop offset="100%" stopColor="#bae6fd" stopOpacity="0.04" />
                   </linearGradient>
                 )
               })}
@@ -698,58 +697,49 @@ export function ProjectConstellation({
                 const { pathD, sparkles } = flow
                 const pathId = `flow-path-${idx}`
                 return (
-                  <g key={`flow-${activeCluster}-${idx}-${expansionSeed}`}>
+                  <motion.g
+                    key={`flow-${activeCluster ?? 'none'}-${idx}-${expansionSeed}`}
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ duration: 2.8, ease: "easeOut" }}
+                  >
                     <path id={pathId} d={pathD} fill="none" stroke="none" />
 
                     {/* Subtle diffuse starlight glow */}
-                    <motion.path
+                    <path
                       d={pathD}
                       fill="none"
-                      stroke="rgba(96, 165, 250, 0.04)"
-                      strokeWidth="6"
+                      stroke="rgba(96, 165, 250, 0.03)"
+                      strokeWidth="5"
                       strokeLinecap="round"
-                      initial={{ pathLength: 0, opacity: 0 }}
-                      animate={{ pathLength: 1, opacity: 1 }}
-                      transition={{ duration: 2.2, delay: 0.08, ease: "easeInOut" }}
                     />
 
-                    {/* Faded translucent shooting-star trail */}
-                    <motion.path
+                    {/* Ethereal translucent shooting-star trail */}
+                    <path
                       d={pathD}
                       fill="none"
                       stroke={`url(#trail-grad-${idx})`}
-                      strokeWidth="1.4"
+                      strokeWidth="1.2"
                       strokeLinecap="round"
-                      initial={{ pathLength: 0, opacity: 0 }}
-                      animate={{ pathLength: 1, opacity: 1 }}
-                      transition={{ duration: 2.2, delay: 0.08, ease: "easeInOut" }}
                     />
 
-                    {/* Faded dashed constellation starlight thread (like grid-alternatives 20% opacity) */}
-                    <motion.path
+                    {/* Delicate dashed starlight thread */}
+                    <path
                       d={pathD}
                       fill="none"
-                      stroke="rgba(147, 197, 253, 0.18)"
-                      strokeWidth="0.8"
+                      stroke="rgba(147, 197, 253, 0.12)"
+                      strokeWidth="0.75"
                       strokeDasharray="2 5"
                       strokeLinecap="round"
-                      initial={{ pathLength: 0, opacity: 0 }}
-                      animate={{ pathLength: 1, opacity: 1 }}
-                      transition={{ duration: 2.2, delay: 0.08, ease: "easeInOut" }}
                     />
 
-                    {/* Delicate translucent sparkles fading in as path forms */}
-                    <motion.g
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      transition={{ delay: 0.20, duration: 1.8, ease: "easeInOut" }}
-                    >
-                      {sparkles.map((sp, k) => (
+                    {/* Translucent stardust sparkles */}
+                    {sparkles.map((sp, k) => (
                       <g key={k}>
                         <circle cx={sp.x} cy={sp.y} r={sp.r} fill={sp.color}>
                           <animate
                             attributeName="opacity"
-                            values="0.05;0.32;0.05"
+                            values="0.03;0.22;0.03"
                             dur={`${sp.dur}s`}
                             begin={`${sp.delay}s`}
                             repeatCount="indefinite"
@@ -767,11 +757,11 @@ export function ProjectConstellation({
                             d={`M ${sp.x - sp.r * 2} ${sp.y} L ${sp.x + sp.r * 2} ${sp.y} M ${sp.x} ${sp.y - sp.r * 2} L ${sp.x} ${sp.y + sp.r * 2}`}
                             stroke={sp.color}
                             strokeWidth="0.5"
-                            opacity="0.35"
+                            opacity="0.25"
                           >
                             <animate
                               attributeName="opacity"
-                              values="0.03;0.25;0.03"
+                              values="0.02;0.18;0.02"
                               dur={`${sp.dur}s`}
                               begin={`${sp.delay}s`}
                               repeatCount="indefinite"
@@ -781,14 +771,8 @@ export function ProjectConstellation({
                       </g>
                     ))}
 
-                    </motion.g>
-
-                    {/* Proportional whimsical rocket ship fading in and launching as path arrives */}
-                    <motion.g
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      transition={{ delay: 0.15, duration: 1.0, ease: "easeInOut" }}
-                    >
+                    {/* Whimsical rocket ship */}
+                    <g opacity="0.85">
                       <ellipse cx="-6" cy="0" rx="3.5" ry="1.2" fill="#f59e0b" opacity="0.85">
                         <animate attributeName="rx" values="2.5;4.5;2.5" dur="0.25s" repeatCount="indefinite" />
                         <animate attributeName="opacity" values="0.7;1;0.7" dur="0.25s" repeatCount="indefinite" />
@@ -809,7 +793,6 @@ export function ProjectConstellation({
 
                       <animateMotion
                         dur="5.5s"
-                        begin="0.15s"
                         repeatCount="indefinite"
                         rotate="auto"
                         keyPoints="0;1"
@@ -819,8 +802,8 @@ export function ProjectConstellation({
                       >
                         <mpath href={`#${pathId}`} />
                       </animateMotion>
-                    </motion.g>
-                  </g>
+                    </g>
+                  </motion.g>
                 )
               }
               return (
@@ -830,13 +813,13 @@ export function ProjectConstellation({
                   y1={from.y}
                   x2={to.x}
                   y2={to.y}
-                  className="text-blue-500/15"
+                  className="text-blue-500/12"
                   stroke="currentColor"
-                  strokeWidth="0.9"
+                  strokeWidth="0.8"
                   strokeDasharray="2 5"
-                  initial={{ pathLength: 0, opacity: 0 }}
-                  animate={{ pathLength: 1, opacity: 1 }}
-                  transition={{ duration: 1.8, delay: 0.08 + idx * 0.02, ease: "easeInOut" }}
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ duration: 2.4, ease: "easeOut" }}
                 />
               )
             })}</svg>
