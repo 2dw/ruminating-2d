@@ -53,6 +53,10 @@ const FIELD_HEIGHT = 620
 const SOLO_FIELD_WIDTH = 900
 const SOLO_LAYOUT_WIDTH = 800
 const CLUSTER_FIELD_WIDTH = 1000
+/** Star opacity with no cluster selected: visible, slightly dimmer than full. */
+const IDLE_STAR_OPACITY = 0.75
+/** Star opacity for clusters left behind while another one is expanded. */
+const FADED_STAR_OPACITY = 0.08
 const EXCLUDED_EXTENSIONS = [".docx", ".doc", ".txt", ".md", ".rtf", ".pptx", ".ppt"]
 
 function generateStars(count: number) {
@@ -299,7 +303,7 @@ function buildMeanderingFlowPath(
     const r = 0.5 + (k % 3 === 0 ? 0.7 : k % 2 === 0 ? 0.4 : 0.2)
     const isGold = k % 5 === 0
     const isCyan = k % 3 === 1
-    const color = isGold ? "rgba(253, 230, 138, 0.25)" : isCyan ? "rgba(165, 243, 252, 0.25)" : "rgba(224, 242, 254, 0.25)"
+    const color = isGold ? "rgba(253, 230, 138, 0.38)" : isCyan ? "rgba(165, 243, 252, 0.38)" : "rgba(224, 242, 254, 0.38)"
     return { x, y, r, color, delay: (k * 0.25) % 2.5, dur: 2.0 + (k % 4) * 0.5 }
   })
 
@@ -678,11 +682,11 @@ export function ProjectConstellation({
                     x2={to.x}
                     y2={to.y}
                   >
-                    <stop offset="0%" stopColor="#60a5fa" stopOpacity="0.0" />
-                    <stop offset="25%" stopColor="#60a5fa" stopOpacity="0.08" />
-                    <stop offset="65%" stopColor="#93c5fd" stopOpacity="0.16" />
-                    <stop offset="85%" stopColor="#bae6fd" stopOpacity="0.20" />
-                    <stop offset="100%" stopColor="#bae6fd" stopOpacity="0.04" />
+                    <stop offset="0%" stopColor="#60a5fa" stopOpacity="0.04" />
+                    <stop offset="25%" stopColor="#60a5fa" stopOpacity="0.18" />
+                    <stop offset="65%" stopColor="#93c5fd" stopOpacity="0.30" />
+                    <stop offset="85%" stopColor="#bae6fd" stopOpacity="0.36" />
+                    <stop offset="100%" stopColor="#bae6fd" stopOpacity="0.10" />
                   </linearGradient>
                 )
               })}
@@ -709,8 +713,8 @@ export function ProjectConstellation({
                     <path
                       d={pathD}
                       fill="none"
-                      stroke="rgba(96, 165, 250, 0.03)"
-                      strokeWidth="5"
+                      stroke="rgba(96, 165, 250, 0.08)"
+                      strokeWidth="7"
                       strokeLinecap="round"
                     />
 
@@ -719,7 +723,7 @@ export function ProjectConstellation({
                       d={pathD}
                       fill="none"
                       stroke={`url(#trail-grad-${idx})`}
-                      strokeWidth="1.2"
+                      strokeWidth="1.6"
                       strokeLinecap="round"
                     />
 
@@ -727,9 +731,9 @@ export function ProjectConstellation({
                     <path
                       d={pathD}
                       fill="none"
-                      stroke="rgba(147, 197, 253, 0.12)"
-                      strokeWidth="0.75"
-                      strokeDasharray="2 5"
+                      stroke="rgba(147, 197, 253, 0.24)"
+                      strokeWidth="0.85"
+                      strokeDasharray="3 5"
                       strokeLinecap="round"
                     />
 
@@ -739,7 +743,7 @@ export function ProjectConstellation({
                         <circle cx={sp.x} cy={sp.y} r={sp.r} fill={sp.color}>
                           <animate
                             attributeName="opacity"
-                            values="0.03;0.22;0.03"
+                            values="0.06;0.38;0.06"
                             dur={`${sp.dur}s`}
                             begin={`${sp.delay}s`}
                             repeatCount="indefinite"
@@ -761,7 +765,7 @@ export function ProjectConstellation({
                           >
                             <animate
                               attributeName="opacity"
-                              values="0.02;0.18;0.02"
+                              values="0.04;0.30;0.04"
                               dur={`${sp.dur}s`}
                               begin={`${sp.delay}s`}
                               repeatCount="indefinite"
@@ -813,10 +817,10 @@ export function ProjectConstellation({
                   y1={from.y}
                   x2={to.x}
                   y2={to.y}
-                  className="text-blue-500/12"
+                  className="text-blue-500/20"
                   stroke="currentColor"
-                  strokeWidth="0.8"
-                  strokeDasharray="2 5"
+                  strokeWidth="1"
+                  strokeDasharray="3 5"
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   transition={{ duration: 2.4, ease: "easeOut" }}
@@ -830,7 +834,27 @@ export function ProjectConstellation({
             const isActive = activeIndex === index
             const isHovered = hoveredIndex === index
             const highlighted = isActive || isHovered
+            const isNoneSelected = activeCluster === null
             const clusterActive = activeCluster === photo.clusterId
+
+            // Idle (nothing selected) stars stay clearly visible but a touch
+            // dimmer than the full-opacity look of an expanded cluster; when a
+            // cluster is focused, the rest of the sky nearly disappears.
+            const photoOpacity =
+              highlighted || !isClustered
+                ? 1
+                : isNoneSelected
+                  ? IDLE_STAR_OPACITY
+                  : clusterActive
+                    ? 1
+                    : FADED_STAR_OPACITY
+
+            const photoFilter =
+              highlighted || clusterActive || !isClustered
+                ? "none"
+                : isNoneSelected
+                  ? "brightness(0.92) saturate(0.92)"
+                  : "grayscale(1) brightness(0.6)"
 
             return (
               <motion.button
@@ -852,8 +876,8 @@ export function ProjectConstellation({
                    width: size,
                    height: size,
                    zIndex: highlighted ? 20 : 10,
-                   opacity: clusterActive || isHovered ? 1 : 0.08,
-                   filter: clusterActive || isHovered ? "none" : "grayscale(1) brightness(0.6)",
+                   opacity: photoOpacity,
+                   filter: photoFilter,
                    transform: "translate(-50%, -50%)",
                  }}
                  aria-label={titleFor(photo)}
