@@ -183,36 +183,127 @@ function distributePositions(
   return positions
 }
 
-function buildFlowPath(from: { x: number; y: number }, to: { x: number; y: number }): string {
+interface MeanderingPathResult {
+  pathD: string
+  sparkles: Array<{ x: number; y: number; r: number; color: string; delay: number; dur: number }>
+}
+
+function buildMeanderingFlowPath(
+  from: { x: number; y: number },
+  to: { x: number; y: number },
+  fieldWidth: number,
+  fieldHeight: number,
+): MeanderingPathResult {
   const dx = to.x - from.x
   const dy = to.y - from.y
   const len = Math.hypot(dx, dy) || 1
   const nx = -dy / len
   const ny = dx / len
-  const steps = 32
-  const pts: { x: number; y: number }[] = []
-  for (let i = 0; i <= steps; i++) {
-    const t = i / steps
-    const baseX = from.x + dx * t
-    const baseY = from.y + dy * t
-    // Envelope strictly enforces wave is 0 at both endpoints (t=0 and t=1)
-    const envelope = Math.sin(t * Math.PI)
-    const wave = envelope * Math.sin(t * Math.PI * 2) * (len * 0.18)
-    pts.push({ x: baseX + nx * wave, y: baseY + ny * wave })
+
+  // Random contour style for each unique expansion:
+  // 0: S-curve wave, 1: Grand sweeping arch, 2: Swooping undulating river
+  const style = Math.floor(Math.random() * 3)
+  const sign = Math.random() < 0.5 ? 1 : -1
+
+  let d1: number, d2: number, d3: number
+  if (style === 0) {
+    d1 = sign * (len * (0.16 + Math.random() * 0.12))
+    d2 = -sign * (len * (0.16 + Math.random() * 0.12))
+    d3 = sign * (len * (0.12 + Math.random() * 0.10))
+  } else if (style === 1) {
+    d1 = sign * (len * (0.20 + Math.random() * 0.10))
+    d2 = sign * (len * (0.25 + Math.random() * 0.12))
+    d3 = sign * (len * (0.18 + Math.random() * 0.10))
+  } else {
+    d1 = sign * (len * (0.22 + Math.random() * 0.10))
+    d2 = (Math.random() - 0.5) * (len * 0.12)
+    d3 = -sign * (len * (0.18 + Math.random() * 0.10))
   }
-  let d = `M ${pts[0].x.toFixed(1)} ${pts[0].y.toFixed(1)}`
-  for (let i = 0; i < pts.length - 1; i++) {
-    const p0 = pts[Math.max(0, i - 1)]
-    const p1 = pts[i]
-    const p2 = pts[i + 1]
-    const p3 = pts[Math.min(pts.length - 1, i + 2)]
+
+  const t1 = 0.25 + (Math.random() - 0.5) * 0.06
+  const t2 = 0.50 + (Math.random() - 0.5) * 0.06
+  const t3 = 0.75 + (Math.random() - 0.5) * 0.06
+
+  const clamp = (val: number, min: number, max: number) => Math.max(min, Math.min(max, val))
+
+  const w1 = {
+    x: clamp(from.x + dx * t1 + nx * d1, 80, fieldWidth - 80),
+    y: clamp(from.y + dy * t1 + ny * d1, 90, fieldHeight - 90),
+  }
+  const w2 = {
+    x: clamp(from.x + dx * t2 + nx * d2, 80, fieldWidth - 80),
+    y: clamp(from.y + dy * t2 + ny * d2, 90, fieldHeight - 90),
+  }
+  const w3 = {
+    x: clamp(from.x + dx * t3 + nx * d3, 80, fieldWidth - 80),
+    y: clamp(from.y + dy * t3 + ny * d3, 90, fieldHeight - 90),
+  }
+
+  const controlPoints = [from, w1, w2, w3, to]
+  const samples: { x: number; y: number }[] = []
+  const numSegments = controlPoints.length - 1
+  const samplesPerSegment = 9
+
+  for (let seg = 0; seg < numSegments; seg++) {
+    const p0 = controlPoints[Math.max(0, seg - 1)]
+    const p1 = controlPoints[seg]
+    const p2 = controlPoints[seg + 1]
+    const p3 = controlPoints[Math.min(controlPoints.length - 1, seg + 2)]
+    for (let step = 0; step <= samplesPerSegment; step++) {
+      if (seg > 0 && step === 0) continue
+      const t = step / samplesPerSegment
+      const t2 = t * t
+      const t3 = t2 * t
+      const x =
+        0.5 *
+        (2 * p1.x +
+          (-p0.x + p2.x) * t +
+          (2 * p0.x - 5 * p1.x + 4 * p2.x - p3.x) * t2 +
+          (-p0.x + 3 * p1.x - 3 * p2.x + p3.x) * t3)
+      const y =
+        0.5 *
+        (2 * p1.y +
+          (-p0.y + p2.y) * t +
+          (2 * p0.y - 5 * p1.y + 4 * p2.y - p3.y) * t2 +
+          (-p0.y + 3 * p1.y - 3 * p2.y + p3.y) * t3)
+      samples.push({ x, y })
+    }
+  }
+
+  let pathD = `M ${samples[0].x.toFixed(1)} ${samples[0].y.toFixed(1)}`
+  for (let i = 0; i < samples.length - 1; i++) {
+    const p0 = samples[Math.max(0, i - 1)]
+    const p1 = samples[i]
+    const p2 = samples[i + 1]
+    const p3 = samples[Math.min(samples.length - 1, i + 2)]
     const cp1x = p1.x + (p2.x - p0.x) / 6
     const cp1y = p1.y + (p2.y - p0.y) / 6
     const cp2x = p2.x - (p3.x - p1.x) / 6
     const cp2y = p2.y - (p3.y - p1.y) / 6
-    d += ` C ${cp1x.toFixed(1)} ${cp1y.toFixed(1)}, ${cp2x.toFixed(1)} ${cp2y.toFixed(1)}, ${p2.x.toFixed(1)} ${p2.y.toFixed(1)}`
+    pathD += ` C ${cp1x.toFixed(1)} ${cp1y.toFixed(1)}, ${cp2x.toFixed(1)} ${cp2y.toFixed(1)}, ${p2.x.toFixed(1)} ${p2.y.toFixed(1)}`
   }
-  return d
+
+  // Delicate translucent stardust sparkles along the trail
+  const sparkles = Array.from({ length: 20 }, (_, k) => {
+    const idx = Math.floor(2 + (k / 19) * (samples.length - 5))
+    const pt = samples[idx]
+    const prev = samples[Math.max(0, idx - 1)]
+    const next = samples[Math.min(samples.length - 1, idx + 1)]
+    const tx = next.x - prev.x, ty = next.y - prev.y
+    const tlen = Math.hypot(tx, ty) || 1
+    const snx = -ty / tlen, sny = tx / tlen
+    const envelope = Math.sin((k / 19) * Math.PI)
+    const jitter = (Math.sin(k * 4.7) * 0.7 + Math.cos(k * 2.3) * 0.3) * 10 * envelope
+    const x = pt.x + snx * jitter
+    const y = pt.y + sny * jitter
+    const r = 0.5 + (k % 3 === 0 ? 0.7 : k % 2 === 0 ? 0.4 : 0.2)
+    const isGold = k % 5 === 0
+    const isCyan = k % 3 === 1
+    const color = isGold ? "rgba(253, 230, 138, 0.45)" : isCyan ? "rgba(165, 243, 252, 0.45)" : "rgba(224, 242, 254, 0.45)"
+    return { x, y, r, color, delay: (k * 0.25) % 2.5, dur: 2.0 + (k % 4) * 0.5 }
+  })
+
+  return { pathD, sparkles }
 }
 
 function buildConstellationLines(
@@ -264,6 +355,7 @@ export function ProjectConstellation({
   const [error, setError] = useState<string | null>(null)
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null)
   const [internalActive, setInternalActive] = useState<string | null>(null)
+  const [expansionSeed, setExpansionSeed] = useState(() => Math.random())
   const containerRef = useRef<HTMLDivElement>(null)
 
   // Active cluster is owned by the page when it drives it (milestone jumps),
@@ -272,6 +364,7 @@ export function ProjectConstellation({
   const activeCluster = isControlled ? focusedCluster : internalActive
   const setActive = useCallback(
     (clusterId: string | null) => {
+      setExpansionSeed(Math.random())
       if (isControlled) onFocusedClusterChange?.(clusterId)
       else setInternalActive(clusterId)
     },
@@ -381,10 +474,20 @@ export function ProjectConstellation({
         const compactOffsetY = (FIELD_HEIGHT - compactH) / 2
 
         const compactLocal = distributePositions(indices.length, compactW, compactH, compactSize / 2)
-        const expandedLocal =
-          indices.length === 2
-            ? [{ x: SOLO_LAYOUT_WIDTH * 0.28, y: FIELD_HEIGHT / 2 }, { x: SOLO_LAYOUT_WIDTH * 0.72, y: FIELD_HEIGHT / 2 }]
-            : distributePositions(indices.length, SOLO_LAYOUT_WIDTH, FIELD_HEIGHT, expandedSize / 2)
+        let expandedLocal: { x: number; y: number }[]
+        if (indices.length === 2) {
+          // Unique random placement with generous distance and organic height variation
+          const x0 = 120 + Math.random() * 180
+          const x1 = 500 + Math.random() * 180
+          let y0 = 140 + Math.random() * 340
+          let y1 = 140 + Math.random() * 340
+          if (Math.abs(y1 - y0) < 50) {
+            y1 = y1 > 310 ? y1 - 80 : y1 + 80
+          }
+          expandedLocal = [{ x: x0, y: y0 }, { x: x1, y: y1 }]
+        } else {
+          expandedLocal = distributePositions(indices.length, SOLO_LAYOUT_WIDTH, FIELD_HEIGHT, expandedSize / 2)
+        }
 
         indices.forEach((photoIndex, i) => {
           if (isActive) {
@@ -408,7 +511,18 @@ export function ProjectConstellation({
         }
       })
 
-      return { positions, starSizes, lines }
+      const flowPaths = new Map<number, MeanderingPathResult>()
+      lines.forEach(([i, j], idx) => {
+        const from = positions[i]
+        const to = positions[j]
+        if (!from || !to) return
+        const isFlow = /making of/i.test(photos[i]?.name ?? '') && !/making of/i.test(photos[j]?.name ?? '')
+        if (isFlow) {
+          flowPaths.set(idx, buildMeanderingFlowPath(from, to, fieldWidth, FIELD_HEIGHT))
+        }
+      })
+
+      return { positions, starSizes, lines, flowPaths }
     }
 
     const starSize = calculateStarSize(photos.length, SOLO_FIELD_WIDTH * FIELD_HEIGHT)
@@ -416,12 +530,25 @@ export function ProjectConstellation({
       photos.length > 0
         ? distributePositions(photos.length, SOLO_LAYOUT_WIDTH, FIELD_HEIGHT, starSize / 2)
         : []
+    const lines = buildConstellationLines(positions)
+    const flowPaths = new Map<number, MeanderingPathResult>()
+    lines.forEach(([i, j], idx) => {
+      const from = positions[i]
+      const to = positions[j]
+      if (!from || !to) return
+      const isFlow = /making of/i.test(photos[i]?.name ?? '') && !/making of/i.test(photos[j]?.name ?? '')
+      if (isFlow) {
+        flowPaths.set(idx, buildMeanderingFlowPath(from, to, fieldWidth, FIELD_HEIGHT))
+      }
+    })
+
     return {
       positions,
       starSizes: photos.map(() => starSize),
-      lines: buildConstellationLines(positions),
+      lines,
+      flowPaths,
     }
-  }, [photos, clusters, activeCluster])
+  }, [photos, clusters, activeCluster, fieldWidth, expansionSeed])
 
   const activePhoto = activeIndex !== null ? photos[activeIndex] : null
   const activePhotoCluster = activePhoto?.clusterId
@@ -551,11 +678,11 @@ export function ProjectConstellation({
                     x2={to.x}
                     y2={to.y}
                   >
-                    <stop offset="0%" stopColor="#38bdf8" stopOpacity="0.2" />
-                    <stop offset="25%" stopColor="#60a5fa" stopOpacity="0.75" />
-                    <stop offset="60%" stopColor="#a78bfa" stopOpacity="0.85" />
-                    <stop offset="85%" stopColor="#e0f2fe" stopOpacity="0.95" />
-                    <stop offset="100%" stopColor="#ffffff" stopOpacity="0.4" />
+                    <stop offset="0%" stopColor="#60a5fa" stopOpacity="0.04" />
+                    <stop offset="30%" stopColor="#60a5fa" stopOpacity="0.20" />
+                    <stop offset="70%" stopColor="#93c5fd" stopOpacity="0.32" />
+                    <stop offset="90%" stopColor="#bae6fd" stopOpacity="0.38" />
+                    <stop offset="100%" stopColor="#bae6fd" stopOpacity="0.15" />
                   </linearGradient>
                 )
               })}
@@ -565,59 +692,43 @@ export function ProjectConstellation({
               const from = layout.positions[i]
               const to = layout.positions[j]
               if (!from || !to) return null
-              const isFlow = /making of/i.test(photos[i]?.name ?? '') && !/making of/i.test(photos[j]?.name ?? '')
-              if (isFlow) {
-                const pathD = buildFlowPath(from, to)
+              const flow = layout.flowPaths.get(idx)
+              if (flow) {
+                const { pathD, sparkles } = flow
                 const pathId = `flow-path-${idx}`
-                const sparkles = Array.from({ length: 22 }, (_, k) => {
-                  const t = 0.12 + (k / 21) * 0.76
-                  const envelope = Math.sin(t * Math.PI)
-                  const dx = to.x - from.x, dy = to.y - from.y
-                  const len = Math.hypot(dx, dy) || 1
-                  const nx = -dy / len, ny = dx / len
-                  const wave = envelope * Math.sin(t * Math.PI * 2) * (len * 0.18)
-                  const scatter = (Math.sin(k * 4.7) * 0.7 + Math.cos(k * 2.3) * 0.3) * 14 * envelope
-                  const x = from.x + dx * t + nx * (wave + scatter)
-                  const y = from.y + dy * t + ny * (wave + scatter)
-                  const r = 0.7 + (k % 3 === 0 ? 1.1 : k % 2 === 0 ? 0.6 : 0.3)
-                  const isGold = k % 5 === 0
-                  const isCyan = k % 3 === 1
-                  const color = isGold ? "#fde68a" : isCyan ? "#a5f3fc" : "#ffffff"
-                  return { x, y, r, color, delay: (k * 0.23) % 2.5, dur: 1.8 + (k % 4) * 0.5 }
-                })
                 return (
                   <g key={`flow-${idx}`}>
                     <path id={pathId} d={pathD} fill="none" stroke="none" />
 
-                    {/* Wide cosmic dust glow */}
+                    {/* Subtle diffuse starlight glow */}
                     <motion.path
                       d={pathD}
                       fill="none"
-                      stroke="rgba(147, 197, 253, 0.16)"
-                      strokeWidth="10"
+                      stroke="rgba(96, 165, 250, 0.08)"
+                      strokeWidth="8"
                       strokeLinecap="round"
                       initial={{ pathLength: 0, opacity: 0 }}
                       animate={{ pathLength: 1, opacity: 1 }}
                       transition={{ duration: 1.4, delay: idx * 0.02, ease: "easeOut" }}
                     />
 
-                    {/* Glowing starry trail */}
+                    {/* Faded translucent shooting-star trail */}
                     <motion.path
                       d={pathD}
                       fill="none"
                       stroke={`url(#trail-grad-${idx})`}
-                      strokeWidth="2.5"
+                      strokeWidth="1.8"
                       strokeLinecap="round"
                       initial={{ pathLength: 0, opacity: 0 }}
                       animate={{ pathLength: 1, opacity: 1 }}
                       transition={{ duration: 1.4, delay: idx * 0.02, ease: "easeOut" }}
                     />
 
-                    {/* Starlight dashed core */}
+                    {/* Faded dashed constellation starlight thread (like grid-alternatives 20% opacity) */}
                     <motion.path
                       d={pathD}
                       fill="none"
-                      stroke="rgba(255, 255, 255, 0.9)"
+                      stroke="rgba(147, 197, 253, 0.28)"
                       strokeWidth="1"
                       strokeDasharray="3 5"
                       strokeLinecap="round"
@@ -626,20 +737,20 @@ export function ProjectConstellation({
                       transition={{ duration: 1.4, delay: idx * 0.02, ease: "easeOut" }}
                     />
 
-                    {/* Twinkling star particles */}
+                    {/* Delicate translucent sparkles */}
                     {sparkles.map((sp, k) => (
                       <g key={k}>
                         <circle cx={sp.x} cy={sp.y} r={sp.r} fill={sp.color}>
                           <animate
                             attributeName="opacity"
-                            values="0.2;0.95;0.2"
+                            values="0.08;0.45;0.08"
                             dur={`${sp.dur}s`}
                             begin={`${sp.delay}s`}
                             repeatCount="indefinite"
                           />
                           <animate
                             attributeName="r"
-                            values={`${sp.r * 0.6};${sp.r * 1.3};${sp.r * 0.6}`}
+                            values={`${sp.r * 0.7};${sp.r * 1.2};${sp.r * 0.7}`}
                             dur={`${sp.dur}s`}
                             begin={`${sp.delay}s`}
                             repeatCount="indefinite"
@@ -647,14 +758,14 @@ export function ProjectConstellation({
                         </circle>
                         {k % 4 === 0 && (
                           <path
-                            d={`M ${sp.x - sp.r * 2.5} ${sp.y} L ${sp.x + sp.r * 2.5} ${sp.y} M ${sp.x} ${sp.y - sp.r * 2.5} L ${sp.x} ${sp.y + sp.r * 2.5}`}
+                            d={`M ${sp.x - sp.r * 2} ${sp.y} L ${sp.x + sp.r * 2} ${sp.y} M ${sp.x} ${sp.y - sp.r * 2} L ${sp.x} ${sp.y + sp.r * 2}`}
                             stroke={sp.color}
-                            strokeWidth="0.6"
-                            opacity="0.8"
+                            strokeWidth="0.5"
+                            opacity="0.35"
                           >
                             <animate
                               attributeName="opacity"
-                              values="0.1;0.9;0.1"
+                              values="0.05;0.40;0.05"
                               dur={`${sp.dur}s`}
                               begin={`${sp.delay}s`}
                               repeatCount="indefinite"
@@ -664,7 +775,7 @@ export function ProjectConstellation({
                       </g>
                     ))}
 
-                    {/* Proportional whimsical rocket ship (14px by 9px) */}
+                    {/* Proportional whimsical rocket ship */}
                     <g>
                       <ellipse cx="-6" cy="0" rx="3.5" ry="1.2" fill="#f59e0b" opacity="0.85">
                         <animate attributeName="rx" values="2.5;4.5;2.5" dur="0.25s" repeatCount="indefinite" />
@@ -715,8 +826,7 @@ export function ProjectConstellation({
                   transition={{ duration: 0.8, delay: idx * 0.02, ease: "easeOut" }}
                 />
               )
-            })}
-          </svg>
+            })}</svg>
           {photos.map((photo, index) => {
             const pos = layout.positions[index]
             if (!pos) return null
