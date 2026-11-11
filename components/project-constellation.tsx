@@ -656,6 +656,7 @@ export function ProjectConstellation({
           }}
         >
           <svg
+            key={`sky-${activeCluster ?? 'none'}-${expansionSeed}`}
             className="pointer-events-none absolute inset-0 h-full w-full"
             viewBox={`0 0 ${fieldWidth} ${FIELD_HEIGHT}`}
             preserveAspectRatio="none"
@@ -697,7 +698,7 @@ export function ProjectConstellation({
                 const { pathD, sparkles } = flow
                 const pathId = `flow-path-${idx}`
                 return (
-                  <g key={`flow-${idx}`}>
+                  <g key={`flow-${activeCluster}-${idx}-${expansionSeed}`}>
                     <path id={pathId} d={pathD} fill="none" stroke="none" />
 
                     {/* Subtle diffuse starlight glow */}
@@ -709,7 +710,7 @@ export function ProjectConstellation({
                       strokeLinecap="round"
                       initial={{ pathLength: 0, opacity: 0 }}
                       animate={{ pathLength: 1, opacity: 1 }}
-                      transition={{ duration: 1.4, delay: idx * 0.02, ease: "easeOut" }}
+                      transition={{ duration: 1.2, delay: 0.45, ease: "easeOut" }}
                     />
 
                     {/* Faded translucent shooting-star trail */}
@@ -721,7 +722,7 @@ export function ProjectConstellation({
                       strokeLinecap="round"
                       initial={{ pathLength: 0, opacity: 0 }}
                       animate={{ pathLength: 1, opacity: 1 }}
-                      transition={{ duration: 1.4, delay: idx * 0.02, ease: "easeOut" }}
+                      transition={{ duration: 1.2, delay: 0.45, ease: "easeOut" }}
                     />
 
                     {/* Faded dashed constellation starlight thread (like grid-alternatives 20% opacity) */}
@@ -734,11 +735,16 @@ export function ProjectConstellation({
                       strokeLinecap="round"
                       initial={{ pathLength: 0, opacity: 0 }}
                       animate={{ pathLength: 1, opacity: 1 }}
-                      transition={{ duration: 1.4, delay: idx * 0.02, ease: "easeOut" }}
+                      transition={{ duration: 1.2, delay: 0.45, ease: "easeOut" }}
                     />
 
-                    {/* Delicate translucent sparkles */}
-                    {sparkles.map((sp, k) => (
+                    {/* Delicate translucent sparkles fading in as path forms */}
+                    <motion.g
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      transition={{ delay: 0.65, duration: 0.7 }}
+                    >
+                      {sparkles.map((sp, k) => (
                       <g key={k}>
                         <circle cx={sp.x} cy={sp.y} r={sp.r} fill={sp.color}>
                           <animate
@@ -775,8 +781,14 @@ export function ProjectConstellation({
                       </g>
                     ))}
 
-                    {/* Proportional whimsical rocket ship */}
-                    <g>
+                    </motion.g>
+
+                    {/* Proportional whimsical rocket ship fading in and launching as path arrives */}
+                    <motion.g
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      transition={{ delay: 0.55, duration: 0.4 }}
+                    >
                       <ellipse cx="-6" cy="0" rx="3.5" ry="1.2" fill="#f59e0b" opacity="0.85">
                         <animate attributeName="rx" values="2.5;4.5;2.5" dur="0.25s" repeatCount="indefinite" />
                         <animate attributeName="opacity" values="0.7;1;0.7" dur="0.25s" repeatCount="indefinite" />
@@ -797,6 +809,7 @@ export function ProjectConstellation({
 
                       <animateMotion
                         dur="5.5s"
+                        begin="0.55s"
                         repeatCount="indefinite"
                         rotate="auto"
                         keyPoints="0;1"
@@ -806,7 +819,7 @@ export function ProjectConstellation({
                       >
                         <mpath href={`#${pathId}`} />
                       </animateMotion>
-                    </g>
+                    </motion.g>
                   </g>
                 )
               }
@@ -823,7 +836,7 @@ export function ProjectConstellation({
                   strokeDasharray="3 5"
                   initial={{ pathLength: 0, opacity: 0 }}
                   animate={{ pathLength: 1, opacity: 1 }}
-                  transition={{ duration: 0.8, delay: idx * 0.02, ease: "easeOut" }}
+                  transition={{ duration: 0.8, delay: 0.40 + idx * 0.03, ease: "easeOut" }}
                 />
               )
             })}</svg>
