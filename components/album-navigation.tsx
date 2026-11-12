@@ -407,11 +407,13 @@ export default function AlbumNavigation() {
   const handleSubmit = useCallback(
     (e: FormEvent) => {
       e.preventDefault()
+      // The suggestion list already mirrors the typed query, so accepting it
+      // selects every destination shown. A broad term like "california" then
+      // gathers all of its albums instead of only an exact label match.
       if (whereQuery.trim()) {
-        const q = whereQuery.trim().toLowerCase()
-        const containing = whereSuggestions.filter(([label]) => label.toLowerCase().includes(q))
-        const pick = containing.find(([label]) => label.toLowerCase() === q) ?? (containing.length === 1 ? containing[0] : null)
-        if (pick && !where.includes(pick[0])) togglePlace(pick[0])
+        for (const [label] of whereSuggestions) {
+          if (!where.includes(label)) togglePlace(label)
+        }
       }
       setWhereQuery("")
       setField(null)
