@@ -153,12 +153,12 @@ export async function GET(request: NextRequest) {
       ac_out_en: acLvEn || acHvEn,
       dc_out_en: dc12vEn,
       // Live port wattage metrics
-      ac_lv_watts: d.powGetAcLvOut ?? 0,
-      ac_hv_watts: d.powGetAcHvOut ?? 0,
-      dc_12v_watts: d.powGet12v ?? 0,
+      ac_lv_watts: d["pd.powGetAcLvOut"] ?? d.powGetAcLvOut ?? 0,
+      ac_hv_watts: d["pd.powGetAcHvOut"] ?? d.powGetAcHvOut ?? 0,
+      dc_12v_watts: d["pd.powGet12v"] ?? d.powGet12v ?? 0,
       // Grid mains status
       ac_in_connected: acInConnected,
-      ac_in_watts: d.powGetAcIn ?? 0,
+      ac_in_watts: d["pd.powGetAcIn"] ?? d.powGetAcIn ?? 0,
     })
   } catch (e: any) { return NextResponse.json({ error: "Failed to read battery state" }, { status: 500 }) }
 }

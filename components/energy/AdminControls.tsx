@@ -9,6 +9,17 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { useAuth } from "@/lib/auth-context"
 
+interface OutputTelemetry {
+  acLvWatts: number
+  acHvWatts: number
+  dc12vWatts: number
+  acInWatts: number
+}
+
+interface AdminControlsProps {
+  onTelemetry?: (telemetry: OutputTelemetry) => void
+}
+
 function clamp(v: number, min: number, max: number) { return Math.max(min, Math.min(max, v)) }
 
 function CombinedSOCBar({ minSoc, backup, maxSoc, onMin, onBackup, onMax }: {
@@ -109,7 +120,7 @@ function CombinedSOCBar({ minSoc, backup, maxSoc, onMin, onBackup, onMax }: {
   )
 }
 
-export default function AdminControls() {
+export default function AdminControls({ onTelemetry }: AdminControlsProps) {
   const { token } = useAuth()
   const [loading, setLoading] = useState(true)
   const [sending, setSending] = useState(false)
@@ -136,10 +147,11 @@ export default function AdminControls() {
   // Switch action loading states
   const [toggling, setToggling] = useState<{ lv?: boolean; hv?: boolean; dc?: boolean }>({})
 
-  async function fetchSettings() {
-    setLoading(true)
+  const fetchSettings = useCallback(async (showLoading = true) => {
+    if (showLoading) setLoading(true)
     try {
       const res = await fetch("/api/ecoflow/admin/battery", { headers: { Authorization: `Bearer ${token}` } })
+      if (!res.ok) throw new Error(`Battery state request failed: ${res.status}`)
       if (res.ok) {
         const d = await res.json()
         const lo = d.discharge_lower ?? 0
@@ -155,19 +167,31 @@ export default function AdminControls() {
         setAcLvOn(Boolean(d.ac_lv_out_en))
         setAcHvOn(Boolean(d.ac_hv_out_en))
         setDc12vOn(Boolean(d.dc_12v_out_en))
-        setAcLvWatts(Number(d.ac_lv_watts ?? 0))
-        setAcHvWatts(Number(d.ac_hv_watts ?? 0))
-        setDc12vWatts(Number(d.dc_12v_watts ?? 0))
+        const nextTelemetry = {
+          acLvWatts: Number(d.ac_lv_watts ?? 0),
+          acHvWatts: Number(d.ac_hv_watts ?? 0),
+          dc12vWatts: Number(d.dc_12v_watts ?? 0),
+          acInWatts: Number(d.ac_in_watts ?? 0),
+        }
+        setAcLvWatts(nextTelemetry.acLvWatts)
+        setAcHvWatts(nextTelemetry.acHvWatts)
+        setDc12vWatts(nextTelemetry.dc12vWatts)
         setAcInConnected(Boolean(d.ac_in_connected))
-        setAcInWatts(Number(d.ac_in_watts ?? 0))
+        setAcInWatts(nextTelemetry.acInWatts)
+        onTelemetry?.(nextTelemetry)
       }
     } catch (err) {
       console.error("Failed to fetch settings:", err)
+    } finally {
+      if (showLoading) setLoading(false)
     }
-    setLoading(false)
-  }
+  }, [onTelemetry, token])
 
-  useEffect(() => { fetchSettings() }, [])
+  useEffect(() => {
+    void fetchSettings()
+    const interval = window.setInterval(() => { void fetchSettings(false) }, 15_000)
+    return () => window.clearInterval(interval)
+  }, [fetchSettings])
 
   useEffect(() => { setBackup(prev => clamp(prev, minSoc + 1, maxSoc - 1)) }, [minSoc, maxSoc])
 
@@ -198,6 +222,8 @@ export default function AdminControls() {
           type: "success",
           message: `${label} power switched ${nextState ? "ON" : "OFF"}`
         })
+        void fetchSettings(false)
+        window.setTimeout(() => { void fetchSettings(false) }, 2_000)
       } else {
         // Revert on error
         if (type === "lv") setAcLvOn(isCurrentlyOn)
@@ -270,7 +296,7 @@ export default function AdminControls() {
             </CardTitle>
           </div>
           <button
-            onClick={fetchSettings}
+            onClick={() => { void fetchSettings() }}
             disabled={loading}
             title="Refresh device state"
             className="p-1 rounded-md text-slate-400 hover:text-green-500 hover:bg-slate-100 dark:hover:bg-slate-900 transition-colors"

@@ -49,6 +49,26 @@ interface Pt {
   power_out: number; power_in: number; temp_c: number
   isPeak: boolean
 }
+interface AdminOutputTelemetry {
+  acLvWatts: number
+  acHvWatts: number
+  dc12vWatts: number
+  acInWatts: number
+  capturedAt: number
+}
+
+function mergeAdminOutput(live: Live, telemetry: AdminOutputTelemetry): Live {
+  const acOut = telemetry.acLvWatts + telemetry.acHvWatts
+  return {
+    ...live,
+    timestamp: telemetry.capturedAt,
+    timestamp_iso: new Date(telemetry.capturedAt).toISOString(),
+    power_out: acOut + telemetry.dc12vWatts,
+    ac_in: telemetry.acInWatts,
+    ac_out: acOut,
+    dc_out: telemetry.dc12vWatts,
+  }
+}
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -662,6 +682,13 @@ function EnergyDashboardContent() {
   const [history, setHistory]   = useState<Pt[]>([])
   const [loading, setLoading]   = useState(true)
   const [tab, setTab]           = useState<"battery"|"pge"|"admin">("battery")
+  const adminTelemetryRef = useRef<AdminOutputTelemetry | null>(null)
+
+  const handleAdminTelemetry = useCallback((telemetry: Omit<AdminOutputTelemetry, "capturedAt">) => {
+    const snapshot = { ...telemetry, capturedAt: Date.now() }
+    adminTelemetryRef.current = snapshot
+    setLive(current => current ? mergeAdminOutput(current, snapshot) : current)
+  }, [])
 
   // Metric visibility toggles
   const [show, setShow] = useState({
@@ -690,7 +717,15 @@ function EnergyDashboardContent() {
       const res  = await fetch("/api/ecoflow/latest", { cache:"no-store", signal:ctrl.signal })
       const data = await res.json()
       if (data.error) setApiError(data.error)
-      else { setLive(data); setApiError(null) }
+      else {
+        const telemetry = adminTelemetryRef.current
+        const dataTimestamp = Date.parse(data.timestamp_iso)
+        const latest = telemetry && (!Number.isFinite(dataTimestamp) || telemetry.capturedAt > dataTimestamp)
+          ? mergeAdminOutput(data, telemetry)
+          : data
+        setLive(latest)
+        setApiError(null)
+      }
     } catch (e: any) {
       setApiError(e.name==="AbortError"?"Request timed out":e.message)
     } finally { clearTimeout(t); setLoading(false) }
@@ -995,7 +1030,7 @@ function EnergyDashboardContent() {
           {/* Admin tab */}
           {tab==="admin"&&isAuthenticated&&(
             <div className="space-y-5">
-              <AdminControls />
+              <AdminControls onTelemetry={handleAdminTelemetry} />
               <SmartScheduler dark={dark} />
               <ForecastChart dark={dark} />
               <RateHeatmap dark={dark} />
