@@ -81,16 +81,30 @@ export async function POST(request: NextRequest) {
       if (params.upperLimit !== undefined) dp3Params.cfgMaxChgSoc = params.upperLimit
     } else if (command === "set_backup_reserve") {
       dp3Params.cfgEnergyBackup = { energyBackupStartSoc: params.soc, energyBackupEn: true }
+    } else if (command === "set_ac_lv_switch") {
+      dp3Params.cfgLvAcOutOpen = Boolean(params.enabled)
+    } else if (command === "set_ac_hv_switch") {
+      dp3Params.cfgHvAcOutOpen = Boolean(params.enabled)
+    } else if (command === "set_dc_switch" || command === "set_dc_12v_switch") {
+      dp3Params.cfgDc12vOutOpen = Boolean(params.enabled)
     } else if (command === "set_ac_switch") {
-      dp3Params.cfgAcOutEn = Boolean(params.enabled)
-    } else if (command === "set_dc_switch") {
-      dp3Params.cfg12vOutEn = Boolean(params.enabled)
+      // Default to LV switch for general AC command
+      dp3Params.cfgLvAcOutOpen = Boolean(params.enabled)
+    } else if (command === "set_ac_charge_limit") {
+      if (params.watts !== undefined) {
+        dp3Params.cfgPlugInInfoAcInChgPowMax = clamp(params.watts, 500, 4000)
+      }
     } else if (command === "set_all") {
       if (params.lowerLimit !== undefined) dp3Params.cfgMinDsgSoc = params.lowerLimit
       if (params.upperLimit !== undefined) dp3Params.cfgMaxChgSoc = params.upperLimit
       if (params.backupSoc !== undefined) dp3Params.cfgEnergyBackup = { energyBackupStartSoc: params.backupSoc, energyBackupEn: true }
-      if (params.acOutEn !== undefined) dp3Params.cfgAcOutEn = Boolean(params.acOutEn)
-      if (params.dcOutEn !== undefined) dp3Params.cfg12vOutEn = Boolean(params.dcOutEn)
+      if (params.acLvOutEn !== undefined) dp3Params.cfgLvAcOutOpen = Boolean(params.acLvOutEn)
+      if (params.acHvOutEn !== undefined) dp3Params.cfgHvAcOutOpen = Boolean(params.acHvOutEn)
+      if (params.dc12vOutEn !== undefined) dp3Params.cfgDc12vOutOpen = Boolean(params.dc12vOutEn)
+      else if (params.dcOutEn !== undefined) dp3Params.cfgDc12vOutOpen = Boolean(params.dcOutEn)
+      if (params.acOutEn !== undefined && params.acLvOutEn === undefined) {
+        dp3Params.cfgLvAcOutOpen = Boolean(params.acOutEn)
+      }
     } else {
       return NextResponse.json({ error: `Unknown command: ${command}` }, { status: 400 })
     }
@@ -120,14 +134,31 @@ export async function GET(request: NextRequest) {
     const data = await resp.json()
     if (data.code !== "0") return NextResponse.json({ error: `EcoFlow API error: ${data.message}` }, { status: 500 })
     const d = data.data || {}
+    const acLvEn = d.flowInfoAcLvOut === 2 || Boolean(d.cfgLvAcOutOpen)
+    const acHvEn = d.flowInfoAcHvOut === 2 || Boolean(d.cfgHvAcOutOpen)
+    const dc12vEn = d.flowInfo12v === 2 || Boolean(d.cfgDc12vOutOpen)
+    const acInConnected = d.flowInfoAcIn === 2 || Boolean(d.plugInInfoAcChargerFlag) || Boolean(d.plugInInfoAcInFlag) || (d.powGetAcIn ?? 0) > 0
+
     return NextResponse.json({
       soc: d.cmsBattSoc ?? d.bmsBattSoc ?? 0,
       charge_limit_watts: clamp(d.plugInInfoAcInChgPowMax ?? 4000, 500, 4000),
       discharge_lower: d.cmsMinDsgSoc ?? 0,
       charge_upper: d.cmsMaxChgSoc ?? 100,
       backup_reserve: d.energyBackupStartSoc ?? d.backupReverseSoc ?? 50,
-      ac_out_en: Boolean(d.cfgAcOutEn ?? d.powGetAcLvOut ?? false),
-      dc_out_en: Boolean(d.cfg12vOutEn ?? false),
+      // Binary switches (EcoFlow Delta Pro 3 specific)
+      ac_lv_out_en: acLvEn,
+      ac_hv_out_en: acHvEn,
+      dc_12v_out_en: dc12vEn,
+      // Backward-compatible fields
+      ac_out_en: acLvEn || acHvEn,
+      dc_out_en: dc12vEn,
+      // Live port wattage metrics
+      ac_lv_watts: d.powGetAcLvOut ?? 0,
+      ac_hv_watts: d.powGetAcHvOut ?? 0,
+      dc_12v_watts: d.powGet12v ?? 0,
+      // Grid mains status
+      ac_in_connected: acInConnected,
+      ac_in_watts: d.powGetAcIn ?? 0,
     })
   } catch (e: any) { return NextResponse.json({ error: "Failed to read battery state" }, { status: 500 }) }
 }
