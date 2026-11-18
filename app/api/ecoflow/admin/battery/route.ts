@@ -134,10 +134,11 @@ export async function GET(request: NextRequest) {
     const data = await resp.json()
     if (data.code !== "0") return NextResponse.json({ error: `EcoFlow API error: ${data.message}` }, { status: 500 })
     const d = data.data || {}
-    const acLvEn = d.flowInfoAcLvOut === 2 || Boolean(d.cfgLvAcOutOpen)
-    const acHvEn = d.flowInfoAcHvOut === 2 || Boolean(d.cfgHvAcOutOpen)
-    const dc12vEn = d.flowInfo12v === 2 || Boolean(d.cfgDc12vOutOpen)
-    const acInConnected = d.flowInfoAcIn === 2 || Boolean(d.plugInInfoAcChargerFlag) || Boolean(d.plugInInfoAcInFlag) || (d.powGetAcIn ?? 0) > 0
+    const acLvEn = d["pd.flowInfoAcLvOut"] === 2 || d.flowInfoAcLvOut === 2 || Boolean(d["pd.cfgLvAcOutOpen"]) || Boolean(d.cfgLvAcOutOpen)
+    const acHvEn = d["pd.flowInfoAcHvOut"] === 2 || d.flowInfoAcHvOut === 2 || Boolean(d["pd.cfgHvAcOutOpen"]) || Boolean(d.cfgHvAcOutOpen)
+    const dc12vEn = d["pd.flowInfo12v"] === 2 || d.flowInfo12v === 2 || Boolean(d["pd.cfgDc12vOutOpen"]) || Boolean(d.cfgDc12vOutOpen)
+    const acInWatts = d["pd.powGetAcIn"] ?? d.powGetAcIn ?? 0
+    const acInConnected = d["pd.flowInfoAcIn"] === 2 || d.flowInfoAcIn === 2 || Boolean(d["pd.plugInInfoAcChargerFlag"]) || Boolean(d.plugInInfoAcChargerFlag) || Boolean(d["pd.plugInInfoAcInFlag"]) || Boolean(d.plugInInfoAcInFlag) || acInWatts > 0
 
     return NextResponse.json({
       soc: d.cmsBattSoc ?? d.bmsBattSoc ?? 0,

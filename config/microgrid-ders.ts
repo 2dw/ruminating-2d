@@ -28,7 +28,7 @@ export interface MicrogridDer {
   operatingCondition: string
 }
 
-const PHOTO_FOLDER = "projects/ecoflow%20microgrid"
+const PHOTO_FOLDER = "professional/ecoflow%20microgrid"
 
 const toPhotoItem = (filename: string, caption: string): DerPhotoItem => ({
   filename,
