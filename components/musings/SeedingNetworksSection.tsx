@@ -25,14 +25,14 @@ interface Document {
 
 const DOCUMENTS: Document[] = [
   {
-    id: "paradigm-shift",
-    title: "The Decentralized Paradigm Shift",
-    subtitle: "Transforming the Power Grid Through Intelligent, Autonomous Building Blocks",
+    id: "intelligent-living-network",
+    title: "The Intelligent Living Network",
+    subtitle: "A Framework for Distributed Intelligence in Community-Scale Energy Systems",
     description:
       "A systems architecture framework for transitioning centralized utility infrastructure toward distributed, community-owned energy networks—detailing control hierarchies, transactive dispatch logic, and resilience proofs.",
     tags: ["Grid Architecture", "DERMS", "Transactive Control", "Resilience"],
-    pages: "11 pages",
-    pdfUrl: assetUrl("thought pieces/The Decentralized Paradigm Shift.pdf"),
+    pages: "7.73 MB",
+    pdfUrl: assetUrl("thought pieces/The_Intelligent_Living_Network.pdf"),
     accentColor: "emerald",
     accentDark: "emerald",
     icon: Network,
@@ -45,8 +45,8 @@ const DOCUMENTS: Document[] = [
     description:
       "An engineering roadmap covering transactive energy market design, virtual power plant (VPP) aggregation, real-time bidding algorithms, and community microgrid governance from pilot to scale.",
     tags: ["Transactive Energy", "VPP", "P2P Markets", "Market Design"],
-    pages: "11+ pages",
-    pdfUrl: assetUrl("thought pieces/Transactive Energy Roadmap.pdf"),
+    pages: "3.49 MB",
+    pdfUrl: assetUrl("thought pieces/Transactive_Energy_Roadmap.pdf"),
     accentColor: "cyan",
     accentDark: "cyan",
     icon: Layers,
