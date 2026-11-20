@@ -5,6 +5,7 @@ import { motion } from "framer-motion"
 import { ArrowLeft, Lightbulb, Zap, Eye, Compass, Leaf, Shield, Cpu, Sparkles, Layers, BookOpen } from "lucide-react"
 import { SectionGate } from "@/components/section-gate"
 import { MotherTreeCanvas } from "@/components/mother-tree-canvas"
+import { ProjectConstellation } from "@/components/project-constellation"
 import { ArchitectureComparisonVisualizer } from "@/components/musings/ArchitectureComparisonVisualizer"
 import { NexusInteractiveDiagram } from "@/components/musings/NexusInteractiveDiagram"
 import { EvolutionArcMatrix } from "@/components/musings/EvolutionArcMatrix"
@@ -56,7 +57,7 @@ export default function ProfessionalMusingsPage() {
                   </span>
                 </div>
                 <p className="mt-2 max-w-3xl text-sm leading-relaxed text-slate-600 dark:text-slate-300">
-                  Philosophical foundations, systems architecture, and the unbroken arc of a two-decade inquiry.
+                  Philosophical foundations, systems architecture, and the unbroken arc from initial inquiries to current and future architectures.
                   Exploring how distributed intelligence, resource equity, and ecological stewardship redefine human agency.
                 </p>
               </div>
@@ -88,12 +89,47 @@ export default function ProfessionalMusingsPage() {
               <div className="h-px flex-1 bg-gradient-to-r from-transparent via-emerald-300/40 to-transparent dark:via-emerald-700/30" />
             </div>
 
-            {/* 1. THE TWO-DECADE EVOLUTION MATRIX */}
+            {/* 1. SEEDING NETWORKS: DEEP DIVES (R2 CONSTELLATION DOCUMENTS) */}
+            <motion.section
+              id="deep-dives"
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, margin: "-50px" }}
+              transition={{ duration: 0.5 }}
+              className="space-y-5 scroll-mt-24"
+            >
+              <div className="flex items-center gap-3">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-emerald-100 text-emerald-700 dark:bg-emerald-900/50 dark:text-emerald-400">
+                  <Zap className="h-5 w-5" />
+                </div>
+                <div>
+                  <h2 className="text-xl font-serif font-bold text-slate-900 dark:text-white">Seeding Networks</h2>
+                  <p className="text-xs font-mono uppercase tracking-wider text-emerald-600/70 dark:text-emerald-400/60">Deep Dives</p>
+                  <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
+                    Strategic vision with guiding architecture, blueprints, and roadmaps for execution.
+                  </p>
+                </div>
+              </div>
+
+              <ProjectConstellation
+                prefix="thought pieces/"
+                noMediaMessage="Media coming soon."
+              />
+            </motion.section>
+
+            {/* Visual Divider */}
+            <div className="flex items-center gap-4">
+              <div className="h-px flex-1 bg-gradient-to-r from-transparent via-emerald-300/40 to-transparent dark:via-emerald-700/30" />
+              <Compass className="h-4 w-4 text-emerald-500/50" />
+              <div className="h-px flex-1 bg-gradient-to-r from-transparent via-emerald-300/40 to-transparent dark:via-emerald-700/30" />
+            </div>
+
+            {/* 2. THE TRAJECTORY MATRIX (INITIAL FOUNDATIONS TO CURRENT & FUTURE ARCHITECTURE) */}
             <section id="thought-pieces" className="scroll-mt-24">
               <EvolutionArcMatrix />
             </section>
 
-            {/* 2. THE ESSAY AS CENTER OF GRAVITY: ESSE QUAM VIDERI */}
+            {/* 3. THE ESSAY AS CENTER OF GRAVITY: ESSE QUAM VIDERI */}
             <section className="relative mx-auto max-w-4xl space-y-10">
               <div className="text-center space-y-3">
                 <span className="font-mono text-xs uppercase tracking-widest text-emerald-600 dark:text-emerald-400 font-bold">
@@ -251,8 +287,8 @@ export default function ProfessionalMusingsPage() {
               <div className="h-px flex-1 bg-gradient-to-r from-transparent via-emerald-300/40 to-transparent dark:via-emerald-700/30" />
             </div>
 
-            {/* 3. THE THREE THEMATIC PILLARS */}
-            <section id="deep-dives" className="scroll-mt-24 space-y-6">
+            {/* 4. THE THREE THEMATIC PILLARS */}
+            <section className="space-y-6">
               <div className="text-center space-y-2">
                 <span className="font-mono text-xs uppercase tracking-widest text-emerald-600 dark:text-emerald-400 font-bold">
                   Core Axioms
@@ -331,7 +367,7 @@ export default function ProfessionalMusingsPage() {
               </div>
             </section>
 
-            {/* 4. THE STRATEGIC HORIZON (WHAT WAS ADDED & MATURED) */}
+            {/* 5. THE STRATEGIC HORIZON (WHAT WAS ADDED & MATURED) */}
             <section className="space-y-6">
               <div className="text-center space-y-2">
                 <span className="font-mono text-xs uppercase tracking-widest text-emerald-600 dark:text-emerald-400 font-bold">
@@ -341,7 +377,7 @@ export default function ProfessionalMusingsPage() {
                   Emerging Dimensions: Adaptation, Geopolitics & AI
                 </h3>
                 <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 max-w-xl mx-auto">
-                  How twenty years of empirical experience expanded the framework into real-world strategic execution.
+                  How empirical experience expanded the framework from initial inquiries into current and future strategic execution.
                 </p>
               </div>
 
@@ -424,7 +460,7 @@ export default function ProfessionalMusingsPage() {
               </div>
             </section>
 
-            {/* 5. THE VERBATIM HISTORICAL ARCHIVE DRAWER */}
+            {/* 6. THE VERBATIM HISTORICAL ARCHIVE DRAWER */}
             <ArchiveDrawer />
 
           </div>
