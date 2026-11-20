@@ -4,9 +4,10 @@ import { useState, useEffect, useCallback } from "react"
 import { createPortal } from "react-dom"
 import { motion, AnimatePresence } from "framer-motion"
 import {
-  Zap, FileText, X, ExternalLink, Download, ChevronRight,
-  Network, Layers, Cpu, MapPin,
+  Zap, FileText, X, ExternalLink, Download,
+  Network, Layers,
 } from "lucide-react"
+import { assetUrl } from "@/lib/assets"
 
 interface Document {
   id: string
@@ -31,8 +32,7 @@ const DOCUMENTS: Document[] = [
       "A systems architecture framework for transitioning centralized utility infrastructure toward distributed, community-owned energy networks—detailing control hierarchies, transactive dispatch logic, and resilience proofs.",
     tags: ["Grid Architecture", "DERMS", "Transactive Control", "Resilience"],
     pages: "11 pages",
-    pdfUrl:
-      "https://pub-2d927e8ff7b04aeab61a5c26fd82b7d2.r2.dev/thought%20pieces/The%20Decentralized%20Paradigm%20Shift.pdf",
+    pdfUrl: assetUrl("thought pieces/The Decentralized Paradigm Shift.pdf"),
     accentColor: "emerald",
     accentDark: "emerald",
     icon: Network,
@@ -46,8 +46,7 @@ const DOCUMENTS: Document[] = [
       "An engineering roadmap covering transactive energy market design, virtual power plant (VPP) aggregation, real-time bidding algorithms, and community microgrid governance from pilot to scale.",
     tags: ["Transactive Energy", "VPP", "P2P Markets", "Market Design"],
     pages: "11+ pages",
-    pdfUrl:
-      "https://pub-2d927e8ff7b04aeab61a5c26fd82b7d2.r2.dev/thought%20pieces/Transactive%20Energy%20Roadmap.pdf",
+    pdfUrl: assetUrl("thought pieces/Transactive Energy Roadmap.pdf"),
     accentColor: "cyan",
     accentDark: "cyan",
     icon: Layers,
