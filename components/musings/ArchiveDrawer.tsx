@@ -19,7 +19,7 @@ export function ArchiveDrawer() {
           <div>
             <div className="flex items-center gap-2">
               <span className="font-mono text-[10px] font-bold uppercase tracking-wider text-amber-700 dark:text-amber-400 bg-amber-100 dark:bg-amber-950/60 px-2 py-0.5 rounded-full border border-amber-300 dark:border-amber-700">
-                Historical Archive &bull; Initial Inquiries
+                Foundational Archive &bull; Unedited Manuscripts
               </span>
             </div>
             <h3 className="text-xl font-serif font-bold text-slate-900 dark:text-white mt-1">
@@ -88,7 +88,7 @@ export function ArchiveDrawer() {
                   <div className="space-y-4">
                     <div className="border-b border-slate-200 dark:border-slate-800 pb-2">
                       <h4 className="font-bold text-base text-slate-900 dark:text-white">esse quam videri</h4>
-                      <p className="text-[11px] font-mono text-slate-400 uppercase tracking-wider">Initial Manuscript &bull; Unedited</p>
+                      <p className="text-[11px] font-mono text-slate-400 uppercase tracking-wider">Initial Essay &bull; Unedited</p>
                     </div>
                     <p>
                       There is much and little to be said about the pharisaic magnate who happily lauds the failings of Marxism, and just as much and as little to be said about the degenerate dictator who sanctimoniously scorns Capitalism.
@@ -115,7 +115,7 @@ export function ArchiveDrawer() {
                   <div className="space-y-4">
                     <div className="border-b border-slate-200 dark:border-slate-800 pb-2">
                       <h4 className="font-bold text-base text-slate-900 dark:text-white">Musing #1: Early Engineering Bio & Motivations</h4>
-                      <p className="text-[11px] font-mono text-slate-400 uppercase tracking-wider">Initial Manifesto &bull; Unedited</p>
+                      <p className="text-[11px] font-mono text-slate-400 uppercase tracking-wider">Initial Perspective &bull; Unedited</p>
                     </div>
                     <p>
                       Having devoted much of my education and life to the development of renewable energy technologies, my ultimate passion has been and will always be technologies that help channel us toward a more sustainable planet. Renewable energy and helping to tackle the energy crisis that looms somewhat forebodingly in our future have been my sole motivations for as far back as I can remember and continues to remain my primary reason for pursuing a degree in engineering.
@@ -133,7 +133,7 @@ export function ArchiveDrawer() {
                   <div className="space-y-4">
                     <div className="border-b border-slate-200 dark:border-slate-800 pb-2">
                       <h4 className="font-bold text-base text-slate-900 dark:text-white">Musing #2: On Idealism & The Incumbent Game</h4>
-                      <p className="text-[11px] font-mono text-slate-400 uppercase tracking-wider">Initial Fragment &bull; Unedited</p>
+                      <p className="text-[11px] font-mono text-slate-400 uppercase tracking-wider">Initial Reflection &bull; Unedited</p>
                     </div>
                     <p>
                       There is a fine but distinct line between naivety and idealism. The latter is unfortunately far too often brandished as the former when the idealist is more often than not someone who understands the world very well and is disillusioned enough to want an overturn of the system and a revolution in thought.
