@@ -146,7 +146,7 @@ export function EvolutionArcMatrix() {
               </span>
             </div>
             <blockquote className="font-serif italic text-sm text-slate-800 dark:text-slate-200 leading-relaxed my-2 border-l-2 border-amber-500/60 pl-3">
-              &ldquo;{current.initialSeedQuote}&rdquo;
+              {current.initialSeedQuote}
             </blockquote>
             <p className="text-xs text-slate-600 dark:text-slate-400 mt-2 leading-relaxed">
               {current.seedContext}

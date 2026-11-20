@@ -218,7 +218,7 @@ export function NexusInteractiveDiagram() {
                     Proof in Practice:
                   </span>
                   <p className="text-[11px] leading-snug text-slate-500 dark:text-slate-400 italic">
-                    &ldquo;{conn.engineeringProof}&rdquo;
+                    {conn.engineeringProof}
                   </p>
                 </div>
               </div>

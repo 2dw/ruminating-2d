@@ -75,7 +75,7 @@ export default function ProfessionalMusingsPage() {
               className="mx-auto max-w-3xl space-y-4 text-center"
             >
               <p className="text-base sm:text-lg font-serif italic text-slate-700 dark:text-slate-200">
-                &ldquo;The evolution is not ideological. It is architectural. The most compelling story is not that the philosophy changed, but that the philosophy never changed—and an entire career became the proof of concept.&rdquo;
+                The evolution is not ideological. It is architectural. The most compelling story is not that the philosophy changed, but that the philosophy never changed—and an entire career became the proof of concept.
               </p>
               <p className="text-xs sm:text-sm font-mono text-slate-500 dark:text-slate-400">
                 PhD &bull; Climate Leader &bull; Product Executive &bull; Infrastructure Strategist
@@ -438,7 +438,9 @@ export default function ProfessionalMusingsPage() {
             </div>
 
             {/* 3. FOUNDATIONAL ARCHIVE: ORIGINAL MANUSCRIPTS */}
-            <ArchiveDrawer />
+            <section id="foundational-roots" className="scroll-mt-24">
+              <ArchiveDrawer />
+            </section>
 
           </div>
         </main>

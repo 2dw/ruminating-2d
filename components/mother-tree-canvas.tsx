@@ -274,6 +274,7 @@ export function MotherTreeCanvas({ summary, className }: MotherTreeCanvasProps) 
   } | null>(null)
   const mouseRef = useRef<{ x: number; y: number }>({ x: -999, y: -999 })
   const [hoveredCluster, setHoveredCluster] = useState<number | null>(null)
+  const [hoveredRoot, setHoveredRoot] = useState(false)
   const [isDark, setIsDark] = useState(false)
 
   useEffect(() => {
@@ -511,12 +512,18 @@ export function MotherTreeCanvas({ summary, className }: MotherTreeCanvasProps) 
         if (Math.sqrt((x - c.cx) ** 2 + (y - c.cy) ** 2) < c.radius * 2) { found = i; break }
       }
       setHoveredCluster(found)
+
+      // Root node hover — positioned at trunkBaseX, groundY + 75
+      const { trunkBaseX, groundY } = treeDataRef.current.tree
+      const rootNodeDist = Math.sqrt((x - trunkBaseX) ** 2 + (y - (groundY + 75)) ** 2)
+      setHoveredRoot(rootNodeDist < 60)
     }
   }, [])
 
   const handleMouseLeave = useCallback(() => {
     mouseRef.current = { x: -999, y: -999 }
     setHoveredCluster(null)
+    setHoveredRoot(false)
   }, [])
 
   const handleLeafClick = useCallback((href: string, e: React.MouseEvent) => {
@@ -533,7 +540,7 @@ export function MotherTreeCanvas({ summary, className }: MotherTreeCanvasProps) 
         onMouseMove={handleMouseMove}
         onMouseLeave={handleMouseLeave}
       >
-        <canvas ref={canvasRef} className="absolute inset-0" style={{ cursor: hoveredCluster !== null ? "pointer" : "default" }} />
+        <canvas ref={canvasRef} className="absolute inset-0" style={{ cursor: (hoveredCluster !== null || hoveredRoot) ? "pointer" : "default" }} />
 
         {treeDataRef.current && treeDataRef.current.tree.tierClusters.map((cluster, i) => {
           const isHovered = hoveredCluster === i
@@ -557,6 +564,29 @@ export function MotherTreeCanvas({ summary, className }: MotherTreeCanvasProps) 
             </button>
           )
         })}
+
+        {/* Foundational Roots — root-level navigation node */}
+        {treeDataRef.current && (() => {
+          const { trunkBaseX, groundY } = treeDataRef.current.tree
+          return (
+            <button
+              onClick={(e) => handleLeafClick("#foundational-roots", e)}
+              className="absolute z-30 -translate-x-1/2 -translate-y-1/2"
+              style={{ left: trunkBaseX, top: groundY + 75 }}
+              aria-label="Go to Foundational Roots"
+            >
+              <span
+                className={`whitespace-nowrap rounded-full px-3 py-1 text-xs font-medium backdrop-blur-sm transition-all duration-200 ${
+                  hoveredRoot
+                    ? "bg-amber-950/90 text-amber-300 opacity-100 dark:bg-amber-950/95 dark:text-amber-200"
+                    : "bg-amber-950/40 text-amber-400/50 opacity-60 hover:bg-amber-950/70 hover:text-amber-300 hover:opacity-100"
+                }`}
+              >
+                🌱 Foundational Roots
+              </span>
+            </button>
+          )
+        })()}
       </div>
 
       {/* Mission statement — permanent, uses whitespace below tree */}

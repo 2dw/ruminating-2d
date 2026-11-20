@@ -1,7 +1,5 @@
 "use client"
 
-import { Quote } from "lucide-react"
-
 interface EssayPullQuoteProps {
   quote: string
   context?: string
@@ -17,47 +15,50 @@ export function EssayPullQuote({
 }: EssayPullQuoteProps) {
   const accents = {
     green: {
-      border: "border-green-500/40 dark:border-green-400/40",
-      glow: "from-green-500/10 via-emerald-500/5 to-transparent",
+      bar: "bg-green-500/60",
+      glow: "from-green-500/8 via-emerald-500/4 to-transparent",
       text: "text-green-800 dark:text-green-300",
-      icon: "text-green-600/30 dark:text-green-400/20",
       badge: "text-green-700 bg-green-100/70 border-green-300 dark:text-green-300 dark:bg-green-950/50 dark:border-green-800",
+      wrapper: "border-green-500/20 dark:border-green-400/20",
     },
     emerald: {
-      border: "border-emerald-500/40 dark:border-emerald-400/40",
-      glow: "from-emerald-500/10 via-teal-500/5 to-transparent",
+      bar: "bg-emerald-500/60",
+      glow: "from-emerald-500/8 via-teal-500/4 to-transparent",
       text: "text-emerald-900 dark:text-emerald-200",
-      icon: "text-emerald-600/30 dark:text-emerald-400/20",
       badge: "text-emerald-700 bg-emerald-100/70 border-emerald-300 dark:text-emerald-300 dark:bg-emerald-950/50 dark:border-emerald-800",
+      wrapper: "border-emerald-500/20 dark:border-emerald-400/20",
     },
     amber: {
-      border: "border-amber-500/40 dark:border-amber-400/40",
-      glow: "from-amber-500/10 via-yellow-500/5 to-transparent",
+      bar: "bg-amber-500/60",
+      glow: "from-amber-500/8 via-yellow-500/4 to-transparent",
       text: "text-amber-950 dark:text-amber-200",
-      icon: "text-amber-600/30 dark:text-amber-400/20",
       badge: "text-amber-800 bg-amber-100/70 border-amber-300 dark:text-amber-300 dark:bg-amber-950/50 dark:border-amber-800",
+      wrapper: "border-amber-500/20 dark:border-amber-400/20",
     },
     cyan: {
-      border: "border-cyan-500/40 dark:border-cyan-400/40",
-      glow: "from-cyan-500/10 via-blue-500/5 to-transparent",
+      bar: "bg-cyan-500/60",
+      glow: "from-cyan-500/8 via-blue-500/4 to-transparent",
       text: "text-cyan-950 dark:text-cyan-200",
-      icon: "text-cyan-600/30 dark:text-cyan-400/20",
       badge: "text-cyan-800 bg-cyan-100/70 border-cyan-300 dark:text-cyan-300 dark:bg-cyan-950/50 dark:border-cyan-800",
+      wrapper: "border-cyan-500/20 dark:border-cyan-400/20",
     },
   }[accent]
 
   return (
     <figure
-      className={`relative my-8 overflow-hidden rounded-2xl border ${accents.border} bg-gradient-to-r ${accents.glow} p-6 sm:p-8 backdrop-blur-md transition-all duration-300 hover:shadow-lg dark:hover:shadow-emerald-950/30 ${
-        align === "center" ? "text-center" : "text-left"
+      className={`relative my-8 flex gap-5 rounded-2xl border ${accents.wrapper} bg-gradient-to-r ${accents.glow} px-6 py-7 sm:px-8 sm:py-8 backdrop-blur-md transition-all duration-300 hover:shadow-lg dark:hover:shadow-emerald-950/30 ${
+        align === "center" ? "text-center flex-col items-center" : "text-left items-start"
       }`}
     >
-      <Quote
-        className={`absolute -top-3 -left-3 h-16 w-16 -rotate-6 select-none pointer-events-none ${accents.icon}`}
-      />
+      {align === "left" && (
+        <div className={`shrink-0 mt-1 w-1 self-stretch rounded-full ${accents.bar}`} />
+      )}
+      {align === "center" && (
+        <div className={`mx-auto mb-1 h-0.5 w-12 rounded-full ${accents.bar}`} />
+      )}
       <div className="relative z-10">
-        <blockquote className={`font-serif text-lg sm:text-xl md:text-2xl font-semibold leading-relaxed tracking-tight ${accents.text}`}>
-          &ldquo;{quote}&rdquo;
+        <blockquote className={`font-serif text-lg sm:text-xl md:text-2xl font-semibold italic leading-relaxed tracking-tight ${accents.text}`}>
+          {quote}
         </blockquote>
         {context && (
           <figcaption className="mt-3 flex items-center justify-center gap-2">
