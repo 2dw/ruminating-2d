@@ -1,5 +1,6 @@
 import { S3Client, ListObjectsV2Command } from "@aws-sdk/client-s3"
 import { creativeProjectOverrides } from "@/config/creative-projects"
+import { ASSETS_BASE } from "@/lib/assets"
 
 export const dynamic = "force-dynamic"
 
@@ -57,13 +58,24 @@ export async function GET() {
         const override = creativeProjectOverrides[id] ?? creativeProjectOverrides[projectPath]
         const displayTitle = override?.title ?? title
 
+        let coverUrl = "/creative-project-fallback.svg"
+        if (override?.cover) {
+          if (override.cover.startsWith("http") || override.cover.startsWith("/")) {
+            coverUrl = override.cover
+          } else {
+            const encodedKey = encodeURI(`projects/${projectPath}/${override.cover}`)
+            coverUrl = new URL(encodedKey, ASSETS_BASE).toString()
+          }
+        }
+
         return {
           id,
           title: displayTitle,
           subtitle: override?.subtitle ?? "Creative Project",
           description: override?.description ?? `A creative project collection from ${displayTitle}.`,
           prefix: `projects/${projectPath}/`,
-          cover: "/creative-project-fallback.svg",
+          cover: coverUrl,
+          previewFit: override?.previewFit ?? "cover",
         }
       })
 

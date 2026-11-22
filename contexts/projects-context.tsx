@@ -10,6 +10,7 @@ interface R2Project {
   description: string
   prefix: string
   cover?: string
+  previewFit?: "cover" | "contain"
 }
 
 interface ProjectsContextType {

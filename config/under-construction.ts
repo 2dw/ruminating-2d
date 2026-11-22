@@ -15,7 +15,7 @@ export const UNDER_CONSTRUCTION_SECTIONS = new Set([
 ])
 
 /** Project IDs that should show under-construction instead of real content */
-export const UNDER_CONSTRUCTION_PROJECTS = new Set([
-  "earning-a-dollar",
-  "mission-tweedy",
+export const UNDER_CONSTRUCTION_PROJECTS = new Set<string>([
+  // "earning-a-dollar",
+  // "mission-tweedy",
 ])

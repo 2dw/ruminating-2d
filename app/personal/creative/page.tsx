@@ -65,9 +65,10 @@ export default function PersonalCreativePage() {
       subtitle: project.subtitle,
       description: project.description,
       href: `/personal/creative/projects/${project.id}`,
-      image: "/creative-project-fallback.svg",
+      image: project.cover && project.cover !== "/creative-project-fallback.svg" ? project.cover : "/creative-project-fallback.svg",
       icon: FolderKanban,
       prefix: project.prefix,
+      previewFit: project.previewFit ?? "cover",
     })),
     [r2Projects],
   )
@@ -84,7 +85,9 @@ export default function PersonalCreativePage() {
       const artPreview = await loadFirstImage("art/").catch(() => null)
       if (artPreview) nextPreviews["digital-art"] = artPreview
       for (const project of dynamicProjects) {
-        if (project.prefix) {
+        if (project.image && project.image !== "/creative-project-fallback.svg") {
+          nextPreviews[project.id] = project.image
+        } else if (project.prefix) {
           const url = await loadFirstImage(project.prefix).catch(() => null)
           if (url) nextPreviews[project.id] = url
         }

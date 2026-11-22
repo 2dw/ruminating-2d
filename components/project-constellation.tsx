@@ -1020,7 +1020,7 @@ export function ProjectConstellation({
                 tooltipAbove ? "-translate-x-1/2 -translate-y-full" : "-translate-x-1/2",
               )}
             >
-              {captions[photos[hoveredIndex].key] || titleFor(photos[hoveredIndex])}
+              {captions[photos[hoveredIndex].key] || captions[photos[hoveredIndex].name] || titleFor(photos[hoveredIndex])}
             </div>
           </motion.div>
         )}
@@ -1141,7 +1141,7 @@ export function ProjectConstellation({
                   {activePhotoCluster && (
                     <span className="text-blue-300/70">{activePhotoCluster.label} &middot; </span>
                   )}
-                  {getPhotoTitle(activePhoto.name)}
+                  {captions[activePhoto.key] || captions[activePhoto.name] || getPhotoTitle(activePhoto.name)}
                 </p>
               </motion.div>
             </div>

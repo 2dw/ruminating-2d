@@ -7,6 +7,8 @@ import { useParams, useRouter } from "next/navigation"
 
 import { Button } from "@/components/ui/button"
 import { LazyProjectConstellation } from "@/components/lazy-project-constellation"
+import { MissionTweedyPortal } from "@/components/mission-tweedy-portal"
+import { EarningADollarPortal } from "@/components/earning-a-dollar-portal"
 import { LazyUnderConstruction } from "@/components/lazy-under-construction"
 import { getCreativeProjectConfig, type CreativeProjectConfig, type ProjectStarCluster } from "@/config/creative-projects"
 import { UNDER_CONSTRUCTION_PROJECTS } from "@/config/under-construction"
@@ -235,6 +237,27 @@ export default function CreativeProjectPage() {
             </motion.div>
           )}
 
+          {/* Custom Interactive Creative Portals */}
+          {projectId === "mission-tweedy" && project && (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.25 }}
+            >
+              <MissionTweedyPortal prefix={project.prefix} />
+            </motion.div>
+          )}
+
+          {projectId === "earning-a-dollar" && project && (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.25 }}
+            >
+              <EarningADollarPortal prefix={project.prefix} />
+            </motion.div>
+          )}
+
           {milestones.length > 0 && (
             <motion.div
               initial={{ opacity: 0, y: 20 }}
@@ -365,20 +388,20 @@ export default function CreativeProjectPage() {
             >
               <div>
                 <h2 className="font-serif text-2xl font-semibold text-slate-900 dark:text-white">
-                  The Rooftops
+                  {projectConfig?.clusterSectionTitle ?? "The Journey in Photos"}
                 </h2>
                 <p className="mt-1 text-sm leading-relaxed text-slate-500 dark:text-slate-400">
-                  Every star is a photo from one of {resolvedClusters.length} volunteer installs,
-                  grouped by location and ordered by date. Jump to a rooftop from a milestone above,
-                  select one below to expand it, or click any star to open it.
+                  {projectConfig?.clusterSectionSubtitle ??
+                    `Every star is a photo from one of ${resolvedClusters.length} stages, grouped by sequence and ordered by date. Jump to a stage from a milestone above, select one below to expand it, or click any star to open it.`}
                 </p>
               </div>
               <LazyProjectConstellation
                 prefix={project.prefix}
                 clusters={resolvedClusters}
+                captions={projectConfig?.captions}
                 focusedCluster={focusedCluster}
                 onFocusedClusterChange={setFocusedCluster}
-                noMediaMessage="No installation photos yet"
+                noMediaMessage={projectConfig?.clusterEmptyMessage ?? "No photos yet"}
               />
             </motion.div>
           )}
@@ -459,7 +482,7 @@ export default function CreativeProjectPage() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.4 }}
             >
-              <LazyProjectConstellation prefix={project.prefix} />
+              <LazyProjectConstellation prefix={project.prefix} captions={projectConfig?.captions} />
             </motion.div>
           )}
 
