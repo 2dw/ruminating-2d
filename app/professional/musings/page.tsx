@@ -77,9 +77,6 @@ export default function ProfessionalMusingsPage() {
               <p className="text-base sm:text-lg font-serif italic text-slate-700 dark:text-slate-200">
                 The evolution is not ideological. It is architectural. The most compelling story is not that the philosophy changed, but that the philosophy never changed—and an entire career became the proof of concept.
               </p>
-              <p className="text-xs sm:text-sm font-mono text-slate-500 dark:text-slate-400">
-                PhD &bull; Climate Leader &bull; Product Executive &bull; Infrastructure Strategist
-              </p>
             </motion.div>
 
             {/* Visual Divider */}
@@ -123,6 +120,9 @@ export default function ProfessionalMusingsPage() {
                   </p>
                   <p>
                     Why do human societies so often produce outcomes that are inconsistent with their own aspirations? We possess extraordinary capacities for innovation, cooperation, empathy, and adaptation. We repeatedly demonstrate an ability to solve problems that previous generations would have considered insurmountable. Yet we also seem remarkably adept at constructing systems that reward short-term behavior while undermining long-term well-being, concentrating benefits while distributing costs, and generating forms of fragility that become visible only after they have become deeply embedded. The contradiction has fascinated me for as long as I can remember, and the more I studied it the less convinced I became that any single discipline possessed an adequate explanation.
+                  </p>
+                  <p>
+                    The question lingered for twenty years because it was never really a question about one technology or one sector. It kept surfacing wherever a technically capable system failed to serve human or ecological well-being. Each discipline offered part of an explanation, but the same contradiction remained: capable ideas could still produce extractive, fragmented, or fragile outcomes when relationships were left outside the design. Wrestling with that gap gradually turned the question from an academic concern into a practical one—how should we build systems that align human aspiration with lasting prosperity?
                   </p>
                   <p>
                     Engineering could describe technical constraints but not always human behavior. Economics could describe incentives but often struggled to account for values that resist quantification. Ecology provided profound insight into interconnected systems yet could not fully explain the institutions human beings create. Politics, policy, and governance offered partial explanations while frequently overlooking deeper cultural assumptions. The challenge seemed to exist somewhere in the spaces between these disciplines. Increasingly, it appeared that many of the defining problems of our time were not failures of individual systems, but failures to understand the relationships between them.
@@ -203,7 +203,7 @@ export default function ProfessionalMusingsPage() {
 
                 {/* Pull Quote 3 */}
                 <EssayPullQuote
-                  quote="The future requires participants rather than consumers. The goal is not simply to distribute technologies. The goal is to distribute agency."
+                  quote="What fascinated me was never the hardware itself. Solar panels, batteries, microgrids, and distributed control systems are undeniably important, but they were never the central idea. They embodied a shift in the relationship between individuals and the systems that serve them."
                   context="Democratic Infrastructure"
                   accent="green"
                 />
@@ -274,7 +274,7 @@ export default function ProfessionalMusingsPage() {
                         Healing Our Planet
                       </h4>
                       <p className="text-xs sm:text-sm leading-relaxed text-slate-600 dark:text-slate-300">
-                        Environmental crises are not merely tool deficits; they express an unbalanced relationship. The atmosphere, watersheds, and biodiversity are not economic externalities. Healing requires shifting from extractive exploitation toward biological reciprocity.
+                        The environmental challenges facing humanity are often framed as technical failures requiring better technologies or more efficient systems. Increasingly, I have come to believe they are expressions of a relationship that has become unbalanced. Sustainability ultimately asks whether human prosperity can remain inseparable from the health of the ecological systems that sustain it. The question is no longer how to reduce harm, but how to participate in ways that contribute to long-term regeneration.
                       </p>
                     </div>
                     <div className="mt-4 pt-3 border-t border-slate-100 dark:border-slate-800 text-[11px] font-mono text-emerald-700 dark:text-emerald-300 font-semibold">
@@ -295,7 +295,7 @@ export default function ProfessionalMusingsPage() {
                         Equitable Access & Agency
                       </h4>
                       <p className="text-xs sm:text-sm leading-relaxed text-slate-600 dark:text-slate-300">
-                        Access determines whether technological progress expands opportunity or merely reinforces entrenched privilege. Equity is not an afterthought layered over engineering—it is a non-negotiable systems requirement for long-term civilizational stability.
+                        Access shapes agency. Whether the resource is energy, information, education, mobility, capital, or infrastructure, the distribution of access often determines who is able to participate meaningfully in shaping the future. Equity is not simply a moral aspiration layered upon successful systems. It is one of the conditions that allows those systems to remain resilient in the first place.
                       </p>
                     </div>
                     <div className="mt-4 pt-3 border-t border-slate-100 dark:border-slate-800 text-[11px] font-mono text-cyan-700 dark:text-cyan-300 font-semibold">
@@ -316,7 +316,7 @@ export default function ProfessionalMusingsPage() {
                         Interconnected Systems
                       </h4>
                       <p className="text-xs sm:text-sm leading-relaxed text-slate-600 dark:text-slate-300">
-                        The world does not care about administrative categories. Optimizing single components in isolation creates invisible fragility. Systems thinking is a practice of humility: designing for the living connections between energy, water, soil, and communities.
+                        Many of humanity&apos;s most significant challenges turn out to be relationship problems disguised as technical problems. Energy, water, food, housing, infrastructure, ecology, and public health continuously influence one another. Systems thinking begins with the recognition that optimizing individual components is often less important than understanding the connections between them.
                       </p>
                     </div>
                     <div className="mt-4 pt-3 border-t border-slate-100 dark:border-slate-800 text-[11px] font-mono text-amber-700 dark:text-amber-300 font-semibold">
