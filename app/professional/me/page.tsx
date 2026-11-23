@@ -1,7 +1,7 @@
 "use client"
 
 import { motion } from "framer-motion"
-import { ArrowLeft, BookOpen, FileText, CheckCircle2 } from "lucide-react"
+import { ArrowLeft, BookOpen, Compass, FileText, CheckCircle2 } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { useState } from "react"
 
@@ -18,9 +18,42 @@ const expertiseItems = [
   "Transactive energy",
   "Forecasting and predictive modeling",
   "Product strategy and roadmapping",
-  "Systems level design across the nexus of energy, water, food, water, and waste",
+  "Systems level design across the nexus of energy, water, food, and waste",
   "Equitable clean energy deployment",
   "ISO and RTO markets including CAISO, PJM, and ERCOT",
+]
+
+const practiceOfferings = [
+  {
+    title: "Distributed energy strategy",
+    description:
+      "Microgrid, storage, and virtual power plant strategy that balances resilience, operational performance, market participation, regulatory compliance, and customer objectives.",
+  },
+  {
+    title: "Technology due diligence",
+    description:
+      "Technical and commercial diligence on battery storage, inverters, controls, EMS, and DERMS, covering interoperability, regulatory alignment, incentive eligibility, and deployment risk.",
+  },
+  {
+    title: "Product strategy for energy platforms",
+    description:
+      "Roadmap prioritization, product requirements, and KPI frameworks that align technical capability with market opportunity.",
+  },
+  {
+    title: "Decision-support architecture",
+    description:
+      "Digital platforms and decision-support frameworks for DER planning, forecasting, performance management, and lifecycle optimization across distributed energy portfolios.",
+  },
+  {
+    title: "Measurement and verification",
+    description:
+      "Measurement and verification methodologies, performance guarantees, and operational metrics that support long-term asset performance.",
+  },
+  {
+    title: "Deployment and market navigation",
+    description:
+      "Technology selection and deployment strategies that help organizations navigate utility programs, incentive structures, and electrification initiatives.",
+  },
 ]
 
 function HoverCard({
@@ -87,7 +120,7 @@ export default function ProfessionalMePage() {
             </div>
           </div>
 
-          {/* Mission — standalone glowing section */}
+          {/* Mission: standalone glowing section */}
           <motion.section
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -117,32 +150,92 @@ export default function ProfessionalMePage() {
               <div className="space-y-4">
                 <p className="text-[15px]/relaxed text-gray-700 dark:text-gray-300">
                   My work has always been guided by two north stars. Humanity must learn to
-                  live sustainably with the planet, and resource equity must be treated as a
-                  core design principle rather than an afterthought. I believe the energy
-                  transition will only succeed if end users, communities, and grid operators
-                  are empowered participants in the systems that shape their lives.
+                  live sustainably with the planet, and resource equity and democratization
+                  must be treated as core design principles rather than afterthoughts. I
+                  believe the energy transition will only succeed if end users, communities,
+                  and grid operators are empowered participants in the systems that shape
+                  their lives.
                 </p>
                 <p className="text-[15px]/relaxed text-gray-700 dark:text-gray-300">
                   Throughout my career I have focused on building distributed energy platforms,
                   microgrids, virtual power plants, and optimization systems that support this
                   vision. My work has spanned algorithms, engineering, product architecture,
-                  commercial strategy, and industry leadership. This range allows me to connect
-                  technical and executive domains, translate across disciplines, and design
-                  systems that scale in real environments. Deployments have included climate
-                  resilience hubs, community microgrids, wastewater treatment facilities, and
-                  international pilots, each grounded in the belief that technology, economics,
-                  and human impact must move together.
+                  commercial strategy, and industry leadership, and it includes startup
+                  formation, scale up, and acquisition due diligence. This range allows me to
+                  connect engineering, product, commercial, and policy stakeholders into
+                  aligned ecosystems that translate across disciplines, design systems that
+                  scale in real environments, and deliver measurable impact. Deployments have
+                  spanned North America, Europe, Asia, Australia, and Central America, and
+                  included climate resilience hubs, community microgrids, wastewater treatment
+                  facilities, and international pilots, each grounded in the belief that
+                  technology, economics, and human impact must move together.
                 </p>
                 <p className="text-[15px]/relaxed text-gray-700 dark:text-gray-300">
                   What motivates me is the opportunity to take everything I have built and
                   learned and scale it with intention. I want to help shape the next generation
-                  of this industry and contribute to a future where sustainable infrastructure
-                  is accessible to all. My goal is to work in environments where communities
-                  and grid stakeholders are treated as partners, where transparency and aligned
+                  of this industry and lead through action, mentorship, and collaboration,
+                  contributing to a future where sustainable infrastructure is accessible to
+                  all. My goal is to work in environments where communities and grid
+                  stakeholders are treated as partners, where transparency and aligned
                   incentives guide the work, and where systems are designed to be resilient,
                   equitable, and future ready.
                 </p>
               </div>
+            </div>
+          </motion.section>
+
+          {/* Current Practice */}
+          <motion.section
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.2 }}
+            className="relative"
+          >
+            <div className="rounded-[2rem] border border-green-200/80 bg-gradient-to-br from-green-50 via-white to-white p-8 shadow-lg shadow-green-900/5 ring-1 ring-green-100/60 sm:p-10 dark:border-green-800/60 dark:bg-gradient-to-br dark:from-green-950/50 dark:via-slate-950/90 dark:to-slate-950/80 dark:shadow-green-400/5 dark:ring-green-800/30">
+              <div className="mb-6 flex items-center gap-3">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-green-100 text-green-700 dark:bg-green-900/60 dark:text-green-300">
+                  <Compass className="h-5 w-5" />
+                </div>
+                <div>
+                  <h2 className="font-serif text-2xl font-semibold text-slate-900 dark:text-white">
+                    Current Practice
+                  </h2>
+                  <p className="mt-0.5 text-sm text-green-700 dark:text-green-400">
+                    Independent energy strategy advisory · Oakland, California · 2025 to present
+                  </p>
+                </div>
+              </div>
+
+              <p className="max-w-4xl text-[15px]/relaxed text-gray-700 dark:text-gray-300">
+                I advise developers, EPCs, operators, municipalities, financiers, and
+                mission-driven organizations on the distributed energy decisions that determine
+                whether a project gets built, performs as promised, and creates lasting value.
+                The practice pairs engineering depth with product and commercial judgment, so
+                technical strategy never loses sight of deployment reality, market structure,
+                and the communities these systems serve.
+              </p>
+
+              <div className="mt-7 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                {practiceOfferings.map((item) => (
+                  <div
+                    key={item.title}
+                    className="rounded-2xl border border-green-100 bg-white/80 p-5 ring-1 ring-green-100/60 dark:border-green-800/50 dark:bg-slate-900/70 dark:ring-green-800/30"
+                  >
+                    <h3 className="text-sm font-semibold text-green-700 dark:text-green-400">
+                      {item.title}
+                    </h3>
+                    <p className="mt-1.5 text-[13px]/relaxed text-gray-600 dark:text-gray-400">
+                      {item.description}
+                    </p>
+                  </div>
+                ))}
+              </div>
+
+              <p className="mt-7 border-t border-green-100 pt-5 text-[14px]/relaxed text-gray-600 dark:border-green-800/50 dark:text-gray-400">
+                Across every engagement I work as a strategic partner to engineering, product,
+                commercial, and executive teams, translating complex energy systems into
+                actionable investment, deployment, and growth decisions.
+              </p>
             </div>
           </motion.section>
 
@@ -272,7 +365,7 @@ export default function ProfessionalMePage() {
               title="Trudie Wang, Resume"
               description="Complete professional background, experience, and qualifications"
               type="pdf"
-              url={assetUrl("professional/Trudie's%20resume.pdf")}
+              url={assetUrl("professional/Trudie_Wang_Resume.pdf")}
               icon={<FileText className="h-6 w-6" />}
               color="green"
             />
