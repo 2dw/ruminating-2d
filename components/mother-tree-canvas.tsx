@@ -520,13 +520,35 @@ export function MotherTreeCanvas({ summary, className }: MotherTreeCanvasProps) 
     }
   }, [])
 
+  const handleTouchMove = useCallback((e: React.TouchEvent<HTMLDivElement>) => {
+    if (e.touches.length > 0) {
+      const touch = e.touches[0]
+      const rect = e.currentTarget.getBoundingClientRect()
+      const x = touch.clientX - rect.left, y = touch.clientY - rect.top
+      mouseRef.current = { x, y }
+
+      if (treeDataRef.current) {
+        let found: number | null = null
+        for (let i = 0; i < treeDataRef.current.tree.tierClusters.length; i++) {
+          const c = treeDataRef.current.tree.tierClusters[i]
+          if (Math.sqrt((x - c.cx) ** 2 + (y - c.cy) ** 2) < c.radius * 2) { found = i; break }
+        }
+        setHoveredCluster(found)
+
+        const { trunkBaseX, groundY } = treeDataRef.current.tree
+        const rootNodeDist = Math.sqrt((x - trunkBaseX) ** 2 + (y - (groundY + 75)) ** 2)
+        setHoveredRoot(rootNodeDist < 60)
+      }
+    }
+  }, [])
+
   const handleMouseLeave = useCallback(() => {
     mouseRef.current = { x: -999, y: -999 }
     setHoveredCluster(null)
     setHoveredRoot(false)
   }, [])
 
-  const handleLeafClick = useCallback((href: string, e: React.MouseEvent) => {
+  const handleLeafClick = useCallback((href: string, e: React.MouseEvent | React.TouchEvent) => {
     e.stopPropagation()
     document.querySelector(href)?.scrollIntoView({ behavior: "smooth", block: "start" })
   }, [])
@@ -536,27 +558,30 @@ export function MotherTreeCanvas({ summary, className }: MotherTreeCanvasProps) 
       <div
         ref={containerRef}
         className={`relative w-full overflow-hidden ${className ?? ""}`}
-        style={{ height: "clamp(420px, 58vw, 600px)" }}
+        style={{ height: "clamp(380px, 58vw, 600px)", touchAction: "pan-y" }}
         onMouseMove={handleMouseMove}
         onMouseLeave={handleMouseLeave}
+        onTouchMove={handleTouchMove}
+        onTouchEnd={handleMouseLeave}
       >
-        <canvas ref={canvasRef} className="absolute inset-0" style={{ cursor: (hoveredCluster !== null || hoveredRoot) ? "pointer" : "default" }} />
+        <canvas ref={canvasRef} className="absolute inset-0 pointer-events-none" />
 
         {treeDataRef.current && treeDataRef.current.tree.tierClusters.map((cluster, i) => {
           const isHovered = hoveredCluster === i
           return (
             <button
               key={i}
+              type="button"
               onClick={(e) => handleLeafClick(cluster.href, e)}
-              className="absolute z-30 -translate-x-1/2"
-              style={{ left: cluster.cx, top: cluster.cy - cluster.radius - 18 }}
+              className="absolute z-30 -translate-x-1/2 touch-manipulation"
+              style={{ left: cluster.cx, top: Math.max(16, cluster.cy - cluster.radius - 18) }}
               aria-label={`Go to ${cluster.label}`}
             >
               <span
-                className={`whitespace-nowrap rounded-full px-3 py-1 text-xs font-medium backdrop-blur-sm transition-all duration-200 ${
+                className={`whitespace-nowrap rounded-full px-2.5 sm:px-3 py-1 text-[11px] sm:text-xs font-medium backdrop-blur-md transition-all duration-200 border shadow-sm ${
                   isHovered
-                    ? "bg-slate-900/90 text-green-300 opacity-100 dark:bg-slate-950/90 dark:text-green-200"
-                    : "bg-slate-900/40 text-green-400/50 opacity-60 hover:bg-slate-900/70 hover:text-green-300 hover:opacity-100 dark:bg-slate-950/40 dark:hover:bg-slate-950/70"
+                    ? "bg-slate-900/95 text-green-300 border-green-400/60 opacity-100 dark:bg-slate-950/95 dark:text-green-200 scale-105"
+                    : "bg-slate-900/80 text-green-300/90 border-green-500/30 opacity-95 sm:opacity-75 hover:opacity-100 hover:border-green-400/50 dark:bg-slate-950/80 dark:text-green-200"
                 }`}
               >
                 {cluster.icon} {cluster.label}
@@ -570,16 +595,17 @@ export function MotherTreeCanvas({ summary, className }: MotherTreeCanvasProps) 
           const { trunkBaseX, groundY } = treeDataRef.current.tree
           return (
             <button
+              type="button"
               onClick={(e) => handleLeafClick("#foundational-roots", e)}
-              className="absolute z-30 -translate-x-1/2 -translate-y-1/2"
+              className="absolute z-30 -translate-x-1/2 -translate-y-1/2 touch-manipulation"
               style={{ left: trunkBaseX, top: groundY + 75 }}
               aria-label="Go to Foundational Roots"
             >
               <span
-                className={`whitespace-nowrap rounded-full px-3 py-1 text-xs font-medium backdrop-blur-sm transition-all duration-200 ${
+                className={`whitespace-nowrap rounded-full px-2.5 sm:px-3 py-1 text-[11px] sm:text-xs font-medium backdrop-blur-md transition-all duration-200 border shadow-sm ${
                   hoveredRoot
-                    ? "bg-amber-950/90 text-amber-300 opacity-100 dark:bg-amber-950/95 dark:text-amber-200"
-                    : "bg-amber-950/40 text-amber-400/50 opacity-60 hover:bg-amber-950/70 hover:text-amber-300 hover:opacity-100"
+                    ? "bg-amber-950/95 text-amber-300 border-amber-400/60 opacity-100 dark:bg-amber-950/95 dark:text-amber-200 scale-105"
+                    : "bg-amber-950/80 text-amber-300/90 border-amber-500/30 opacity-95 sm:opacity-75 hover:opacity-100 hover:border-amber-400/50"
                 }`}
               >
                 🌱 Foundational Roots

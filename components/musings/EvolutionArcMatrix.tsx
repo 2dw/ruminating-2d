@@ -85,7 +85,7 @@ export function EvolutionArcMatrix() {
   const Icon = current.icon
 
   return (
-    <div className="my-14 rounded-3xl border border-slate-200/80 bg-gradient-to-b from-white/80 to-slate-50/60 p-6 sm:p-8 backdrop-blur-xl shadow-xl dark:border-slate-800/80 dark:from-slate-900/80 dark:to-slate-950/60 dark:shadow-slate-950/50">
+    <div className="my-14 rounded-3xl border border-slate-200/80 bg-gradient-to-b from-white/80 to-slate-50/60 p-4 sm:p-8 backdrop-blur-xl shadow-xl dark:border-slate-800/80 dark:from-slate-900/80 dark:to-slate-950/60 dark:shadow-slate-950/50">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-slate-200/60 pb-5 dark:border-slate-800/60">
         <div>
           <div className="flex items-center gap-2">
@@ -111,20 +111,21 @@ export function EvolutionArcMatrix() {
           return (
             <button
               key={item.id}
+              type="button"
               onClick={() => setActiveTab(item.id)}
-              className={`flex flex-col items-start gap-1 p-3 rounded-xl border text-left transition-all ${
+              className={`flex flex-col items-start gap-1 p-2.5 sm:p-3 rounded-xl border text-left transition-all min-h-[64px] touch-manipulation ${
                 isSelected
                   ? "bg-emerald-600 text-white dark:bg-emerald-500 dark:text-slate-950 border-emerald-600 shadow-md scale-[1.02]"
                   : "bg-white/60 hover:bg-slate-100/80 dark:bg-slate-800/60 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-200/70 dark:border-slate-700/60"
               }`}
             >
-              <div className="flex items-center gap-2">
-                <ItemIcon className="h-4 w-4 shrink-0" />
-                <span className="text-[10px] font-mono uppercase font-bold tracking-wider">
+              <div className="flex items-center gap-1.5 sm:gap-2">
+                <ItemIcon className="h-3.5 w-3.5 sm:h-4 sm:w-4 shrink-0" />
+                <span className="text-[9.5px] sm:text-[10px] font-mono uppercase font-bold tracking-wider truncate">
                   {item.badge}
                 </span>
               </div>
-              <span className="text-xs font-serif font-semibold line-clamp-1">
+              <span className="text-xs font-serif font-semibold line-clamp-2 leading-tight">
                 {item.title.split("→")[0]}
               </span>
             </button>
@@ -133,7 +134,7 @@ export function EvolutionArcMatrix() {
       </div>
 
       {/* Comparison Layout */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 rounded-2xl border border-slate-200/70 bg-white/70 p-5 sm:p-6 dark:border-slate-800/70 dark:bg-slate-900/60">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 rounded-2xl border border-slate-200/70 bg-white/70 p-4 sm:p-6 dark:border-slate-800/70 dark:bg-slate-900/60">
         {/* Left: Initial Seed Inquiry */}
         <div className="rounded-xl border border-amber-500/20 bg-amber-500/5 p-4 sm:p-5 flex flex-col justify-between">
           <div>

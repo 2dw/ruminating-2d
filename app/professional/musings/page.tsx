@@ -36,27 +36,27 @@ export default function ProfessionalMusingsPage() {
           <div className="space-y-12">
             
             {/* Header & Back Navigation */}
-            <div className="flex items-start gap-4">
+            <div className="flex items-start gap-3 sm:gap-4">
               <Link
                 href="/professional"
-                className="mt-1 inline-flex h-10 w-10 items-center justify-center rounded-xl text-emerald-700 hover:bg-emerald-50 dark:text-emerald-300 dark:hover:bg-emerald-950/40 transition-colors"
+                className="mt-0.5 inline-flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center rounded-xl text-emerald-700 hover:bg-emerald-50 dark:text-emerald-300 dark:hover:bg-emerald-950/40 transition-colors shrink-0"
                 aria-label="Back to professional repertoire"
               >
                 <ArrowLeft className="h-5 w-5" />
               </Link>
-              <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-3xl bg-emerald-100 text-emerald-700 dark:bg-emerald-900/60 dark:text-emerald-300 shadow-sm">
-                <Lightbulb className="h-7 w-7" />
+              <div className="flex h-11 w-11 sm:h-14 sm:w-14 shrink-0 items-center justify-center rounded-2xl sm:rounded-3xl bg-emerald-100 text-emerald-700 dark:bg-emerald-900/60 dark:text-emerald-300 shadow-sm">
+                <Lightbulb className="h-5 w-5 sm:h-7 sm:w-7" />
               </div>
-              <div>
+              <div className="min-w-0">
                 <div className="flex items-center gap-2 flex-wrap">
-                  <h1 className="text-4xl font-serif font-bold text-slate-900 dark:text-white">
+                  <h1 className="text-2xl sm:text-3xl md:text-4xl font-serif font-bold text-slate-900 dark:text-white">
                     Mission Musings
                   </h1>
                   <span className="font-mono text-xs font-semibold px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-800">
                     Esse Quam Videri
                   </span>
                 </div>
-                <p className="mt-2 max-w-3xl text-sm leading-relaxed text-slate-600 dark:text-slate-300">
+                <p className="mt-1.5 sm:mt-2 max-w-3xl text-xs sm:text-sm leading-relaxed text-slate-600 dark:text-slate-300">
                   Philosophical foundations, systems architecture, and the unbroken arc from initial inquiries to current and future architectures.
                   Exploring how distributed intelligence, resource equity, and ecological stewardship redefine human agency.
                 </p>

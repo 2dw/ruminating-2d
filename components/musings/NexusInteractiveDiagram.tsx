@@ -7,6 +7,7 @@ import { Sun, Droplets, Sprout, Wind, Home, ShieldAlert, Sparkles, RefreshCcw } 
 interface NexusDomain {
   id: string
   name: string
+  shortName: string
   icon: typeof Sun
   accent: string
   ringColor: string
@@ -18,6 +19,7 @@ const NEXUS_DOMAINS: NexusDomain[] = [
   {
     id: "energy",
     name: "Distributed Energy",
+    shortName: "Energy",
     icon: Sun,
     accent: "#10b981",
     ringColor: "rgba(16, 185, 129, 0.4)",
@@ -43,6 +45,7 @@ const NEXUS_DOMAINS: NexusDomain[] = [
   {
     id: "water",
     name: "Water & Sanitation",
+    shortName: "Water",
     icon: Droplets,
     accent: "#06b6d4",
     ringColor: "rgba(6, 182, 212, 0.4)",
@@ -63,6 +66,7 @@ const NEXUS_DOMAINS: NexusDomain[] = [
   {
     id: "food",
     name: "Food & Soil Systems",
+    shortName: "Food",
     icon: Sprout,
     accent: "#84cc16",
     ringColor: "rgba(132, 204, 22, 0.4)",
@@ -83,6 +87,7 @@ const NEXUS_DOMAINS: NexusDomain[] = [
   {
     id: "climate",
     name: "Climate Adaptation",
+    shortName: "Climate",
     icon: Wind,
     accent: "#38bdf8",
     ringColor: "rgba(56, 189, 248, 0.4)",
@@ -103,6 +108,7 @@ const NEXUS_DOMAINS: NexusDomain[] = [
   {
     id: "community",
     name: "Community & Agency",
+    shortName: "Community",
     icon: Home,
     accent: "#f59e0b",
     ringColor: "rgba(245, 158, 11, 0.4)",
@@ -129,7 +135,7 @@ export function NexusInteractiveDiagram() {
   const Icon = current.icon
 
   return (
-    <div className="my-12 rounded-3xl border border-slate-200/80 bg-white/70 p-6 sm:p-8 backdrop-blur-xl shadow-lg dark:border-slate-800/80 dark:bg-slate-900/60 dark:shadow-slate-950/40">
+    <div className="my-12 rounded-3xl border border-slate-200/80 bg-white/70 p-4 sm:p-8 backdrop-blur-xl shadow-lg dark:border-slate-800/80 dark:bg-slate-900/60 dark:shadow-slate-950/40">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-b border-slate-200/60 pb-5 dark:border-slate-800/60">
         <div>
           <span className="font-mono text-xs uppercase tracking-wider text-emerald-600 dark:text-emerald-400 font-semibold">
@@ -144,7 +150,7 @@ export function NexusInteractiveDiagram() {
         </div>
       </div>
 
-      {/* Domain Selection Pills - Auto-resizes to fit on a single line */}
+      {/* Domain Selection Pills - Auto-resizes and fits on a single line on mobile and desktop */}
       <div className="my-6 grid grid-cols-5 gap-1 sm:gap-2 w-full">
         {NEXUS_DOMAINS.map((domain) => {
           const DIcon = domain.icon
@@ -152,15 +158,17 @@ export function NexusInteractiveDiagram() {
           return (
             <button
               key={domain.id}
+              type="button"
               onClick={() => setSelectedDomain(domain.id)}
-              className={`w-full flex items-center justify-center gap-1 sm:gap-1.5 px-1 sm:px-2 md:px-3 py-2 rounded-xl text-[10px] sm:text-xs font-semibold whitespace-nowrap transition-all border ${
+              className={`w-full flex items-center justify-center gap-1 sm:gap-1.5 px-1 sm:px-2.5 py-1.5 sm:py-2 rounded-xl text-[10px] sm:text-xs font-semibold whitespace-nowrap transition-all border min-h-[38px] touch-manipulation ${
                 isSelected
                   ? "bg-slate-900 text-white dark:bg-white dark:text-slate-950 shadow-md scale-[1.02]"
                   : "bg-slate-100/80 text-slate-700 hover:bg-slate-200/80 dark:bg-slate-800/80 dark:text-slate-300 dark:hover:bg-slate-700/80 border-slate-200 dark:border-slate-700/60"
               }`}
             >
               <DIcon className="h-3 w-3 sm:h-3.5 sm:w-3.5 shrink-0" style={{ color: isSelected ? undefined : domain.accent }} />
-              <span className="truncate">{domain.name}</span>
+              <span className="sm:hidden text-[10px] font-medium leading-none">{domain.shortName}</span>
+              <span className="hidden sm:inline truncate">{domain.name}</span>
             </button>
           )
         })}

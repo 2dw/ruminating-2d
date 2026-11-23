@@ -11,10 +11,10 @@ export function ArchiveDrawer() {
   return (
     <div className="my-16 overflow-hidden rounded-3xl border border-slate-200/90 bg-white/70 backdrop-blur-xl shadow-lg dark:border-slate-800/90 dark:bg-slate-900/60 dark:shadow-slate-950/40">
       {/* Header Banner */}
-      <div className="p-6 sm:p-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-slate-200/60 dark:border-slate-800/60">
-        <div className="flex items-start gap-4">
-          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-amber-100 text-amber-700 dark:bg-amber-950/60 dark:text-amber-300">
-            <Archive className="h-6 w-6" />
+      <div className="p-4 sm:p-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-slate-200/60 dark:border-slate-800/60">
+        <div className="flex items-start gap-3.5 sm:gap-4">
+          <div className="flex h-11 w-11 sm:h-12 sm:w-12 shrink-0 items-center justify-center rounded-2xl bg-amber-100 text-amber-700 dark:bg-amber-950/60 dark:text-amber-300">
+            <Archive className="h-5 w-5 sm:h-6 sm:w-6" />
           </div>
           <div>
             <div className="flex items-center gap-2">
@@ -22,7 +22,7 @@ export function ArchiveDrawer() {
                 Foundational Archive &bull; Unedited Manuscripts
               </span>
             </div>
-            <h3 className="text-xl font-serif font-bold text-slate-900 dark:text-white mt-1">
+            <h3 className="text-lg sm:text-xl font-serif font-bold text-slate-900 dark:text-white mt-1">
               The Genesis Manuscripts: Original Musings & Early Essays
             </h3>
             <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1 max-w-xl">
@@ -32,8 +32,9 @@ export function ArchiveDrawer() {
         </div>
 
         <button
+          type="button"
           onClick={() => setIsOpen(!isOpen)}
-          className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-mono font-semibold transition-all border border-amber-400/60 bg-amber-50 hover:bg-amber-100 text-amber-900 dark:border-amber-600/40 dark:bg-amber-950/40 dark:hover:bg-amber-900/50 dark:text-amber-200 shadow-sm self-start sm:self-center"
+          className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-mono font-semibold transition-all border border-amber-400/60 bg-amber-50 hover:bg-amber-100 text-amber-900 dark:border-amber-600/40 dark:bg-amber-950/40 dark:hover:bg-amber-900/50 dark:text-amber-200 shadow-sm self-start sm:self-center touch-manipulation min-h-[40px]"
         >
           <span>{isOpen ? "Close Archive Drawer" : "Explore Initial Manuscripts"}</span>
           {isOpen ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
@@ -49,9 +50,9 @@ export function ArchiveDrawer() {
             transition={{ duration: 0.4 }}
             className="overflow-hidden"
           >
-            <div className="p-6 sm:p-8 space-y-6">
+            <div className="p-4 sm:p-8 space-y-6">
               {/* Retrospective Author Note */}
-              <div className="rounded-2xl border border-amber-500/20 bg-amber-500/5 p-5 text-xs text-slate-700 dark:text-slate-300 leading-relaxed">
+              <div className="rounded-2xl border border-amber-500/20 bg-amber-500/5 p-4 sm:p-5 text-xs text-slate-700 dark:text-slate-300 leading-relaxed">
                 <div className="flex items-center gap-2 mb-2 font-mono text-[11px] font-bold uppercase tracking-wider text-amber-700 dark:text-amber-400">
                   <Clock className="h-3.5 w-3.5" />
                   <span>Author&apos;s Archival Note: On Looking Back</span>
@@ -64,26 +65,28 @@ export function ArchiveDrawer() {
               {/* Sub-Tabs */}
               <div className="flex flex-wrap gap-2 border-b border-slate-200/60 dark:border-slate-800/60 pb-3">
                 {[
-                  { id: "esse", title: "Original Essay: esse quam videri" },
-                  { id: "musing1", title: "Musing #1: Early Engineering Bio" },
-                  { id: "musing2", title: "Musing #2: On Idealism & The Incumbent Game" },
+                  { id: "esse", mobile: "esse quam videri", desktop: "Original Essay: esse quam videri" },
+                  { id: "musing1", mobile: "Musing #1 (Bio)", desktop: "Musing #1: Early Engineering Bio" },
+                  { id: "musing2", mobile: "Musing #2 (Idealism)", desktop: "Musing #2: On Idealism & The Incumbent Game" },
                 ].map((tab) => (
                   <button
                     key={tab.id}
+                    type="button"
                     onClick={() => setActiveTab(tab.id as any)}
-                    className={`px-3 py-1.5 rounded-lg text-xs font-mono font-medium transition-all ${
+                    className={`px-3 py-1.5 rounded-lg text-xs font-mono font-medium transition-all min-h-[36px] touch-manipulation ${
                       activeTab === tab.id
                         ? "bg-amber-600 text-white dark:bg-amber-500 dark:text-slate-950 shadow-sm"
                         : "text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white"
                     }`}
                   >
-                    {tab.title}
+                    <span className="sm:hidden">{tab.mobile}</span>
+                    <span className="hidden sm:inline">{tab.desktop}</span>
                   </button>
                 ))}
               </div>
 
               {/* Tab Content Display */}
-              <div className="rounded-2xl border border-slate-200/70 bg-white/60 dark:border-slate-800/70 dark:bg-slate-950/40 p-6 font-serif text-sm leading-relaxed text-slate-700 dark:text-slate-300 max-h-[460px] overflow-y-auto space-y-4">
+              <div className="rounded-2xl border border-slate-200/70 bg-white/60 dark:border-slate-800/70 dark:bg-slate-950/40 p-4 sm:p-6 font-serif text-sm leading-relaxed text-slate-700 dark:text-slate-300 max-h-[60vh] overflow-y-auto space-y-4">
                 {activeTab === "esse" && (
                   <div className="space-y-4">
                     <div className="border-b border-slate-200 dark:border-slate-800 pb-2">

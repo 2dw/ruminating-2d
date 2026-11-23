@@ -46,7 +46,7 @@ export function EssayPullQuote({
 
   return (
     <figure
-      className={`relative my-8 flex gap-5 rounded-2xl border ${accents.wrapper} bg-gradient-to-r ${accents.glow} px-6 py-7 sm:px-8 sm:py-8 backdrop-blur-md transition-all duration-300 hover:shadow-lg dark:hover:shadow-emerald-950/30 ${
+      className={`relative my-8 flex gap-4 sm:gap-5 rounded-2xl border ${accents.wrapper} bg-gradient-to-r ${accents.glow} px-4 py-6 sm:px-8 sm:py-8 backdrop-blur-md transition-all duration-300 hover:shadow-lg dark:hover:shadow-emerald-950/30 ${
         align === "center" ? "text-center flex-col items-center" : "text-left items-start"
       }`}
     >
@@ -57,7 +57,7 @@ export function EssayPullQuote({
         <div className={`mx-auto mb-1 h-0.5 w-12 rounded-full ${accents.bar}`} />
       )}
       <div className="relative z-10">
-        <blockquote className={`font-serif text-lg sm:text-xl md:text-2xl font-semibold italic leading-relaxed tracking-tight ${accents.text}`}>
+        <blockquote className={`font-serif text-base sm:text-xl md:text-2xl font-semibold italic leading-relaxed tracking-tight ${accents.text}`}>
           {quote}
         </blockquote>
         {context && (
