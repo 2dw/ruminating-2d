@@ -9,11 +9,13 @@ import {
   Briefcase,
   Compass,
   Cpu,
+  ExternalLink,
   FileText,
   Globe,
   GraduationCap,
   Layers,
   Lightbulb,
+  Linkedin,
   MapPin,
   Network,
   Rocket,
@@ -690,6 +692,28 @@ export default function ProfessionalMePage() {
               icon={<FileText className="h-6 w-6" />}
               color="green"
             />
+
+            <a
+              href="https://www.linkedin.com/in/trudie/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="group mt-4 flex items-center justify-between rounded-2xl border border-green-200/70 bg-white/70 p-5 backdrop-blur-md transition-all duration-300 hover:-translate-y-0.5 hover:border-green-400 hover:shadow-lg hover:shadow-green-900/5 dark:border-green-800/60 dark:bg-slate-900/60 dark:hover:border-green-500 dark:hover:shadow-green-400/10"
+            >
+              <div className="flex items-center gap-3">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-green-100 text-green-700 transition-colors duration-300 group-hover:bg-green-600 group-hover:text-white dark:bg-green-950 dark:text-green-300 dark:group-hover:bg-green-500 dark:group-hover:text-slate-950">
+                  <Linkedin className="h-5 w-5" />
+                </div>
+                <div>
+                  <span className="font-mono text-[10px] font-bold uppercase tracking-widest text-green-600 dark:text-green-400">
+                    Professional Network
+                  </span>
+                  <p className="font-serif text-lg font-bold text-slate-900 dark:text-white">
+                    Connect on LinkedIn
+                  </p>
+                </div>
+              </div>
+              <ExternalLink className="h-4 w-4 shrink-0 text-slate-400 transition-colors group-hover:text-green-600 dark:group-hover:text-green-400" />
+            </a>
           </section>
         </div>
       </main>

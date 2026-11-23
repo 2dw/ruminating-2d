@@ -1,7 +1,7 @@
 "use client"
 
 import { motion } from "framer-motion"
-import { BookOpen, Sparkles, Lightbulb } from "lucide-react"
+import { BookOpen, Sparkles, Lightbulb, Linkedin, ExternalLink } from "lucide-react"
 import { useRouter } from "next/navigation"
 const sections = [
   {
@@ -86,8 +86,7 @@ export default function ProfessionalPage() {
             Thought Leadership
           </p>
           <div className="flex flex-wrap justify-center gap-2">
-            {[
-              "Distributech", "RE+ Grid Edge", "NABCEP", "IEEE Tech Expo",
+            {[ "Distributech", "RE+ Grid Edge", "NABCEP", "IEEE Tech Expo",
               "Smart Grid", "Wood Mackenzie Grid Edge Summit", "Stanford Energy Seminar",
               "NY Climate Week", "Interchange Recharged Podcast",
               "Microgrid Knowledge", "GridTECH", "International Microgrid Symposium",
@@ -100,6 +99,34 @@ export default function ProfessionalPage() {
               </span>
             ))}
           </div>
+        </motion.div>
+
+        {/* Connect */}
+        <motion.div
+          initial={{ opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.4 }}
+          className="mt-12 flex justify-center"
+        >
+          <a
+            href="https://www.linkedin.com/in/trudie/"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="group inline-flex items-center gap-3 rounded-2xl border border-green-300 bg-green-50 px-6 py-4 transition-all duration-300 hover:-translate-y-0.5 hover:border-green-500 hover:shadow-lg hover:shadow-green-900/10 dark:border-green-800 dark:bg-green-950/40 dark:hover:border-green-500 dark:hover:shadow-green-400/10"
+          >
+            <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-green-600 text-white transition-colors duration-300 group-hover:bg-green-700">
+              <Linkedin className="h-5 w-5" />
+            </span>
+            <span className="text-left">
+              <span className="block font-mono text-[10px] font-bold uppercase tracking-widest text-green-700 dark:text-green-400">
+                Professional Network
+              </span>
+              <span className="block font-serif text-lg font-bold text-slate-900 dark:text-white">
+                Connect on LinkedIn
+              </span>
+            </span>
+            <ExternalLink className="h-4 w-4 text-green-600 transition-transform duration-300 group-hover:translate-x-0.5 dark:text-green-400" />
+          </a>
         </motion.div>
 
       </main>
