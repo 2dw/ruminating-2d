@@ -11,19 +11,25 @@ import { DocumentCard } from "@/components/document-card"
 import { assetUrl } from "@/lib/assets"
 
 const expertiseItems = [
-  "Distributed optimization and control",
+  "Distributed optimization and control (MPC, ADMM)",
   "Microgrids",
   "Virtual power plants",
   "DERMS",
   "Transactive energy",
   "Forecasting and predictive modeling",
   "Product strategy and roadmapping",
+  "Distributed energy markets and value stacking",
+  "Digital energy platforms and DER orchestration",
   "Systems level design across the nexus of energy, water, food, and waste",
-  "Equitable clean energy deployment",
+  "Equitable clean energy deployment and circular systems",
+  "Utilities, EPCs, developers, financiers, and communities",
+  "Technical leadership, team building, and mentorship",
+  "Public speaking and thought leadership",
+  "Global deployments across North America, Europe, Asia, Australia, and Central America",
   "ISO and RTO markets including CAISO, PJM, and ERCOT",
 ]
 
-const practiceOfferings = [
+const endeavorOfferings = [
   {
     title: "Distributed energy strategy",
     description:
@@ -184,7 +190,7 @@ export default function ProfessionalMePage() {
             </div>
           </motion.section>
 
-          {/* Current Practice */}
+          {/* Current Endeavors */}
           <motion.section
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -198,10 +204,10 @@ export default function ProfessionalMePage() {
                 </div>
                 <div>
                   <h2 className="font-serif text-2xl font-semibold text-slate-900 dark:text-white">
-                    Current Practice
+                    Current Endeavors
                   </h2>
                   <p className="mt-0.5 text-sm text-green-700 dark:text-green-400">
-                    Independent energy strategy advisory · Oakland, California · 2025 to present
+                    Independent advisor · Oakland, California · 2025 to present
                   </p>
                 </div>
               </div>
@@ -210,13 +216,13 @@ export default function ProfessionalMePage() {
                 I advise developers, EPCs, operators, municipalities, financiers, and
                 mission-driven organizations on the distributed energy decisions that determine
                 whether a project gets built, performs as promised, and creates lasting value.
-                The practice pairs engineering depth with product and commercial judgment, so
+                This work pairs engineering depth with product and commercial judgment, so
                 technical strategy never loses sight of deployment reality, market structure,
                 and the communities these systems serve.
               </p>
 
               <div className="mt-7 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                {practiceOfferings.map((item) => (
+                {endeavorOfferings.map((item) => (
                   <div
                     key={item.title}
                     className="rounded-2xl border border-green-100 bg-white/80 p-5 ring-1 ring-green-100/60 dark:border-green-800/50 dark:bg-slate-900/70 dark:ring-green-800/30"
