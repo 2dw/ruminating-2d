@@ -136,11 +136,11 @@ export const creativeProjectOverrides: Record<string, CreativeProjectConfig> = {
     ],
   },
   "tunneling-visions-into-graphite-cellulose-and-lignin": {
-    title: "Mind wandering outwards: tunneling visions into graphite, cellulose and lignin",
-    subtitle: "Collecting the planet's inspirations through graphite, cellulose, and lignin",
+    title: "Mind meanderings: cultivating visions in graphite, cellulose and lignin",
+    subtitle: "Sketchbook studies, process drafts, and cultivating inspirations in graphite",
     tags: ["drawing", "art", "renewable energy", "women empowerment", "fine art"],
     description:
-      "Collecting the planet's inspirations and using my pencil as their megaphone. Tunneling visions into graphite, cellulose, and lignin to amplify stories of empowerment and resilience.",
+      "The creative process from initial sketchbook drafts to finished works: cultivating inspirations through graphite, cellulose, and lignin to amplify stories of empowerment and resilience.",
     inspiration: {
       narrative:
         "Drawing is a form of tunneling into the subconscious, extracting visions that words cannot capture. Each piece channels the stories of those who inspire change.",
@@ -394,7 +394,7 @@ export const creativeProjectOverrides: Record<string, CreativeProjectConfig> = {
     },
   },
   "mission-tweedy": {
-    title: "Mission impossible: Codename tweedy",
+    title: "Mission impossible: Codename Tweedy",
     subtitle: "A road sign heist, a farewell keepsake, and high school camaraderie, 2002–2005",
     cover: "sign 11_mod.jpg",
     previewFit: "contain",

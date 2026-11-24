@@ -47,27 +47,8 @@ const sections = [
   },
 ]
 
-const TRIAD_ELEMENTS = [
-  {
-    label: "Vision",
-    icon: Palette,
-    summary: "Translating internal intuitions and subconscious queries into tangible art, structures, and artifacts.",
-  },
-  {
-    label: "Light",
-    icon: Camera,
-    summary: "Capturing fleeting atmospheric geometry, perspective, and the raw beauty of natural ecosystems.",
-  },
-  {
-    label: "Word",
-    icon: PenTool,
-    summary: "Crafting narratives and reflections that synthesize lived experience with systems thinking.",
-  },
-]
-
 export default function PersonalWorld() {
   const router = useRouter()
-  const [activeTriad, setActiveTriad] = useState(0)
 
   return (
     <div className="min-h-screen w-full bg-[#f8fcff] text-[#0e0f11] dark:bg-[#0a1015] dark:text-white transition-colors duration-500 pt-24">
@@ -174,64 +155,6 @@ export default function PersonalWorld() {
               </div>
             </motion.button>
           ))}
-        </section>
-
-        {/* The Triad of Wandering (Infographic Strip) */}
-        <section className="mb-12 rounded-3xl border border-slate-200/80 bg-gradient-to-b from-white/90 via-slate-50/70 to-white/90 p-6 sm:p-8 backdrop-blur-xl shadow-lg dark:border-slate-800/80 dark:from-slate-950/90 dark:via-slate-900/60 dark:to-slate-950/90">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-b border-slate-200/60 dark:border-slate-800/60 pb-5 mb-6">
-            <div>
-              <span className="font-mono text-xs uppercase tracking-wider text-sky-600 dark:text-sky-400 font-semibold">
-                Triad of Wandering &bull; Living Expression
-              </span>
-              <h3 className="text-xl sm:text-2xl font-serif font-bold text-slate-900 dark:text-white mt-1">
-                Vision, Light, and Words
-              </h3>
-            </div>
-            <p className="text-xs font-mono text-slate-500 dark:text-slate-400 self-start sm:self-auto">
-              The creative current beneath systems thinking
-            </p>
-          </div>
-
-          <div className="grid grid-cols-3 gap-3 mb-6">
-            {TRIAD_ELEMENTS.map((elem, i) => {
-              const EIcon = elem.icon
-              const isSelected = activeTriad === i
-              return (
-                <button
-                  key={elem.label}
-                  type="button"
-                  onClick={() => setActiveTriad(i)}
-                  className={`flex flex-col sm:flex-row items-center justify-center gap-2 p-3 sm:p-4 rounded-2xl border transition-all text-center sm:text-left min-h-[50px] touch-manipulation ${
-                    isSelected
-                      ? "bg-sky-600 text-white dark:bg-sky-500 dark:text-slate-950 border-sky-600 shadow-md scale-[1.02]"
-                      : "bg-white/80 hover:bg-slate-100/80 dark:bg-slate-900/70 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-200/70 dark:border-slate-700/60"
-                  }`}
-                >
-                  <EIcon className="h-4 w-4 shrink-0" />
-                  <span className="text-xs font-serif font-semibold">{elem.label}</span>
-                </button>
-              )
-            })}
-          </div>
-
-          <div className="rounded-2xl border border-sky-500/20 bg-sky-500/5 p-5">
-            <div className="flex items-start gap-4">
-              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-sky-100 text-sky-700 dark:bg-sky-950 dark:text-sky-300 border border-sky-300/40 dark:border-sky-700/40">
-                {(() => {
-                  const CurrentIcon = TRIAD_ELEMENTS[activeTriad].icon
-                  return <CurrentIcon className="h-5 w-5" />
-                })()}
-              </div>
-              <div>
-                <h4 className="font-serif font-bold text-base text-slate-900 dark:text-white">
-                  The Dimension of {TRIAD_ELEMENTS[activeTriad].label}
-                </h4>
-                <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-300 leading-relaxed mt-1">
-                  {TRIAD_ELEMENTS[activeTriad].summary}
-                </p>
-              </div>
-            </div>
-          </div>
         </section>
 
       </main>

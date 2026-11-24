@@ -47,36 +47,8 @@ const sections = [
   },
 ]
 
-const PRACTICE_PILLARS = [
-  {
-    id: "optimization",
-    label: "Distributed Optimization",
-    icon: Network,
-    desc: "Mathematical control algorithms that balance volatile renewables at the extreme grid edge without centralized fragility.",
-  },
-  {
-    id: "vpp",
-    label: "Virtual Power Plants",
-    icon: Zap,
-    desc: "Aggregating millions of batteries, EVs, and smart thermals into coordinated civic assets that replace polluting peaker plants.",
-  },
-  {
-    id: "resilience",
-    label: "Community Resilience",
-    icon: ShieldCheck,
-    desc: "Neighborhood islanding, Red Cross resilience hubs, and Oakland EcoBlock microgrids ensuring survival during utility shutoffs.",
-  },
-  {
-    id: "agency",
-    label: "Democratized Agency",
-    icon: Compass,
-    desc: "Shifting passive consumers into active resource co-stewards with transparent algorithmic governance and local wealth creation.",
-  },
-]
-
 export default function ProfessionalPage() {
   const router = useRouter()
-  const [activePillar, setActivePillar] = useState(0)
 
   return (
     <div className="min-h-screen w-full bg-[#f8fcff] text-[#0e0f11] dark:bg-[#0a1015] dark:text-white transition-colors duration-500 pt-24">
@@ -183,64 +155,6 @@ export default function ProfessionalPage() {
               </div>
             </motion.button>
           ))}
-        </section>
-
-        {/* Interactive Systems Architecture Pillars (Infographic) */}
-        <section className="mb-16 rounded-3xl border border-slate-200/80 bg-gradient-to-b from-white/90 via-slate-50/70 to-white/90 p-6 sm:p-8 backdrop-blur-xl shadow-lg dark:border-slate-800/80 dark:from-slate-950/90 dark:via-slate-900/60 dark:to-slate-950/90">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-b border-slate-200/60 dark:border-slate-800/60 pb-5 mb-6">
-            <div>
-              <span className="font-mono text-xs uppercase tracking-wider text-emerald-600 dark:text-emerald-400 font-semibold">
-                Living Architecture &bull; Guiding Principles
-              </span>
-              <h3 className="text-xl sm:text-2xl font-serif font-bold text-slate-900 dark:text-white mt-1">
-                The Four Pillars of Modern Grid Strategy
-              </h3>
-            </div>
-            <p className="text-xs font-mono text-slate-500 dark:text-slate-400 self-start sm:self-auto">
-              Select any pillar to inspect system implications
-            </p>
-          </div>
-
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-2 mb-6">
-            {PRACTICE_PILLARS.map((p, i) => {
-              const PIcon = p.icon
-              const isSelected = activePillar === i
-              return (
-                <button
-                  key={p.id}
-                  type="button"
-                  onClick={() => setActivePillar(i)}
-                  className={`flex items-center gap-2.5 p-3 rounded-2xl border text-left transition-all min-h-[50px] touch-manipulation ${
-                    isSelected
-                      ? "bg-emerald-600 text-white dark:bg-emerald-500 dark:text-slate-950 border-emerald-600 shadow-md scale-[1.02]"
-                      : "bg-white/80 hover:bg-slate-100/80 dark:bg-slate-900/70 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-200/70 dark:border-slate-700/60"
-                  }`}
-                >
-                  <PIcon className="h-4 w-4 shrink-0" />
-                  <span className="text-xs font-serif font-semibold leading-tight">{p.label}</span>
-                </button>
-              )
-            })}
-          </div>
-
-          <div className="rounded-2xl border border-emerald-500/20 bg-emerald-500/5 p-5">
-            <div className="flex items-start gap-4">
-              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300 border border-emerald-300/40 dark:border-emerald-700/40">
-                {(() => {
-                  const CurrentIcon = PRACTICE_PILLARS[activePillar].icon
-                  return <CurrentIcon className="h-5 w-5" />
-                })()}
-              </div>
-              <div>
-                <h4 className="font-serif font-bold text-base text-slate-900 dark:text-white">
-                  {PRACTICE_PILLARS[activePillar].label}
-                </h4>
-                <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-300 leading-relaxed mt-1">
-                  {PRACTICE_PILLARS[activePillar].desc}
-                </p>
-              </div>
-            </div>
-          </div>
         </section>
 
         {/* Thought Leadership Venues Strip */}
