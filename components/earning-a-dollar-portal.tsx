@@ -158,7 +158,7 @@ export function EarningADollarPortal({ prefix = "projects/earning a dollar/" }: 
             Interactive Ascent & Storyboard Portal
           </div>
           <h2 className="mt-2 font-serif text-2xl font-bold tracking-tight text-slate-900 dark:text-white sm:text-3xl">
-            How to Earn a Dollar
+            The football&apos;s journey: how to earn a dollar
           </h2>
           <p className="mt-1 max-w-2xl text-sm text-slate-600 dark:text-slate-400">
             October 7, 2006 · A vertical scramble up crumbly Pacific coastal bluffs, immortalized in a classic 10-panel comic storyboard and a signed Federal Reserve note.

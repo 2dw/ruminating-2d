@@ -26,9 +26,11 @@ export default function CreativeArtPage() {
               <Brush className="h-7 w-7" />
             </div>
             <div>
-              <h1 className="text-4xl font-serif font-bold text-slate-900 dark:text-white">Digital Art Explorations</h1>
+              <h1 className="text-3xl font-serif font-bold text-slate-900 sm:text-4xl dark:text-white">
+                Mind wandering outwards: tunneling visions into graphite, cellulose and lignin
+              </h1>
               <p className="mt-2 max-w-2xl text-sm text-slate-600 dark:text-slate-400">
-                Digital illustrations and visual studies gathered from the art folder in R2. The gallery refreshes from the bucket as files are added, removed, or replaced.
+                Visual studies, graphite drafts, and illustrations gathered from the art repository. The gallery refreshes from R2 as works evolve and new plates are added.
               </p>
             </div>
           </div>

@@ -105,7 +105,7 @@ export function MissionTweedyPortal({ prefix = "projects/mission: Tweedy/" }: Mi
             Interactive Keepsake Portal
           </div>
           <h2 className="mt-2 font-serif text-2xl font-bold tracking-tight text-slate-900 dark:text-white sm:text-3xl">
-            The Tweedy Road Street Sign
+            Mission impossible: Codename tweedy
           </h2>
           <p className="mt-1 max-w-2xl text-sm text-slate-600 dark:text-slate-400">
             Explore both sides of the liberated Hong Kong street sign: the iconic green-and-white face with the clandestine &apos;y&apos;, and the reverse memory board signed by high school friends.

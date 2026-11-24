@@ -137,42 +137,41 @@ export default function PortalPage() {
 
         </div>
 
-        {/* Two Worlds - with more playful elements */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mt-4">
+        {/* Two Worlds - Refined with professional ambient glow */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mt-6">
           {/* Professional World */}
           <motion.div
-            className={`relative overflow-hidden rounded-2xl border transition-all duration-500 cursor-pointer ${
+            className={`group relative overflow-hidden rounded-3xl border transition-all duration-500 cursor-pointer ${
               hoveredWorld === "professional"
-                ? "border-green-400 shadow-lg shadow-green-100 dark:shadow-green-900/20"
+                ? "border-emerald-500/80 shadow-2xl shadow-emerald-500/20 ring-1 ring-emerald-400/30 dark:border-emerald-400 dark:shadow-emerald-950/70"
                 : hoveredWorld === "personal"
-                  ? "border-gray-200 dark:border-gray-800 opacity-80"
-                  : "border-gray-200 dark:border-gray-800"
-            } dynamic-frame`}
+                  ? "border-slate-200/60 dark:border-slate-800/60 opacity-85"
+                  : "border-slate-200/80 dark:border-slate-800/80 shadow-md hover:border-emerald-400/50"
+            }`}
             onMouseEnter={() => setHoveredWorld("professional")}
             onMouseLeave={() => setHoveredWorld(null)}
             onClick={() => navigateTo("/professional", "Professional Repertoire")}
-            whileHover={{ y: -8, rotate: -1 }}
+            whileHover={{ y: -4 }}
             transition={{ duration: 0.3 }}
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            style={{
-              transformOrigin: "center",
-            }}
           >
-            <div className="absolute inset-0 bg-gradient-to-br from-green-50 to-green-100 dark:from-green-950/30 dark:to-green-900/20 z-0"></div>
+            {/* Ambient Radial Glow on Hover */}
+            <div className="pointer-events-none absolute -inset-px opacity-0 group-hover:opacity-100 transition-opacity duration-500 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-emerald-400/15 via-teal-500/5 to-transparent z-0" />
+            <div className="absolute inset-0 bg-gradient-to-br from-emerald-50/70 via-white/80 to-emerald-100/40 dark:from-emerald-950/25 dark:via-slate-950/80 dark:to-emerald-900/15 z-0" />
 
-            {/* Mycelium-inspired background pattern - moved to bottom to avoid overlap */}
+            {/* Mycelium-inspired background pattern */}
             <div
-              className="absolute bottom-0 left-0 right-0 h-1/3 opacity-5 dark:opacity-10 z-0 overflow-hidden"
+              className="absolute bottom-0 left-0 right-0 h-1/3 opacity-10 dark:opacity-20 z-0 overflow-hidden pointer-events-none"
               aria-hidden="true"
             >
               <svg width="100%" height="100%" viewBox="0 0 100 100" preserveAspectRatio="none">
                 <motion.path
                   d="M0,80 Q25,60 50,80 T100,80"
                   stroke="currentColor"
-                  className="text-green-600"
+                  className="text-emerald-500 dark:text-emerald-400"
                   fill="none"
-                  strokeWidth="0.5"
+                  strokeWidth="0.6"
                   animate={{
                     d: ["M0,80 Q25,60 50,80 T100,80", "M0,80 Q25,65 50,75 T100,80", "M0,80 Q25,60 50,80 T100,80"],
                   }}
@@ -181,9 +180,9 @@ export default function PortalPage() {
                 <motion.path
                   d="M0,90 Q25,70 50,90 T100,90"
                   stroke="currentColor"
-                  className="text-green-600"
+                  className="text-emerald-500 dark:text-emerald-400"
                   fill="none"
-                  strokeWidth="0.5"
+                  strokeWidth="0.6"
                   animate={{
                     d: ["M0,90 Q25,70 50,90 T100,90", "M0,90 Q25,75 50,85 T100,90", "M0,90 Q25,70 50,90 T100,90"],
                   }}
@@ -192,58 +191,80 @@ export default function PortalPage() {
               </svg>
             </div>
 
-            <div className="relative z-10 p-8 bg-white/90 dark:bg-gray-950/90 rounded-xl">
-              <motion.div
-                className="w-16 h-16 rounded-full bg-green-100 dark:bg-green-900/50 flex items-center justify-center mb-6"
-                whileHover={{ rotate: 15, scale: 1.05 }}
-                transition={{ type: "spring", stiffness: 300 }}
-                aria-hidden="true"
-              >
-                <BookOpen className="h-8 w-8 text-green-600 dark:text-green-400" />
-              </motion.div>
-              <h2 className="text-2xl font-serif mb-4 text-green-800 dark:text-green-300">Professional Repertoire</h2>
-              <p className="mb-8 text-gray-700 dark:text-gray-300">
-                Explore my professional journey, tiny endeavors, and the mission musings that define my path to help
-                heal our planet.
+            <div className="relative z-10 p-7 sm:p-9 bg-white/70 dark:bg-slate-950/70 backdrop-blur-md rounded-3xl m-1 border border-white/60 dark:border-slate-800/40">
+              <div className="flex items-center justify-between mb-5">
+                <div
+                  className="w-14 h-14 rounded-2xl bg-emerald-100/80 dark:bg-emerald-950/80 border border-emerald-300/40 dark:border-emerald-700/40 flex items-center justify-center text-emerald-700 dark:text-emerald-300 shadow-sm transition-transform duration-300 group-hover:scale-105"
+                  aria-hidden="true"
+                >
+                  <BookOpen className="h-7 w-7" />
+                </div>
+                <span className="font-mono text-[10px] uppercase font-bold tracking-widest text-emerald-700 dark:text-emerald-400 bg-emerald-100/70 dark:bg-emerald-950/60 px-3 py-1 rounded-full border border-emerald-300/60 dark:border-emerald-800/60">
+                  Systems &bull; Energy &bull; Agency
+                </span>
+              </div>
+
+              <h2 className="text-2xl sm:text-3xl font-serif font-bold mb-3 text-slate-900 dark:text-white group-hover:text-emerald-700 dark:group-hover:text-emerald-300 transition-colors">
+                Professional Repertoire
+              </h2>
+              <p className="mb-7 text-sm sm:text-base text-slate-600 dark:text-slate-300 leading-relaxed">
+                Two decades of engineering and leadership at the frontier of distributed energy, proving that intelligent systems and equitable access are not in conflict.
               </p>
 
-              <div className="grid grid-cols-1 gap-4 mb-8">
-                <motion.div
-                  className="flex items-center gap-3 text-gray-700 dark:text-gray-300 cursor-pointer hover:text-green-600 dark:hover:text-green-400 transition-colors"
-                  whileHover={{ x: 5 }}
-                  transition={{ type: "spring", stiffness: 400 }}
+              <div className="grid grid-cols-1 gap-3 mb-8">
+                <div
+                  className="flex items-center justify-between p-2.5 rounded-xl border border-transparent hover:border-emerald-300/50 hover:bg-emerald-50/60 dark:hover:border-emerald-800/50 dark:hover:bg-emerald-950/40 transition-all cursor-pointer group/link"
                   onClick={(e) => {
                     e.stopPropagation()
                     navigateTo("/professional/me", "Me Until Now")
                   }}
                 >
-                  <BookOpen className="h-5 w-5 text-green-600 dark:text-green-400" aria-hidden="true" />
-                  <span>Me Until Now</span>
-                </motion.div>
-                <motion.div
-                  className="flex items-center gap-3 text-gray-700 dark:text-gray-300 cursor-pointer hover:text-green-600 dark:hover:text-green-400 transition-colors"
-                  whileHover={{ x: 5 }}
-                  transition={{ type: "spring", stiffness: 400 }}
+                  <div className="flex items-center gap-3 text-slate-700 dark:text-slate-200 group-hover/link:text-emerald-700 dark:group-hover/link:text-emerald-300">
+                    <div className="p-1.5 rounded-lg bg-emerald-100/60 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-300">
+                      <BookOpen className="h-4 w-4" aria-hidden="true" />
+                    </div>
+                    <span className="font-serif font-medium text-sm">Me Until Now</span>
+                  </div>
+                  <span className="text-xs font-mono text-emerald-600 dark:text-emerald-400 opacity-0 group-hover/link:opacity-100 transition-opacity">
+                    Trajectory &rarr;
+                  </span>
+                </div>
+
+                <div
+                  className="flex items-center justify-between p-2.5 rounded-xl border border-transparent hover:border-emerald-300/50 hover:bg-emerald-50/60 dark:hover:border-emerald-800/50 dark:hover:bg-emerald-950/40 transition-all cursor-pointer group/link"
                   onClick={(e) => {
                     e.stopPropagation()
                     navigateTo("/professional/endeavors", "Tiny Endeavors")
                   }}
                 >
-                  <Sparkles className="h-5 w-5 text-green-600 dark:text-green-400" aria-hidden="true" />
-                  <span>Tiny Endeavors</span>
-                </motion.div>
-                <motion.div
-                  className="flex items-center gap-3 text-gray-700 dark:text-gray-300 cursor-pointer hover:text-green-600 dark:hover:text-green-400 transition-colors"
-                  whileHover={{ x: 5 }}
-                  transition={{ type: "spring", stiffness: 400 }}
+                  <div className="flex items-center gap-3 text-slate-700 dark:text-slate-200 group-hover/link:text-emerald-700 dark:group-hover/link:text-emerald-300">
+                    <div className="p-1.5 rounded-lg bg-emerald-100/60 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-300">
+                      <Sparkles className="h-4 w-4" aria-hidden="true" />
+                    </div>
+                    <span className="font-serif font-medium text-sm">Tiny Endeavors</span>
+                  </div>
+                  <span className="text-xs font-mono text-emerald-600 dark:text-emerald-400 opacity-0 group-hover/link:opacity-100 transition-opacity">
+                    Research & Live DERs &rarr;
+                  </span>
+                </div>
+
+                <div
+                  className="flex items-center justify-between p-2.5 rounded-xl border border-transparent hover:border-emerald-300/50 hover:bg-emerald-50/60 dark:hover:border-emerald-800/50 dark:hover:bg-emerald-950/40 transition-all cursor-pointer group/link"
                   onClick={(e) => {
                     e.stopPropagation()
                     navigateTo("/professional/musings", "Mission Musings")
                   }}
                 >
-                  <Lightbulb className="h-5 w-5 text-green-600 dark:text-green-400" aria-hidden="true" />
-                  <span>Mission Musings</span>
-                </motion.div>
+                  <div className="flex items-center gap-3 text-slate-700 dark:text-slate-200 group-hover/link:text-emerald-700 dark:group-hover/link:text-emerald-300">
+                    <div className="p-1.5 rounded-lg bg-emerald-100/60 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-300">
+                      <Lightbulb className="h-4 w-4" aria-hidden="true" />
+                    </div>
+                    <span className="font-serif font-medium text-sm">Mission Musings</span>
+                  </div>
+                  <span className="text-xs font-mono text-emerald-600 dark:text-emerald-400 opacity-0 group-hover/link:opacity-100 transition-opacity">
+                    Esse Quam Videri &rarr;
+                  </span>
+                </div>
               </div>
 
               <Button
@@ -251,61 +272,53 @@ export default function PortalPage() {
                   e.stopPropagation()
                   navigateTo("/professional", "Professional Repertoire")
                 }}
-                className="group bg-green-600 hover:bg-green-700 text-white overflow-hidden relative"
+                className="group/btn bg-emerald-700 hover:bg-emerald-600 dark:bg-emerald-600 dark:hover:bg-emerald-500 text-white rounded-xl px-5 py-2.5 shadow-md shadow-emerald-900/10 transition-all"
                 aria-label="Enter Professional World section"
               >
-                <span className="relative z-10 flex items-center">
+                <span className="flex items-center text-sm font-mono font-semibold">
                   Enter Professional World
                   <ArrowRight
-                    className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1"
+                    className="ml-2 h-4 w-4 transition-transform group-hover/btn:translate-x-1"
                     aria-hidden="true"
                   />
                 </span>
-                <motion.span
-                  className="absolute inset-0 bg-green-500"
-                  initial={{ x: "-100%" }}
-                  whileHover={{ x: 0 }}
-                  transition={{ duration: 0.3 }}
-                  aria-hidden="true"
-                />
               </Button>
             </div>
           </motion.div>
 
           {/* Personal World */}
           <motion.div
-            className={`relative overflow-hidden rounded-2xl border transition-all duration-500 cursor-pointer ${
+            className={`group relative overflow-hidden rounded-3xl border transition-all duration-500 cursor-pointer ${
               hoveredWorld === "personal"
-                ? "border-blue-400 shadow-lg shadow-blue-100 dark:shadow-blue-900/20"
+                ? "border-sky-500/80 shadow-2xl shadow-sky-500/20 ring-1 ring-sky-400/30 dark:border-sky-400 dark:shadow-sky-950/70"
                 : hoveredWorld === "professional"
-                  ? "border-gray-200 dark:border-gray-800 opacity-80"
-                  : "border-gray-200 dark:border-gray-800"
-            } dynamic-frame`}
+                  ? "border-slate-200/60 dark:border-slate-800/60 opacity-85"
+                  : "border-slate-200/80 dark:border-slate-800/80 shadow-md hover:border-sky-400/50"
+            }`}
             onMouseEnter={() => setHoveredWorld("personal")}
             onMouseLeave={() => setHoveredWorld(null)}
             onClick={() => navigateTo("/personal", "Mind Wandering")}
-            whileHover={{ y: -8, rotate: 1 }}
+            whileHover={{ y: -4 }}
             transition={{ duration: 0.3 }}
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            style={{
-              transformOrigin: "center",
-            }}
           >
-            <div className="absolute inset-0 bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-950/30 dark:to-blue-900/20 z-0"></div>
+            {/* Ambient Radial Glow on Hover */}
+            <div className="pointer-events-none absolute -inset-px opacity-0 group-hover:opacity-100 transition-opacity duration-500 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-sky-400/15 via-blue-500/5 to-transparent z-0" />
+            <div className="absolute inset-0 bg-gradient-to-br from-sky-50/70 via-white/80 to-blue-100/40 dark:from-sky-950/25 dark:via-slate-950/80 dark:to-blue-900/15 z-0" />
 
-            {/* Mycelium-inspired background pattern - moved to bottom to avoid overlap */}
+            {/* Mycelium-inspired background pattern */}
             <div
-              className="absolute bottom-0 left-0 right-0 h-1/3 opacity-5 dark:opacity-10 z-0 overflow-hidden"
+              className="absolute bottom-0 left-0 right-0 h-1/3 opacity-10 dark:opacity-20 z-0 overflow-hidden pointer-events-none"
               aria-hidden="true"
             >
               <svg width="100%" height="100%" viewBox="0 0 100 100" preserveAspectRatio="none">
                 <motion.path
                   d="M0,80 Q25,100 50,80 T100,80"
                   stroke="currentColor"
-                  className="text-blue-600"
+                  className="text-sky-500 dark:text-sky-400"
                   fill="none"
-                  strokeWidth="0.5"
+                  strokeWidth="0.6"
                   animate={{
                     d: ["M0,80 Q25,100 50,80 T100,80", "M0,80 Q25,95 50,85 T100,80", "M0,80 Q25,100 50,80 T100,80"],
                   }}
@@ -314,9 +327,9 @@ export default function PortalPage() {
                 <motion.path
                   d="M0,90 Q25,110 50,90 T100,90"
                   stroke="currentColor"
-                  className="text-blue-600"
+                  className="text-sky-500 dark:text-sky-400"
                   fill="none"
-                  strokeWidth="0.5"
+                  strokeWidth="0.6"
                   animate={{
                     d: ["M0,90 Q25,110 50,90 T100,90", "M0,90 Q25,105 50,95 T100,90", "M0,90 Q25,110 50,90 T100,90"],
                   }}
@@ -325,58 +338,80 @@ export default function PortalPage() {
               </svg>
             </div>
 
-            <div className="relative z-10 p-8 bg-white/90 dark:bg-gray-950/90 rounded-xl">
-              <motion.div
-                className="w-16 h-16 rounded-full bg-blue-100 dark:bg-blue-900/50 flex items-center justify-center mb-6"
-                whileHover={{ rotate: -15, scale: 1.05 }}
-                transition={{ type: "spring", stiffness: 300 }}
-                aria-hidden="true"
-              >
-                <Palette className="h-8 w-8 text-blue-600 dark:text-blue-400" />
-              </motion.div>
-              <h2 className="text-2xl font-serif mb-4 text-blue-800 dark:text-blue-300">Mind Wandering</h2>
-              <p className="mb-8 text-gray-700 dark:text-gray-300">
-                Discover my creative endeavors, imagery meanderings, and the story that continues to unfold in my
-                imagination.
+            <div className="relative z-10 p-7 sm:p-9 bg-white/70 dark:bg-slate-950/70 backdrop-blur-md rounded-3xl m-1 border border-white/60 dark:border-slate-800/40">
+              <div className="flex items-center justify-between mb-5">
+                <div
+                  className="w-14 h-14 rounded-2xl bg-sky-100/80 dark:bg-sky-950/80 border border-sky-300/40 dark:border-sky-700/40 flex items-center justify-center text-sky-700 dark:text-sky-300 shadow-sm transition-transform duration-300 group-hover:scale-105"
+                  aria-hidden="true"
+                >
+                  <Palette className="h-7 w-7" />
+                </div>
+                <span className="font-mono text-[10px] uppercase font-bold tracking-widest text-sky-700 dark:text-sky-400 bg-sky-100/70 dark:bg-sky-950/60 px-3 py-1 rounded-full border border-sky-300/60 dark:border-sky-800/60">
+                  Art &bull; Imagery &bull; Narrative
+                </span>
+              </div>
+
+              <h2 className="text-2xl sm:text-3xl font-serif font-bold mb-3 text-slate-900 dark:text-white group-hover:text-sky-700 dark:group-hover:text-sky-300 transition-colors">
+                Mind Wandering
+              </h2>
+              <p className="mb-7 text-sm sm:text-base text-slate-600 dark:text-slate-300 leading-relaxed">
+                A calm space for creative explorations, photography meanderings across continents, and written fragments that continue to unfold.
               </p>
 
-              <div className="grid grid-cols-1 gap-4 mb-8">
-                <motion.div
-                  className="flex items-center gap-3 text-gray-700 dark:text-gray-300 cursor-pointer hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
-                  whileHover={{ x: 5 }}
-                  transition={{ type: "spring", stiffness: 400 }}
+              <div className="grid grid-cols-1 gap-3 mb-8">
+                <div
+                  className="flex items-center justify-between p-2.5 rounded-xl border border-transparent hover:border-sky-300/50 hover:bg-sky-50/60 dark:hover:border-sky-800/50 dark:hover:bg-sky-950/40 transition-all cursor-pointer group/link"
                   onClick={(e) => {
                     e.stopPropagation()
                     navigateTo("/personal/creative", "Creative Endeavors")
                   }}
                 >
-                  <Palette className="h-5 w-5 text-blue-600 dark:text-blue-400" aria-hidden="true" />
-                  <span>Creative Endeavors</span>
-                </motion.div>
-                <motion.div
-                  className="flex items-center gap-3 text-gray-700 dark:text-gray-300 cursor-pointer hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
-                  whileHover={{ x: 5 }}
-                  transition={{ type: "spring", stiffness: 400 }}
+                  <div className="flex items-center gap-3 text-slate-700 dark:text-slate-200 group-hover/link:text-sky-700 dark:group-hover/link:text-sky-300">
+                    <div className="p-1.5 rounded-lg bg-sky-100/60 dark:bg-sky-900/40 text-sky-700 dark:text-sky-300">
+                      <Palette className="h-4 w-4" aria-hidden="true" />
+                    </div>
+                    <span className="font-serif font-medium text-sm">Creative Endeavors</span>
+                  </div>
+                  <span className="text-xs font-mono text-sky-600 dark:text-sky-400 opacity-0 group-hover/link:opacity-100 transition-opacity">
+                    Art & Projects &rarr;
+                  </span>
+                </div>
+
+                <div
+                  className="flex items-center justify-between p-2.5 rounded-xl border border-transparent hover:border-sky-300/50 hover:bg-sky-50/60 dark:hover:border-sky-800/50 dark:hover:bg-sky-950/40 transition-all cursor-pointer group/link"
                   onClick={(e) => {
                     e.stopPropagation()
                     navigateTo("/personal/imagery", "Imagery Meanderings")
                   }}
                 >
-                  <Camera className="h-5 w-5 text-blue-600 dark:text-blue-400" aria-hidden="true" />
-                  <span>Imagery Meanderings</span>
-                </motion.div>
-                <motion.div
-                  className="flex items-center gap-3 text-gray-700 dark:text-gray-300 cursor-pointer hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
-                  whileHover={{ x: 5 }}
-                  transition={{ type: "spring", stiffness: 400 }}
+                  <div className="flex items-center gap-3 text-slate-700 dark:text-slate-200 group-hover/link:text-sky-700 dark:group-hover/link:text-sky-300">
+                    <div className="p-1.5 rounded-lg bg-sky-100/60 dark:bg-sky-900/40 text-sky-700 dark:text-sky-300">
+                      <Camera className="h-4 w-4" aria-hidden="true" />
+                    </div>
+                    <span className="font-serif font-medium text-sm">Imagery Meanderings</span>
+                  </div>
+                  <span className="text-xs font-mono text-sky-600 dark:text-sky-400 opacity-0 group-hover/link:opacity-100 transition-opacity">
+                    Photo Journeys &rarr;
+                  </span>
+                </div>
+
+                <div
+                  className="flex items-center justify-between p-2.5 rounded-xl border border-transparent hover:border-sky-300/50 hover:bg-sky-50/60 dark:hover:border-sky-800/50 dark:hover:bg-sky-950/40 transition-all cursor-pointer group/link"
                   onClick={(e) => {
                     e.stopPropagation()
                     navigateTo("/personal/story", "The Story Is Being Written")
                   }}
                 >
-                  <PenTool className="h-5 w-5 text-blue-600 dark:text-blue-400" aria-hidden="true" />
-                  <span>The Story Is Being Written</span>
-                </motion.div>
+                  <div className="flex items-center gap-3 text-slate-700 dark:text-slate-200 group-hover/link:text-sky-700 dark:group-hover/link:text-sky-300">
+                    <div className="p-1.5 rounded-lg bg-sky-100/60 dark:bg-sky-900/40 text-sky-700 dark:text-sky-300">
+                      <PenTool className="h-4 w-4" aria-hidden="true" />
+                    </div>
+                    <span className="font-serif font-medium text-sm">The Story Is Being Written</span>
+                  </div>
+                  <span className="text-xs font-mono text-sky-600 dark:text-sky-400 opacity-0 group-hover/link:opacity-100 transition-opacity">
+                    Fragments & Writing &rarr;
+                  </span>
+                </div>
               </div>
 
               <Button
@@ -384,23 +419,16 @@ export default function PortalPage() {
                   e.stopPropagation()
                   navigateTo("/personal", "Mind Wandering")
                 }}
-                className="group bg-blue-600 hover:bg-blue-700 text-white overflow-hidden relative"
+                className="group/btn bg-sky-700 hover:bg-sky-600 dark:bg-sky-600 dark:hover:bg-sky-500 text-white rounded-xl px-5 py-2.5 shadow-md shadow-sky-900/10 transition-all"
                 aria-label="Enter Personal World section"
               >
-                <span className="relative z-10 flex items-center">
+                <span className="flex items-center text-sm font-mono font-semibold">
                   Enter Personal World
                   <ArrowRight
-                    className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1"
+                    className="ml-2 h-4 w-4 transition-transform group-hover/btn:translate-x-1"
                     aria-hidden="true"
                   />
                 </span>
-                <motion.span
-                  className="absolute inset-0 bg-blue-500"
-                  initial={{ x: "-100%" }}
-                  whileHover={{ x: 0 }}
-                  transition={{ duration: 0.3 }}
-                  aria-hidden="true"
-                />
               </Button>
             </div>
           </motion.div>
