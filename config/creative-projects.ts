@@ -63,7 +63,8 @@ export interface CreativeProjectConfig {
 
 export const creativeProjectOverrides: Record<string, CreativeProjectConfig> = {
   "highschool-turbine": {
-    title: "Catch the Wind",
+    title: "Wrangling the wind: High-school turbine carving & carbon fiber spins",
+    subtitle: "Inner Mongolian breezes, hands-on blade carving, and renewable energy roots",
     tags: ["sustainability", "engineering", "DIY", "renewable energy"],
     description:
       "After witnessing the winds of Inner Mongolia and observing wind and solar technologies begin to gain traction around the world, I undertook my first endeavor: carving and assembling a wind turbine from carbon fiber.",
@@ -103,7 +104,8 @@ export const creativeProjectOverrides: Record<string, CreativeProjectConfig> = {
     ],
   },
   "edible-science-experiments": {
-    title: "Edible Science Experiments",
+    title: "Kitchen alchemy: Edible science experiments in nutrient density",
+    subtitle: "Casein emulsification, sodium citrate chemistry & cruciferous homesteading",
     tags: ["food science", "nutrition", "gastronomy", "DIY"],
     description:
       "Optimizing the Venn diagram of nutrient density and gastronomical bliss points through hands-on kitchen experimentation.",
@@ -181,7 +183,7 @@ export const creativeProjectOverrides: Record<string, CreativeProjectConfig> = {
     ],
   },
   "grid-alternatives-habitat-for-humanity": {
-    title: "Rooftops for Neighbors",
+    title: "Torquing rails under the sun: Community solar & Habitat builds",
     subtitle: "Three volunteer solar installs, 2007",
     cover: "San Bruno 5-26-07/516832024_0ef56d837c_b.jpg",
     clusterSectionTitle: "The Rooftops",

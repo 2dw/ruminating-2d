@@ -36,9 +36,11 @@ export default function CreativePoetryPage() {
               <PenTool className="h-7 w-7" />
             </div>
             <div>
-              <h1 className="text-4xl font-serif font-bold text-slate-900 dark:text-white">Poetry & Reflections</h1>
+              <h1 className="text-3xl font-serif font-bold text-slate-900 sm:text-4xl dark:text-white">
+                Ink in the undergrowth: Cadences of ecology and identity
+              </h1>
               <p className="mt-2 max-w-2xl text-sm text-slate-600 dark:text-slate-400">
-                Writing that explores identity, belonging, and our relationship with the natural world.
+                Writing and fragments that explore identity, belonging, and our relationship with the natural world.
               </p>
             </div>
           </div>

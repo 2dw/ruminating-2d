@@ -51,8 +51,8 @@ const baseCreativeProjects: CreativeProjectCard[] = [
   },
   {
     id: "poetry",
-    title: "Poetry & Reflections",
-    subtitle: "Language, identity, and natural systems",
+    title: "Ink in the undergrowth: Cadences of ecology and identity",
+    subtitle: "Language, belonging, and natural systems",
     description:
       "Poems and reflective fragments that process belonging, connection, and the quiet wisdom of the natural world.",
     href: "/personal/creative/poetry",
