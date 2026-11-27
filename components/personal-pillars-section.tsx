@@ -363,12 +363,22 @@ export const BiomimeticFieldNotes: React.FC = () => {
 }
 
 // ============================================================================
-// INFOGRAPHIC 3: THE THRESHOLD SANDBOX (TRANSITION / TRANSLATION / TRANSGRESSION)
+// INFOGRAPHIC 3: THE THRESHOLD SANDBOX (TRANSITION / TRANSLATION / TRANSCENDENCE)
 // ============================================================================
 export const ThresholdSandbox: React.FC = () => {
-  const [mode, setMode] = useState<"transition" | "translation" | "transgression">("transition")
-  const [translationView, setTranslationView] = useState<"raw" | "poetic">("poetic")
-  const [transgressBlend, setTransgressBlend] = useState(50)
+  const [mode, setMode] = useState<"transition" | "translation" | "transcendence">("transcendence")
+  const [translationView, setTranslationView] = useState<"raw" | "architecture" | "poetic">("poetic")
+  const [escapeVelocity, setEscapeVelocity] = useState(85)
+  const [pulseActive, setPulseActive] = useState(false)
+
+  const triggerPulse = () => {
+    setPulseActive(true)
+    setTimeout(() => setPulseActive(false), 900)
+  }
+
+  // Velocity calculation: 0 to 11.2 km/s
+  const currentSpeed = (escapeVelocity * 0.112).toFixed(1)
+  const isEscapeAchieved = escapeVelocity >= 75
 
   return (
     <div className="rounded-2xl border border-slate-200/90 bg-white/80 p-5 shadow-sm backdrop-blur-md dark:border-slate-800/90 dark:bg-slate-900/80">
@@ -380,14 +390,14 @@ export const ThresholdSandbox: React.FC = () => {
           </h4>
         </div>
         <div className="flex gap-1">
-          {(["transition", "translation", "transgression"] as const).map((m) => (
+          {(["transition", "translation", "transcendence"] as const).map((m) => (
             <button
               key={m}
               type="button"
               onClick={() => setMode(m)}
               className={`rounded-lg px-2.5 py-1 text-xs font-medium capitalize transition touch-manipulation ${
                 mode === m
-                  ? "bg-slate-900 text-white dark:bg-white dark:text-slate-900 shadow-xs"
+                  ? "bg-indigo-600 text-white dark:bg-indigo-500 dark:text-slate-950 shadow-xs font-semibold"
                   : "text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white"
               }`}
             >
@@ -399,29 +409,66 @@ export const ThresholdSandbox: React.FC = () => {
 
       {/* MODE 1: TRANSITION */}
       {mode === "transition" && (
-        <div className="space-y-3">
-          <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
-            Continuous analog phenomenon crosses sensor thresholds into discrete quantized state—and flows back as human agency:
-          </p>
+        <div className="space-y-3.5">
+          <div className="flex items-center justify-between">
+            <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed max-w-sm">
+              Analog physical phenomenon crosses the sensor threshold into discrete state:
+            </p>
+            <button
+              type="button"
+              onClick={triggerPulse}
+              className="rounded-full border border-indigo-300 bg-indigo-50 px-2.5 py-1 text-[11px] font-mono font-semibold text-indigo-700 hover:bg-indigo-100 dark:border-indigo-800 dark:bg-indigo-950/60 dark:text-indigo-300"
+            >
+              ⚡ Pulse Signal
+            </button>
+          </div>
+
           <div className="grid grid-cols-3 gap-2 text-center text-xs">
-            <div className="rounded-xl border border-slate-200 bg-slate-50 p-3 dark:border-slate-800 dark:bg-slate-800/60">
-              <span className="block font-bold text-slate-900 dark:text-white">Physical World</span>
-              <span className="mt-1 block text-[11px] text-slate-500">Photons &bull; Graphite &bull; Heat</span>
-              <span className="mt-2 inline-block rounded-md bg-amber-100 px-2 py-0.5 text-[10px] font-mono text-amber-800 dark:bg-amber-950 dark:text-amber-300">
+            <div className="rounded-xl border border-slate-200 bg-slate-50 p-3 dark:border-slate-800 dark:bg-slate-800/60 flex flex-col justify-between">
+              <div>
+                <span className="block font-bold text-slate-900 dark:text-white">Physical World</span>
+                <span className="mt-1 block text-[11px] text-slate-500">Photons &bull; Kinetic &bull; Heat</span>
+              </div>
+              <span
+                className={`mt-2 inline-block rounded-md px-2 py-0.5 text-[10px] font-mono transition-colors ${
+                  pulseActive
+                    ? "bg-amber-400 text-slate-950 font-bold"
+                    : "bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300"
+                }`}
+              >
                 Continuous Wave
               </span>
             </div>
-            <div className="flex flex-col items-center justify-center rounded-xl border border-indigo-500/40 bg-indigo-500/10 p-3">
+
+            <div
+              className={`flex flex-col items-center justify-center rounded-xl border p-3 transition-all duration-300 ${
+                pulseActive
+                  ? "border-indigo-400 bg-indigo-500/25 scale-[1.03] shadow-md shadow-indigo-500/20"
+                  : "border-indigo-500/40 bg-indigo-500/10"
+              }`}
+            >
               <span className="font-mono text-[11px] font-bold text-indigo-700 dark:text-indigo-300">
                 &harr; e&minus; Membrane &harr;
               </span>
-              <span className="text-[10px] text-slate-500">Transduction & Sampling</span>
+              <span className="text-[10px] text-slate-500 mt-1">Transduction & Sampling</span>
+              <span className="font-mono text-[9px] text-indigo-600 dark:text-indigo-400 mt-1">
+                {pulseActive ? "Sampling: 1000 Hz" : "Ready"}
+              </span>
             </div>
-            <div className="rounded-xl border border-slate-200 bg-slate-50 p-3 dark:border-slate-800 dark:bg-slate-800/60">
-              <span className="block font-bold text-slate-900 dark:text-white">Digital World</span>
-              <span className="mt-1 block text-[11px] text-slate-500">Telemetry &bull; State &bull; Grid</span>
-              <span className="mt-2 inline-block rounded-md bg-sky-100 px-2 py-0.5 text-[10px] font-mono text-sky-800 dark:bg-sky-950 dark:text-sky-300">
-                Discrete Quanta
+
+            <div className="rounded-xl border border-slate-200 bg-slate-50 p-3 dark:border-slate-800 dark:bg-slate-800/60 flex flex-col justify-between">
+              <div>
+                <span className="block font-bold text-slate-900 dark:text-white">Digital World</span>
+                <span className="mt-1 block text-[11px] text-slate-500">Telemetry &bull; State &bull; Grid</span>
+              </div>
+              <span
+                className={`mt-2 inline-block rounded-md px-2 py-0.5 text-[10px] font-mono transition-colors ${
+                  pulseActive
+                    ? "bg-sky-400 text-slate-950 font-bold"
+                    : "bg-sky-100 text-sky-800 dark:bg-sky-950 dark:text-sky-300"
+                }`}
+              >
+                {pulseActive ? "0xA4 // SAMPLED" : "Discrete Quanta"}
               </span>
             </div>
           </div>
@@ -431,70 +478,155 @@ export const ThresholdSandbox: React.FC = () => {
       {/* MODE 2: TRANSLATION */}
       {mode === "translation" && (
         <div className="space-y-3">
-          <div className="flex items-center justify-between">
+          <div className="flex flex-wrap items-center justify-between gap-2">
             <p className="text-xs text-slate-600 dark:text-slate-300">
-              How the exact same electron event is decoded for machine vs. human perception:
+              Three perceptual decoders for the exact same underlying electron telemetry:
             </p>
-            <button
-              type="button"
-              onClick={() => setTranslationView(translationView === "raw" ? "poetic" : "raw")}
-              className="rounded-full border border-slate-300 bg-slate-100 px-3 py-1 font-mono text-xs font-semibold text-slate-800 hover:bg-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200"
-            >
-              Switch to {translationView === "raw" ? "Human Lens" : "Raw JSON"}
-            </button>
+            <div className="flex rounded-lg border border-slate-200 bg-slate-100 p-0.5 dark:border-slate-800 dark:bg-slate-800 font-mono text-[10.5px]">
+              {[
+                { id: "raw" as const, label: "Machine JSON" },
+                { id: "architecture" as const, label: "Systems OPF" },
+                { id: "poetic" as const, label: "Human Narrative" },
+              ].map((v) => (
+                <button
+                  key={v.id}
+                  type="button"
+                  onClick={() => setTranslationView(v.id)}
+                  className={`px-2 py-0.5 rounded-md transition ${
+                    translationView === v.id
+                      ? "bg-white text-slate-900 dark:bg-slate-950 dark:text-white font-bold shadow-2xs"
+                      : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
+                  }`}
+                >
+                  {v.label}
+                </button>
+              ))}
+            </div>
           </div>
 
-          {translationView === "raw" ? (
+          {translationView === "raw" && (
             <pre className="overflow-x-auto rounded-xl border border-slate-800 bg-slate-950 p-3.5 font-mono text-[11px] text-emerald-400">
 {`{
   "node_id": "oakland_ecoblock_04",
   "solar_gen_kw": 4.82,
   "battery_soc_pct": 88.4,
   "grid_frequency_hz": 60.002,
+  "dlmp_clearing_usd_kwh": 0.042,
   "transactive_mode": "ISLAND_READY // RECIPROCAL_EXPORT"
 }`}
             </pre>
-          ) : (
+          )}
+
+          {translationView === "architecture" && (
+            <div className="rounded-xl border border-sky-500/20 bg-sky-500/5 p-3.5 font-mono text-xs text-slate-700 dark:text-slate-300 space-y-1.5">
+              <div className="flex justify-between border-b border-sky-500/10 pb-1">
+                <span className="text-sky-700 dark:text-sky-400 font-bold">Consensus State:</span>
+                <span>Converged (ADMM Iteration #14)</span>
+              </div>
+              <div className="flex justify-between border-b border-sky-500/10 pb-1">
+                <span className="text-sky-700 dark:text-sky-400 font-bold">Nodal Margin (DLMP):</span>
+                <span>$0.042 / kWh &bull; Exporting 2.1 kW</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-sky-700 dark:text-sky-400 font-bold">Voltage Constraint:</span>
+                <span>1.018 p.u. (Within &plusmn;5% ANSI Limits)</span>
+              </div>
+            </div>
+          )}
+
+          {translationView === "poetic" && (
             <div className="rounded-xl border border-indigo-500/20 bg-indigo-500/5 p-4 text-xs sm:text-sm text-slate-700 dark:text-slate-300 leading-relaxed font-serif">
               <span className="font-sans font-bold text-indigo-700 dark:text-indigo-400 block mb-1">
-                Human-Scale Translation: Quiet Surplus
+                Human & Ecological Sense: Quiet Abundance
               </span>
-              Afternoon sunlight has topped the community battery reserve to 88%. The block is self-sufficient, steady at 60.0 Hz, and quietly exporting clean solar buffers to neighboring homes without drawing from the macro-grid.
+              Afternoon sunlight has quietly filled the community battery to 88%. The block is self-sufficient, steady at 60.0 Hz, and buffering clean power to neighboring families without burning gas at a peaker plant or placing stress on the regional grid.
             </div>
           )}
         </div>
       )}
 
-      {/* MODE 3: TRANSGRESSION */}
-      {mode === "transgression" && (
-        <div className="space-y-3">
-          <div className="flex justify-between font-mono text-[11px] text-slate-500 dark:text-slate-400">
-            <span>&larr; Tactile Fine Art & Pencil</span>
-            <span>Distributed Systems Code &rarr;</span>
+      {/* MODE 3: TRANSCENDENCE */}
+      {mode === "transcendence" && (
+        <div className="space-y-4">
+          {/* Orbital Flightpath Graphic */}
+          <div className="rounded-xl border border-indigo-500/30 bg-gradient-to-r from-slate-950 via-indigo-950/60 to-slate-950 p-3.5 text-white">
+            <div className="flex items-center justify-between mb-2 font-mono text-xs">
+              <div className="flex items-center gap-1.5">
+                <Sparkles className="h-3.5 w-3.5 text-indigo-400" />
+                <span className="font-bold tracking-wider uppercase text-indigo-200">
+                  Escape Velocity Trajectory
+                </span>
+              </div>
+              <span
+                className={`rounded-full px-2.5 py-0.5 text-[10px] font-bold ${
+                  isEscapeAchieved
+                    ? "bg-emerald-500/20 text-emerald-300 border border-emerald-400/40"
+                    : "bg-indigo-500/20 text-indigo-300 border border-indigo-400/30"
+                }`}
+              >
+                v = {currentSpeed} km/s {isEscapeAchieved ? "• Escaped Gravity" : "• Sub-Orbital"}
+              </span>
+            </div>
+
+            {/* Flightpath Progress Bar */}
+            <div className="h-2.5 w-full bg-slate-900 rounded-full overflow-hidden border border-indigo-900/60 relative">
+              <div
+                className="h-full bg-gradient-to-r from-amber-500 via-sky-500 to-emerald-400 transition-all duration-200"
+                style={{ width: `${escapeVelocity}%` }}
+              />
+              {/* Escape Velocity Threshold Mark */}
+              <div className="absolute top-0 bottom-0 left-3/4 w-0.5 bg-white/80 z-10" />
+            </div>
+
+            <div className="mt-1 flex justify-between font-mono text-[9.5px] text-slate-400">
+              <span>0 km/s (Grounded Friction)</span>
+              <span className="text-indigo-300 font-semibold">11.2 km/s (Escape Threshold)</span>
+              <span>Constellation</span>
+            </div>
           </div>
-          <input
-            type="range"
-            min={0}
-            max={100}
-            value={transgressBlend}
-            onChange={(e) => setTransgressBlend(Number(e.target.value))}
-            aria-label="Disciplinary Transgression Slider"
-            className="h-2 w-full cursor-pointer appearance-none rounded-lg bg-slate-200 accent-indigo-600 dark:bg-slate-800 dark:accent-indigo-400"
-          />
-          <div className="rounded-xl border border-slate-200 bg-slate-50 p-3 text-xs leading-relaxed text-slate-700 dark:border-slate-800 dark:bg-slate-800/60 dark:text-slate-300">
-            {transgressBlend < 35 && (
+
+          {/* Escape Velocity Slider */}
+          <div>
+            <div className="mb-1 flex justify-between font-mono text-[11px] text-slate-500 dark:text-slate-400">
+              <span>&larr; Tactile Craft (Grounded Anchor)</span>
+              <span>Systems Optimization</span>
+              <span>Transcendence (Better Planet) &rarr;</span>
+            </div>
+            <input
+              type="range"
+              min={0}
+              max={100}
+              value={escapeVelocity}
+              onChange={(e) => setEscapeVelocity(Number(e.target.value))}
+              aria-label="Escape Velocity Slider"
+              className="h-2 w-full cursor-pointer appearance-none rounded-lg bg-slate-200 accent-indigo-600 dark:bg-slate-800 dark:accent-indigo-400"
+            />
+          </div>
+
+          {/* Dynamic Content Panel */}
+          <div className="rounded-xl border border-slate-200 bg-slate-50/90 p-4 text-xs leading-relaxed text-slate-700 dark:border-slate-800 dark:bg-slate-800/60 dark:text-slate-300">
+            {escapeVelocity < 35 && (
               <>
-                <strong className="text-slate-900 dark:text-white">Tactile Craft:</strong> High-friction graphite studies on paper, hand-sculpted carbon fiber wind blades, and unhurried medium-format light observations—unmediated by glass screens.
+                <strong className="text-slate-900 dark:text-white block font-sans mb-1 text-sm">
+                  Stage I &bull; Gravitational Anchor (Tactile Craft)
+                </strong>
+                Friction of the physical: the raw drag of pencil lead digging into cellulose paper grain, hand-shaping carbon fiber turbine blades, torquing solar rails in the afternoon sun. Grounded, unmediated, and rooted in the physical reality of materials.
               </>
             )}
-            {transgressBlend >= 35 && transgressBlend <= 65 && (
+            {escapeVelocity >= 35 && escapeVelocity < 75 && (
               <>
-                <strong className="text-indigo-700 dark:text-indigo-400">Liminal Transgression:</strong> Real-time DER telemetry rendered as living organic waveforms; generative code structured like coastal sandstone erosion; engineering whitepapers written with the poetic sensibility of natural systems.
+                <strong className="text-indigo-700 dark:text-indigo-300 block font-sans mb-1 text-sm">
+                  Stage II &bull; Atmospheric Acceleration (Systems Architecture)
+                </strong>
+                Scaling the machine: multi-period AC optimal power flow, second-by-second transactive consensus, and stochastic digital twins. Rigorous computation deployed to coordinate millions of distributed devices.
               </>
             )}
-            {transgressBlend > 65 && (
+            {escapeVelocity >= 75 && (
               <>
-                <strong className="text-slate-900 dark:text-white">Systems Optimization:</strong> Model predictive control, multi-period AC optimal power flow, and bidirectional transactive market settlements.
+                <strong className="text-emerald-700 dark:text-emerald-400 block font-sans mb-1 text-sm">
+                  Stage III &bull; Escape Velocity & Transcendence (Better Self & Better Planet)
+                </strong>
+                Breaking free of artificial silos. Technology ceases to be an extractive mechanism and becomes a living instrument of human agency and planetary reciprocity. Telemetry breathes as organic art, engineering serves community sovereignty, and analytical rigor unites with poetic humility to lift both self and planet.
               </>
             )}
           </div>
@@ -540,14 +672,14 @@ export function PersonalPillarsSection() {
     {
       num: "03",
       kicker: "Liminal • Kinetic • Digital",
-      title: "The interface: experimenting between the transition, translation, and transgressions of worlds through the currency of electrons",
-      subtitle: "The Liminal Medium",
+      title: "The interface: experimenting between the transition, translation, and transcendence of worlds through the currency of electrons",
+      subtitle: "The Liminal Medium & Escape Velocity",
       axiom: "Agency > Automation",
       essay: [
         "Whether moving across a utility transformer or a glowing glass screen, electrons are the quiet currency that turns intent into action. Yet most digital interfaces treat human beings as passive endpoints—smoothing away friction until agency quietly disappears.",
-        "I treat the interface as a threshold worth testing. Transition is the crossing between physical sensation and digital state; translation is the craft of turning raw telemetry, code, or light into something a human nervous system can intuitively grasp; and transgression is the playful refusal to respect artificial silos—bringing poetic sensibility into engineering tools, and analytical rigor into art. Whether building open-source experiments, wiring home energy telemetry, or framing light through a sensor, I build interfaces meant to sharpen human perception rather than replace it.",
+        "I treat the interface as a threshold worth testing. Transition is the crossing between physical sensation and digital state; translation is the craft of turning raw telemetry, code, or light into something a human nervous system can intuitively grasp; and transcendence is achieving escape velocity beyond artificial silos—refusing to choose between analytical rigor and poetic wonder, between building scalable infrastructure and cultivating the spirit. It is the leap where technology stops merely optimizing efficiency and begins elevating human agency, ecological reciprocity, and a better planet.",
       ],
-      tags: ["Digital Craft", "Human-Machine Threshold", "Electron Currency", "Agency > Automation"],
+      tags: ["Digital Craft", "Human-Machine Threshold", "Electron Currency", "Escape Velocity", "Transcendence"],
       component: <ThresholdSandbox />,
     },
   ]
