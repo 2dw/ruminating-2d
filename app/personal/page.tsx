@@ -5,6 +5,8 @@ import { motion } from "framer-motion"
 import { Camera, Palette, PenTool, ArrowRight, Sparkles, Compass, Eye, Heart } from "lucide-react"
 import { useRouter } from "next/navigation"
 
+import { PersonalPillarsSection } from "@/components/personal-pillars-section"
+
 const sections = [
   {
     title: "Creative Endeavors",
@@ -156,6 +158,9 @@ export default function PersonalWorld() {
             </motion.button>
           ))}
         </section>
+
+        {/* Lived Philosophy & Pillars of Practice */}
+        <PersonalPillarsSection />
 
       </main>
     </div>

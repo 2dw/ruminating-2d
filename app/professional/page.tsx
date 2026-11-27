@@ -5,6 +5,8 @@ import { motion, AnimatePresence } from "framer-motion"
 import { BookOpen, Sparkles, Lightbulb, Linkedin, ExternalLink, Zap, Network, Layers, ShieldCheck, Compass, ArrowRight } from "lucide-react"
 import { useRouter } from "next/navigation"
 
+import { ProfessionalRoadmapPillars } from "@/components/professional-roadmap-pillars"
+
 const sections = [
   {
     title: "Me Until Now",
@@ -156,6 +158,9 @@ export default function ProfessionalPage() {
             </motion.button>
           ))}
         </section>
+
+        {/* The Transactive Energy Roadmap Pillars */}
+        <ProfessionalRoadmapPillars />
 
         {/* Thought Leadership Venues Strip */}
         <motion.div
